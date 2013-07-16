@@ -45,7 +45,7 @@ setup(name='plone_fb_messaging',
           'zope.interface',
           'zope.schema',
           'Zope2',
-          'firebase_token_generator>=1.5',
+          'firebase_token_generator',
           #'requests',
       ],
       dependency_links=[

@@ -11,8 +11,7 @@ module.exports = function(grunt) {
         files: {
           'plone_fb_messaging/static/dist/': [
             collect.bower('angular').path('angular.js'),
-            collect.bower('angularFire').path('angularFire.js'),
-            collect.bower('angular-elastic').path('elastic.js')
+            collect.bower('angularFire').path('angularFire.js')
           ]
         }
       }
@@ -33,8 +32,7 @@ module.exports = function(grunt) {
       'default': {
         files: [
           collect.bower('angular').path('angular.js'),
-          collect.bower('angularFire').path('angularFire.js'),
-          collect.bower('angular-elastic').path('elastic.js')
+          collect.bower('angularFire').path('angularFire.js')
         ],
         tasks: ['copy:default', 'uglify:default']
       }
