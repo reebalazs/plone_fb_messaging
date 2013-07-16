@@ -1,0 +1,32 @@
+
+collective_firebase general issues:
+
+  + check for correct handling of the secret / auth token in the python script. @done (13-04-29 14:20)
+
+  - fix animation for the inline editing of own issue.
+
+  - provide config link in setup to point to portal_properties/firebase_properties/manage_workspace
+
+Problems solved initially:
+
+  + angular-firebase is a newer version, so we have to include angularFire.js. @done (13-04-15 12:45)
+
+  + need to add ++resource++angular.js to RR profile. @cancelled (13-04-15 11:54) @done (13-04-22 16:19)
+
+  + the production of ++resource++angular.js needs a Gruntfile.js. @done (13-04-15 12:40) 
+
+  + cancel-submit button. @done (13-04-22 16:17)
+
+  + The gruntfile should rather be in the src package, but then an error occurs. @done (13-04-22 16:17) - I made the buildout and the egg to be a combined package.
+
+  + angular-firebase is a newer version, so we have to include angularFire.js. Find the bower package so we don't need this! @done (13-04-27 11:33)
+
+  + Error: Firebase.push failed: first argument contains undefined in property 'content' @done (13-04-27 12:13)
+
+  + handle linebreaks entered in the textbox, correctly. @done (13-04-28 13:06)
+
+
+Future:
+
+  - Find also a firebase.js instead of the one that currently comes from CDN.
+

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<object name="portal_javascripts" meta_type="JavaScripts Registry">
+    <javascript id="++resource++fb_messaging/dist/angular.min.js"
+        compression="none"/>
+    <javascript id="++resource++fb_messaging/dist/components/angularFire/angularFire.js"
+         />
+    <javascript id="++resource++fb_messaging/collective_firebase.js"
+         />
+</object>

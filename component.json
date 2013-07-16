@@ -1,0 +1,8 @@
+{
+    "name": "plone_fb_messaging",
+    "version": "0.1.0",
+    "dependencies": {
+        "angular": "~1.0.5",
+        "angularFire": "https://github.com/firebase/angularFire.git"
+    }
+}
