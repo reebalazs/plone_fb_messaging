@@ -21,7 +21,7 @@
   </div>
 
   <p></p>
-  <!--div id="messagesDiv" style="height:500px;">
+  <div id="messagesDiv" style="height:500px;">
     <div ng-cloak ng-repeat="message in messages">
       <em>{{message.from}}: </em>{{message.content}}
     </div>
@@ -29,7 +29,7 @@
   <form ng-submit="addMessage()">
     <input type="text" ng-model="message" placeholder="Message...">
     <input type="submit" id="submit" value="Send" style="font-size:24px;">
-  </form-->
+  </form>
   <script src="https://cdn.firebase.com/v0/firebase.js"></script>
   <script src="./dist/bower_components/angularFire/angularFire.js"></script>
   <script src="./fb_messaging.js"></script>
