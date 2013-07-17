@@ -1,14 +1,11 @@
-
-
 var app = angular.module('messaging', ['firebase']);
 
 var url = 'https://plone-presence.firebaseio-demo.com/';
 
-app.controller('MessagingController', ['$scope', '$timeout', 'angularFire',
-        'angularFireCollection', '$q',
+app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
-
-        $scope.username = 'Anonymous';
+		var username = $.cookie('username');
+        $scope.username = username === undefined ? 'Anonymous' : username; //Runs before user has chance to enter username, so we can't just read input
         var $el = $('#messagesDiv');
 
         // Log me in.
@@ -50,32 +47,35 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire',
 
         $scope.messages = angularFireCollection(url + '/messages', function() {
             $timeout(function () {
-                $el.scrollTop = $el.scrollHeight;
-            });
+                $el[0].scrollTop = $el[0].scrollHeight;
+            }); //Why is this wrapped in a 0 ms timeout if it's already in a callback?
         });
 
         $scope.addMessage = function () {
             $scope.messages.add({from: $scope.username, content: $scope.message}, function() {
-                $el.scrollTop = $el.scrollHeight;
+                $el.animate({scrollTop: $el[0].scrollHeight}, 500);
             });
-            $scope.message = "";
+            $scope.message = '';
 
             // prevent double click warning for this form
             // (this is a hack needed for Plone)
             //$root.find('input[value="Send"]')
             //    .removeClass('submitting');
-
         };
 
         $scope.updateUsername = function () {
-            // save this to a cookie
-            //document.cookie = $scope.USERNAME_COOKIE +
-            //    "=" + escape($scope.username) + "; path=/";
+			$.cookie('username', $('#username').val());
         };
-
-    }
-
+	}
 ]);
 
-
-
+app.filter('online', function() {
+	return function(users) {
+		var result = new Object();
+		$.each(users, function(name, user) {
+			if(user.online)
+				result[name] = user;
+		});
+		return result;
+	}
+});

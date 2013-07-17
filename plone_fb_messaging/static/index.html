@@ -10,28 +10,31 @@
 <body ng-controller="MessagingController">
 
   <div>
-    <label for="">Your name: </label><input type="text" ng-model="username">
+    <label for="username">Your name: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
   </div>
 
-  <div>
-    Logged in users:
-      <div class="user" ng-cloak ng-repeat="(name, user) in users  | filter: user.online">
-              {{name}}
+  <div class="users">
+    <strong>Logged in users:</strong>
+      <div class="user" ng-cloak ng-repeat="(name, user) in users | online:user">
+	    {{name}}
       </div>
   </div>
 
   <p></p>
-  <div id="messagesDiv" style="height:500px;">
-    <div ng-cloak ng-repeat="message in messages">
+  <div class="messages" id="messagesDiv">
+    <div class="message" ng-cloak ng-repeat="message in messages">
       <em>{{message.from}}: </em>{{message.content}}
     </div>
   </div>
+  
   <form ng-submit="addMessage()">
-    <input type="text" ng-model="message" placeholder="Message...">
-    <input type="submit" id="submit" value="Send" style="font-size:24px;">
+    <input type="text" ng-model="message" placeholder="Message..." required>
+    <input type="submit" id="submit" value="Send">
   </form>
+  
   <script src="https://cdn.firebase.com/v0/firebase.js"></script>
   <script src="./dist/bower_components/angularFire/angularFire.js"></script>
   <script src="./fb_messaging.js"></script>
+  <script src="./jquery.cookie.js"></script>
 </body>
 </html>
