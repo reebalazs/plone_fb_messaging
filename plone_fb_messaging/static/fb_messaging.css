@@ -11,3 +11,20 @@
 	width: 300px;
 	overflow: auto;
 }
+
+.error {
+	opacity: 1;
+	color: red;
+	-webkit-transition: opacity .25s linear;
+}
+
+.info {
+	opacity: 1;
+	color: green;
+	-webkit-transition: opacity .25s linear;
+}
+
+.hidden {
+	opacity: 0 !important;
+	-webkit-transition: opacity .25s linear !important;
+}

@@ -8,28 +8,29 @@
   <script src="./dist/angular.min.js"></script>
 </head>
 <body ng-controller="MessagingController">
-
   <div>
     <label for="username">Your name: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
   </div>
 
   <div class="users">
     <strong>Logged in users:</strong>
-      <div class="user" ng-cloak ng-repeat="(name, user) in users | online:user">
+      <div class="user" ng-cloak ng-repeat="(name, user) in users | online">
 	    {{name}}
+		<input type="submit" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat"> <!-- TODO: hide private chat with self -->
       </div>
   </div>
 
   <p></p>
   <div class="messages" id="messagesDiv">
-    <div class="message" ng-cloak ng-repeat="message in messages">
-      <em>{{message.from}}: </em>{{message.content}}
+    <div class="message" ng-cloak ng-repeat="message in messages | messageFilter:this">
+      <em>{{message.from}}: </em>{{message.content}} <!-- TODO: mark private messages differently somehow -->
     </div>
   </div>
   
   <form ng-submit="addMessage()">
-    <input type="text" ng-model="message" placeholder="Message..." required>
+    <input type="text" ng-model="message" ng-click="helpClass = helpClass + ' hidden'" placeholder="Message..." required> <!-- TODO: more elegant solution, this will result in lots of 'hidden' in the class attrib -->
     <input type="submit" id="submit" value="Send">
+	<div ng-class="helpClass" ng-bind="help"></div>
   </form>
   
   <script src="https://cdn.firebase.com/v0/firebase.js"></script>
