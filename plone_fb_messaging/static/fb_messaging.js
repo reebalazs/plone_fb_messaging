@@ -5,6 +5,7 @@ var url = 'https://sushain97.firebaseio.com/';
 var onlineRef = new Firebase(url + 'presence');
 var connectedRef = new Firebase(url + '.info/connected');
 var windows = new Array();
+var $el = $('#messagesDiv');
 
 app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
@@ -16,9 +17,10 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 		}
 		else
 			$scope.username = username;
-			
-        var $el = $('#messagesDiv');
-		privateChat = getParameterByName('user') !== '';
+
+		var target = getParameterByName('user');
+		privateChat = target !== '';
+		$scope.heading = privateChat ? 'Private Chat with ' + target : 'Public Chat';
 		
 		var windowCookie = $.cookie('windows');
 		if(windowCookie !== undefined)
@@ -64,22 +66,23 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
         });
 
         $scope.addMessage = function() {
+			var from = $scope.username;
+			var msg = encodeHTML($scope.message);
 			if($scope.message.indexOf('/') === 0)
 				commandHandler($scope, $scope.message);
-			else if(!privateChat) {
-				$scope.messages.add({from: $scope.username, content: $scope.message, private: false}, function() {
-					$el.animate({scrollTop: $el[0].scrollHeight}, 500);
-				});
-				$scope.message = '';
+			else {
+				if(!privateChat) {
+					$scope.messages.add({sender: from, content: msg, private: false, type: 'public', prettyprint: '<em>' + from + '</em>: ' + msg}, scrollWindow($el));
+					$scope.message = '';
+				}
+				else if(privateChat){
+					var target = getParameterByName('user');
+					$scope.messages.add({sender: from, content: msg, private: true, privateChat: true, recipient: target, type: 'privateChat', prettyprint: '<em>' + from + '</em>: ' + msg}, scrollWindow($el));
+					$scope.message = '';
+				}
+				$scope.helpClass = 'hidden';
 			}
-			else if(privateChat){
-				var target = getParameterByName('user');
-				$scope.messages.add({from: $scope.username, content: $scope.message, private: true, privateChat: true, recipient: target}, function() {
-					$el.animate({scrollTop: $el[0].scrollHeight}, 500);
-				});
-				$scope.message = '';
-			}
-
+			
             // prevent double click warning for this form
             // (this is a hack needed for Plone)
             //$root.find('input[value="Send"]')
@@ -106,44 +109,61 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 
 function commandHandler($scope, msg) {
 	var delim = msg.indexOf(' ');
-	var command = msg.substring(1, delim);
+	var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
 	var username = $scope.username;
 	
 	switch(command) {
 		case 'msg': {
-			if(msg.search('/msg [a-zA-Z0-9]+ .+') != 0) { //TODO: Use better regex based on username requirements
+			if(msg.search('/msg\\s[a-zA-Z0-9]+ .+') != 0) { //TODO: Use better regex based on username requirements
 				$scope.help = 'Bad syntax - /msg {target username} {message}';
 				$scope.helpClass = 'error';
 			}
 			else {
 				var delim2 = msg.indexOf(' ', delim + 1);
 				var target = msg.substring(delim + 1, delim2);
-				var message = msg.substr(delim2 + 1);
+				var message = encodeHTML(msg.substr(delim2 + 1));
 				
-				$scope.messages.add({from: username, content: username + ' said "' + message + '" privately', private: true, recipient: target}); //TODO: Improve styling
-				$scope.messages.add({from: username, content: 'message sent to ' + target, private: true, recipient: username}); //TODO: Improve styling
+				$scope.messages.add({sender: username, content: message, private: true, type: 'private', recipient: target, prettyprint: '<em>' + username + '</em> (private): ' + message}, scrollWindow($el));
+				$scope.messages.add({sender: username, content: message, private: true, type: 'server', recipient: username, prettyprint: '*** private message sent to ' + target + ': ' + message }, scrollWindow($el));
 				$scope.helpClass = 'info';
 				$scope.help = 'Message sent to ' + target;
 			}
 			break;
 		}
-		case 'query' : {
-			if(msg.search('/query [a-zA-Z0-9]+') != 0) { //TODO: Use better regex based on username requirements
+		case 'query' : { //TODO: prevent chat with offline user?
+			if(msg.search('/query\\s[a-zA-Z0-9]+') != 0) { //TODO: Use better regex based on username requirements
 				$scope.help = 'Bad syntax - /query {target username}';
 				$scope.helpClass = 'error';
 			}
 			else {
 				var target = msg.substr(delim + 1);
-				if(target !== $scope.username && windows.indexOf(target) === -1) {
+				if(target !== $scope.username) {
 					windows.push(target);
-					$.cookie('window', escape(windows.join(',')));
-					window.open(document.URL + '?user=' + encodeURIComponent(target), 'Private chat with ' + target, 'titlebar=0,toolbar=0,width=400,height=600', false); //TODO: Adjust window properties
+					$.cookie('windows', escape(windows.join(',')));
+					window.open(privateWindowURL(target), 'Private chat with ' + target, 'titlebar=0,toolbar=0,width=400,height=700', false);
 					$scope.helpClass = 'info';
 					$scope.help = 'Opened private chat window with ' + target;
 				}
+				else {
+					$scope.helpClass = 'error';
+					$scope.help = 'You cannot private chat with yourself';
+				}
 			}
 			break;
-		} //TODO: Add more commands
+		}
+		case 'me': {
+			var action = encodeHTML(msg.substr(delim + 1));
+			if(msg.search('/me\\s.+') != 0) {
+				$scope.help = 'Bad syntax - /me {action}';
+				$scope.helpClass = 'error';
+			}
+			else {
+				var target = getParameterByName('user');
+				$scope.messages.add({sender: username, content: action, private: privateChat, type: 'action', privateChat: privateChat, prettyprint: '* ' + username + ' ' + action, recipient: target}, scrollWindow($el));
+				$scope.helpClass = 'hidden';
+			}
+			break;
+		} //TODO: Add more commands if desired
 		default : {
 			$scope.helpClass = 'error';
 			$scope.help = 'Unrecognized command: ' + msg;
@@ -172,19 +192,21 @@ app.filter('messageFilter', function() {
 			message = messages[i];
 			if(privateChat) {
 				var target = getParameterByName('user');
-				if((target === message.from || target === message.recipient) && (message.recipient === $scope.username || message.from === $scope.username) && message.privateChat)
+				if((target === message.sender || target === message.recipient) && (message.recipient === $scope.username || message.sender === $scope.username) && message.privateChat)
 					result.push(message); //Message only seen in private chat window
+				else
+					console.log(message.type);
 			}
 			else {
-				if(!message.private)
+				if(!message.privateChat && !message.private)
 					result.push(message); //Everyone sees the message
 				else if(!message.privateChat && message.recipient === $scope.username)
-					result.push(message); //Message seen only by person it was privately sent to //TODO: style differently
-				else if(message.privateChat && message.recipient === $scope.username && windows.indexOf(message.from) === -1) { //Open new private window since we don't have one yet
-					var sender = message.from;
+					result.push(message); //Message seen only by person it was privately sent to
+				else if(message.privateChat && message.recipient === $scope.username && windows.indexOf(message.sender) === -1) { //Open new private window since we don't have one yet
+					var sender = message.sender;
 					windows.push(sender);
-					$.cookie('window', escape(windows.join(',')));
-					window.open(document.URL + '?user=' + sender, 'Private chat with ' + sender, 'titlebar=0,toolbar=0,width=400,height=600', false); //TODO: Adjust window properties
+					$.cookie('windows', escape(windows.join(',')));
+					window.open(privateWindowURL(sender), 'Private chat with ' + sender, 'titlebar=0,toolbar=0,width=400,height=700', false);
 					$scope.helpClass = 'info';
 					$scope.help = sender + ' initiated a private chat with you';
 				}
@@ -193,6 +215,21 @@ app.filter('messageFilter', function() {
 		return result;
 	}
 });
+
+function privateWindowURL(sender) {
+	return '//' + location.host + location.pathname + '?user=' + encodeURIComponent(sender);
+}
+
+function scrollWindow($el) {
+	$el.animate({scrollTop: $el[0].scrollHeight}, 500);
+}
+
+//from http://stackoverflow.com/a/1219983/1266600
+function encodeHTML(value){
+  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+  //then grab the encoded contents back out.  The div never exists on the page.
+  return $('<div/>').text(value).html();
+}
 
 //from http://stackoverflow.com/a/901144/1266600
 function getParameterByName(name) { 

@@ -12,19 +12,24 @@
 	overflow: auto;
 }
 
-.error {
+.helpMesssage.error {
 	opacity: 1;
 	color: red;
 	-webkit-transition: opacity .25s linear;
 }
 
-.info {
+.helpMesssage.info {
 	opacity: 1;
 	color: green;
 	-webkit-transition: opacity .25s linear;
 }
 
-.hidden {
+.helpMesssage.hidden {
 	opacity: 0 !important;
-	-webkit-transition: opacity .25s linear !important;
+	-webkit-transition: opacity .25s linear;
 }
+
+.message.public, .privateChat { color: black; }
+.message.private { color: red; }
+.message.server { color: green; }
+.message.action { color: purple; }
