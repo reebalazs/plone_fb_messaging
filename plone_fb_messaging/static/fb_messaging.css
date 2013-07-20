@@ -29,7 +29,7 @@
 	-webkit-transition: opacity .25s linear;
 }
 
-.message.public, .privateChat { color: black; }
-.message.private { color: red; }
-.message.server { color: green; }
-.message.action { color: purple; }
+.message .public, .privateChat { color: black; }
+.message .private { color: red; }
+.message .server { color: green; }
+.message .action { color: purple; }

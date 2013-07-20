@@ -2,7 +2,7 @@
 <html lang="en" ng-app="messaging">
 <head>
   <meta charset="UTF-8">
-  <title>FireBase messaging Demo</title>
+  <title>FireBase Messaging Demo</title>
   <link rel="stylesheet" type="text/css" href="./fb_messaging.css">
   <script src="./dist/jquery.min.js"></script>
   <!-- <script src="./dist/angular.min.js"></script> -->
@@ -15,16 +15,30 @@
   </div>
 
   <div class="users">
-    <strong>Logged in users:</strong>
+    <strong>Online users:</strong>
       <div class="user" ng-cloak ng-repeat="(name, user) in users | online">
-	    {{name}}
-		<input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat">
+	    {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat">
       </div>
   </div>
 
   <p></p>
   <div class="messages" id="messagesDiv">
-    <div class="message {{message.type}}" ng-cloak ng-repeat="message in messages | messageFilter:this" ng-bind-html-unsafe="message.prettyprint"></div>
+	<div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:this">
+		<div ng-switch-when="public" class="public">
+			<em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+		</div>
+		<div ng-switch-when="privateChat" class="privateChat">
+			<em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+		</div>
+		<div ng-switch-when="private" class="private">
+			<em>{{message.sender}} (private)</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+		</div>
+		<div ng-switch-when="action" class="action">
+			* <em>{{message.sender}}</em> <strong><span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span></strong>
+		</div>
+		<div ng-switch-when="server" class="server" ng-bind-html-unsafe="'*** ' + message.content"></div>
+		<div ng-hide="true">{{message.$id}}</div>
+	</div>
   </div>
   
   <form ng-submit="addMessage()">
