@@ -15,8 +15,8 @@
   </div>
 
   <div class="users">
-    <strong>Online users:</strong>
-      <div class="user" ng-cloak ng-repeat="(name, user) in users | online">
+    <strong>Online users<span ng-bind="numUsers"></span>:</strong>
+      <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
 	    {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat">
       </div>
   </div>

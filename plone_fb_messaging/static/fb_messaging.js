@@ -52,21 +52,14 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
             }
         });
 
-        // bind the data so we can display who is logged in
-        var promise = angularFire(onlineRef, $scope, 'users', {});
-
-        //
-        // Chat
-        // (this should probably go to its separate controller)
-        //
-        
+        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
 
         $scope.messages = angularFireCollection(url + '/messages', function() {
             $timeout(function() {
                 $el[0].scrollTop = $el[0].scrollHeight;
             });
         });
-
+		
         $scope.addMessage = function() {
 			var userRef = onlineRef.child($scope.username);
 			userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
@@ -226,14 +219,15 @@ function commandHandler($scope, msg) {
 	$scope.message = '';
 }
 
-app.filter('online', function() {
-	return function(users) {
+app.filter('onlineFilter', function() {
+	return function(users, $scope) {
 		var result = new Object();
 		for(username in users) {
 			var user = users[username];
 			if(user.online)
 				result[username] = user;
 		}
+		$scope.numUsers = ' (' + Object.keys(result).length + ')';
 		return result;
 	}
 });
@@ -292,18 +286,26 @@ app.directive('contenteditable', function() {
 
 			element.bind('blur', function() {
 				if(ngModel.$modelValue !== $.trim(element.html()))
-					scope.$apply(read);
+					scope.$apply(editMessage);
 			});
-			read();
 
-			function read() {
-				var newMessage = $.trim(element.html());
+			function editMessage() {
+				var newContent = $.trim(element.html());
 				var id = element.closest('div').next().html();
-				if(newMessage !== '{{message.content}}' && id !== undefined && id !== '{{message.$id}}') {
-					var contentRef = new Firebase(url + '/messages/' + id + '/content');
-					contentRef.set(newMessage);
+				if(newContent !== '{{message.content}}' && id !== undefined && id !== '{{message.$id}}') {
+					var messages = scope.messages;
+					for (var i = 0; i < scope.messages.length; i++) {
+						if(scope.messages[i].$id === id) {
+							if(newContent !== '') {
+								scope.messages[i].content = newContent;
+								scope.messages.update(scope.messages[i]);
+							}
+							else
+								scope.messages.remove(scope.messages[i]);
+							break;
+						}
+					}
 				}
-				//ngModel.$setViewValue(newMessage);
 			}
 		}
 	};
