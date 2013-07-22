@@ -1,11 +1,19 @@
 var privateChat;
+var userRef;
 var app = angular.module('messaging', ['firebase']);
 
-var url = 'https://sushain97.firebaseio.com/';
-var onlineRef = new Firebase(url + 'presence');
-var connectedRef = new Firebase(url + '.info/connected');
+var firebaseURL = 'https://sushain97.firebaseio.com/';
+var onlineRef = new Firebase(firebaseURL + 'presence');
+var connectedRef = new Firebase(firebaseURL + '.info/connected');
 var windows = new Array();
 var $el = $('#messagesDiv');
+var removeUser = true;
+
+/* app.config(['$routeProvider', function($routeProvider) {
+	$routeProvider.when('/public', {templateUrl: '/index.html', controller: 'MessagingController' })
+		.when('/private/:username', {templateUrl: '/index.html', controller: 'MessagingController' })
+		.otherwise({redirectTo: '/public'});
+	}]); */
 
 app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
@@ -40,25 +48,33 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
         // Presence
         //
 
-        connectedRef.on('value', function(snap) { 
+        connectedRef.on('value', function(snap) {
             if(snap.val() === true) {
                 // We're connected (or reconnected)!  Set up our presence state and
                 // tell the server to set a timestamp when we leave.
-                var userRef = onlineRef.child($scope.username);
+                userRef = onlineRef.child($scope.username);
                 var connRef = userRef.child('online').push(1);
-                connRef.onDisconnect().remove();
-                userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
 				userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+				if(privateChat && target !== undefined)
+					userRef.child('rooms').child(target).set({username: target, url: '?user=' + target});
             }
         });
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
 
-        $scope.messages = angularFireCollection(url + '/messages', function() {
+        $scope.messages = angularFireCollection(firebaseURL + '/messages', function() {
             $timeout(function() {
                 $el[0].scrollTop = $el[0].scrollHeight;
             });
         });
+		
+		$scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms');
+		
+		if(privateChat) {
+			onlineRef.child(target).on('value', function(dataSnapshot) {
+				$scope.info = 'User is ' + (dataSnapshot.hasChild('online') ? 'online' : 'offline');
+			});
+		}
 		
         $scope.addMessage = function() {
 			var userRef = onlineRef.child($scope.username);
@@ -89,15 +105,14 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 		
         $scope.updateUsername = function() {
 			if($('#username').val() !== '') {
-				var userRef = onlineRef.child($.cookie('username'));
-				var connRef = userRef.child('online').remove();
-				userRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
+				var oldUserRef = onlineRef.child($.cookie('username'));
+				var connRef = oldUserRef.child('online').remove();
+				oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
+				oldUserRef.child('online').remove();
 				$.cookie('username', $('#username').val());
 				
 				userRef = onlineRef.child($scope.username);
 				connRef = userRef.child('online').push(1);
-				connRef.onDisconnect().remove();
-				userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
 			}
 			else
 				$scope.username = $.cookie('username');
@@ -105,6 +120,20 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 		
 		$scope.privateChat = function($event) {
 			commandHandler($scope, '/query ' + $($event.target).data('username'));
+		}
+		
+		$scope.removeRoom = function($event) {
+			onlineRef.child($scope.username).child('rooms').child($($event.target).data('username')).remove();
+			removeUser = false;
+			document.location.href = '/';
+		}
+		
+		$scope.changeRoom = function($event) {
+			removeUser = false;
+			if($event === 'public')
+				document.location.href = '/';
+			else
+				document.location.href = '/?user=' + $($event.target).data('username');
 		}
 	}
 ]);
@@ -145,9 +174,10 @@ function commandHandler($scope, msg) {
 				if(target !== $scope.username) {
 					windows.push(target);
 					$.cookie('windows', escape(windows.join(',')));
-					window.open(privateWindowURL(target), 'Private chat with ' + target, 'titlebar=0,toolbar=0,width=400,height=700', false);
 					$scope.helpClass = 'info';
-					$scope.help = 'Opened private chat window with ' + target; //TODO: Make evident if user is offline inside window
+					$scope.help = 'Opened private chat window with ' + target;
+					removeUser = false;
+					window.location.href = '?user=' + target;
 				}
 				else {
 					$scope.helpClass = 'error';
@@ -251,17 +281,25 @@ app.filter('messageFilter', function() {
 					result.push(message); //Everyone sees the message
 				else if(!message.privateChat && message.recipient === username)
 					result.push(message); //Message seen only by person it was privately sent to
-				else if(message.privateChat && message.recipient === username && windows.indexOf(message.sender) === -1 && message.type !== 'server') { //Open new private window since we don't have one yet
+				else if(message.privateChat && message.recipient === username && windows.indexOf(message.sender) === -1 && message.type !== 'server') { //Open new private room since we don't have one yet
 					var sender = message.sender;
 					windows.push(sender);
 					$.cookie('windows', escape(windows.join(',')));
-					window.open(privateWindowURL(sender), 'Private chat with ' + sender, 'titlebar=0,toolbar=0,width=400,height=700', false);
 					$scope.helpClass = 'info';
 					$scope.help = sender + ' initiated a private chat with you';
+					removeUser = false;
+					window.location.href = '?user=' + sender;
 				}
 			}
 		}
 		return result;
+	}
+});
+
+$(window).unload(function() {
+	if(removeUser) {
+		userRef.child('online').remove();
+		userRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
 	}
 });
 
