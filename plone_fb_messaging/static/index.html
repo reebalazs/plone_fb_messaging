@@ -11,10 +11,10 @@
 <body ng-controller="MessagingController">
   <div class="roomList">
 	<h1>Active Rooms</h1>
-	<a class="room" ng-click="changeRoom('public')" href="#">Public</a>
+	<span ng-show="privateChatUser == ''">* </span><a class="room" ng-click="changeRoom('public')" href="#">Public</a>
 	<div ng-cloak ng-repeat="room in rooms">
-	  <span>
-		<a class="room" ng-click="changeRoom($event)" data-username="{{room.username}}" href="">Private: {{room.username}}</a>
+	  <span ng-if="!room.remove">
+		<span ng-show="privateChatUser == room.username">* </span><a class="room" ng-click="changeRoom($event)" data-username="{{room.username}}" href="">Private: {{room.username}}</a>
 		<input type="submit" data-username="{{room.username}}" ng-click="removeRoom($event)" value="Remove">
 	  </span>
 	</div>
@@ -58,7 +58,7 @@
 		<input type="submit" id="submit" value="Send">
 		<div class="helpMesssage" ng-class="helpClass" ng-bind="help"></div>
 	  </form>
-	  <div ng-bind="info"></div>
+	  <div ng-bind-html-unsafe="info"></div>
   </div>
   <script src="https://cdn.firebase.com/v0/firebase.js"></script>
   <script src="./dist/bower_components/angularFire/angularFire.js"></script>

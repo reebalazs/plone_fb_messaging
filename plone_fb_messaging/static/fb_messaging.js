@@ -1,19 +1,18 @@
 var privateChat;
+var privateChatUser;
 var userRef;
 var app = angular.module('messaging', ['firebase']);
 
-var firebaseURL = 'https://sushain97.firebaseio.com/';
+var firebaseURL = 'https://sushain.firebaseio.com/';
 var onlineRef = new Firebase(firebaseURL + 'presence');
 var connectedRef = new Firebase(firebaseURL + '.info/connected');
-var windows = new Array();
 var $el = $('#messagesDiv');
-var removeUser = true;
 
 /* app.config(['$routeProvider', function($routeProvider) {
 	$routeProvider.when('/public', {templateUrl: '/index.html', controller: 'MessagingController' })
 		.when('/private/:username', {templateUrl: '/index.html', controller: 'MessagingController' })
 		.otherwise({redirectTo: '/public'});
-	}]); */
+}]); */
 
 app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
@@ -27,13 +26,11 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 		else if(username.search($scope.usernameRegexp) === 0)
 			$scope.username = username;
 
-		var target = getParameterByName('user');
-		privateChat = target !== '';
-		$scope.heading = privateChat ? 'Private Chat with ' + target : 'Public Chat';
-		
-		var windowCookie = $.cookie('windows');
-		if(windowCookie !== undefined)
-			windows = unescape(windowCookie).split(',');
+		privateChatUser = '';
+		privateChat = false;
+		$scope.privateChatUser = privateChatUser;
+		$scope.heading = 'Public Chat';
+
         // Log me in.
         // 
         //var dataRef = new Firebase(url);
@@ -55,26 +52,18 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
                 userRef = onlineRef.child($scope.username);
                 var connRef = userRef.child('online').push(1);
 				userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-				if(privateChat && target !== undefined)
-					userRef.child('rooms').child(target).set({username: target, url: '?user=' + target});
+				userRef.child('online').onDisconnect().remove();
+				userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
             }
         });
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
 
         $scope.messages = angularFireCollection(firebaseURL + '/messages', function() {
-            $timeout(function() {
-                $el[0].scrollTop = $el[0].scrollHeight;
-            });
+            $scope.scroll();
         });
 		
 		$scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms');
-		
-		if(privateChat) {
-			onlineRef.child(target).on('value', function(dataSnapshot) {
-				$scope.info = 'User is ' + (dataSnapshot.hasChild('online') ? 'online' : 'offline');
-			});
-		}
 		
         $scope.addMessage = function() {
 			var userRef = onlineRef.child($scope.username);
@@ -86,12 +75,11 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 				commandHandler($scope, $scope.message);
 			else {
 				if(!privateChat) {
-					$scope.messages.add({sender: from, content: msg, private: false, type: 'public'}, scrollWindow($el));
+					$scope.messages.add({sender: from, content: msg, private: false, type: 'public', date: Date.now()}, scrollWindow($el));
 					$scope.message = '';
 				}
 				else if(privateChat) {
-					var target = getParameterByName('user');
-					$scope.messages.add({sender: from, content: msg, private: true, privateChat: true, recipient: target, type: 'privateChat'}, scrollWindow($el));
+					$scope.messages.add({sender: from, content: msg, private: true, privateChat: true, recipient: privateChatUser, type: 'privateChat', date: Date.now()}, scrollWindow($el));
 					$scope.message = '';
 				}
 				$scope.helpClass = 'hidden';
@@ -113,6 +101,7 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 				
 				userRef = onlineRef.child($scope.username);
 				connRef = userRef.child('online').push(1);
+				$scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
 			}
 			else
 				$scope.username = $.cookie('username');
@@ -123,27 +112,64 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
 		}
 		
 		$scope.removeRoom = function($event) {
-			onlineRef.child($scope.username).child('rooms').child($($event.target).data('username')).remove();
-			removeUser = false;
-			document.location.href = '/';
+			var username = $($event.target).data('username');
+			for (var i = 0; i < $scope.rooms.length; i++) {
+				if($scope.rooms[i].username === username) {
+					$scope.rooms[i].remove = Date.now();
+					$scope.rooms[i].seen = Date.now();
+					$scope.rooms.update($scope.rooms[i]);
+					break;
+				}
+			}
+			switchRoom('public', $scope, true); //last argument specifies dictates that switchRoom doesn't mess with the current room
 		}
 		
 		$scope.changeRoom = function($event) {
-			removeUser = false;
-			if($event === 'public')
-				document.location.href = '/';
-			else
-				document.location.href = '/?user=' + $($event.target).data('username');
+			$scope.helpClass = 'hidden';
+			switchRoom($event === 'public' ? $event : $($event.target).data('username'), $scope);
+		}
+		
+		$scope.scroll = function() {
+			$timeout(function() {
+                var $el = $('#messagesDiv');
+				$el[0].scrollTop = $el[0].scrollHeight;
+            });
 		}
 	}
 ]);
+
+function switchRoom(room, $scope, modified) {
+	userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+	if(room === 'public') {
+		if(privateChat && !modified)
+			userRef.child('rooms').child(privateChatUser).set({username: privateChatUser, seen: Date.now()}); //if we're leaving private to go to public, we've seen the private message
+		privateChat = false;
+		privateChatUser = '';
+		$scope.heading = 'Public Chat';
+		$scope.privateChatUser = privateChatUser;
+		$scope.info = '';
+	}
+	else {
+		if(privateChat && !modified)
+			userRef.child('rooms').child(privateChatUser).set({username: privateChatUser, seen: Date.now()}); //if we're leaving private to go to private, we've seen the private message
+		privateChat = true;
+		privateChatUser = room;
+		$scope.privateChatUser = privateChatUser;
+		$scope.heading = 'Private Chat with ' + privateChatUser;
+		userRef.child('rooms').child(privateChatUser).set({username: privateChatUser, seen: Date.now()}); //the new if one doesn't exist, otherwise it's simply updated
+		onlineRef.child(privateChatUser).on('value', function(dataSnapshot) {
+			if(privateChat) //prevent this from being called in the wrong place
+				$scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
+		});
+	}
+	$scope.scroll();
+}
 
 function commandHandler($scope, msg) {
 	var delim = msg.indexOf(' ');
 	var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
 	var username = $scope.username;
 	var usernameRegexp = $scope.usernameRegexp.source;
-	var privateChatUser = getParameterByName('user');
 	
 	switch(command) {
 		case 'msg': {
@@ -156,9 +182,9 @@ function commandHandler($scope, msg) {
 				var target = msg.substring(delim + 1, delim2);
 				var message = encodeHTML(msg.substr(delim2 + 1));
 				
-				$scope.messages.add({sender: username, content: message, private: true, type: 'private', recipient: target}, scrollWindow($el));
+				$scope.messages.add({sender: username, content: message, private: true, type: 'private', recipient: target, date: Date.now()}, scrollWindow($el));
 				$scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username, content: 'private message sent to <em>' + target + '</em>: "' + message + '"', 
-					private: true, privateChat: privateChat, type: 'server'}, scrollWindow($el));
+					private: true, privateChat: privateChat, type: 'server', date: Date.now()}, scrollWindow($el));
 				$scope.helpClass = 'info'
 				$scope.help = 'Message sent to ' + target;
 			}
@@ -172,12 +198,9 @@ function commandHandler($scope, msg) {
 			else {
 				var target = msg.substr(delim + 1);
 				if(target !== $scope.username) {
-					windows.push(target);
-					$.cookie('windows', escape(windows.join(',')));
 					$scope.helpClass = 'info';
-					$scope.help = 'Opened private chat window with ' + target;
-					removeUser = false;
-					window.location.href = '?user=' + target;
+					$scope.help = 'Opened private chat room with ' + target;
+					switchRoom(target, $scope);
 				}
 				else {
 					$scope.helpClass = 'error';
@@ -193,7 +216,7 @@ function commandHandler($scope, msg) {
 				$scope.help = 'Bad syntax - /me {action}';
 			}
 			else {
-				$scope.messages.add({sender: username, content: action, private: privateChat, type: 'action', privateChat: privateChat, recipient: privateChatUser}, scrollWindow($el));
+				$scope.messages.add({sender: username, content: action, private: privateChat, type: 'action', privateChat: privateChat, recipient: privateChatUser, date: Date.now()}, scrollWindow($el));
 				$scope.helpClass = 'hidden';
 			}
 			break;
@@ -214,13 +237,13 @@ function commandHandler($scope, msg) {
 					if(dataSnapshot.hasChild('lastActive')) {
 						$scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username,
 							content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
-							private: true, privateChat: privateChat, type: 'server'}, scrollWindow($el));
+							private: true, privateChat: privateChat, type: 'server', date: Date.now()}, scrollWindow($el));
 						whoisResult(true);
 					}
 					else if(dataSnapshot.hasChild('logout')) {
 						$scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username,
 							content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(), 
-							private: true, privateChat: privateChat, type: 'server'}, scrollWindow($el));
+							private: true, privateChat: privateChat, type: 'server', date: Date.now()}, scrollWindow($el));
 						whoisResult(true);
 					}
 					else
@@ -235,8 +258,8 @@ function commandHandler($scope, msg) {
 				$scope.help = 'Bad syntax - /time';
 			}
 			else {
-				$scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username, content: '<strong>current time</strong>: ' + new Date().toString(), 
-					private: true, privateChat: privateChat, type: 'server'}, scrollWindow($el));
+				$scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username, content: '<strong>current time</strong>: ' + Date.now(), 
+					private: true, privateChat: privateChat, type: 'server', date: Date.now()}, scrollWindow($el));
 				$scope.helpClass = 'hidden';
 			}
 			break;
@@ -270,36 +293,38 @@ app.filter('messageFilter', function() {
 		for (var i = 0; i < messages.length; i++) { //TODO: don't show all messages
 			message = messages[i];
 			if(privateChat) {
-				var target = getParameterByName('user');
+				var target = privateChatUser;
 				if(message.type === 'server' && message.recipient === target && message.privateChat)
-					result.push(message); //Message only seen in private chat window that it was sent in
+					result.push(message); //Message only seen in private chat room that it was sent in
 				else if(message.type !== 'server' && message.privateChat && (target === message.sender || target === message.recipient) && (message.recipient === username || message.sender === username))
-					result.push(message); //Message only seen in private chat window
+					result.push(message); //Message only seen in private chat room
 			}
 			else {
 				if(!message.privateChat && !message.private)
 					result.push(message); //Everyone sees the message
 				else if(!message.privateChat && message.recipient === username)
 					result.push(message); //Message seen only by person it was privately sent to
-				else if(message.privateChat && message.recipient === username && windows.indexOf(message.sender) === -1 && message.type !== 'server') { //Open new private room since we don't have one yet
+				else if(message.privateChat && message.recipient === username && message.type !== 'server') { //Try to open new private room if we don't have one yet
 					var sender = message.sender;
-					windows.push(sender);
-					$.cookie('windows', escape(windows.join(',')));
-					$scope.helpClass = 'info';
-					$scope.help = sender + ' initiated a private chat with you';
-					removeUser = false;
-					window.location.href = '?user=' + sender;
+					userRef.child('rooms').once('value', function(dataSnapshot) {
+						if(!dataSnapshot.hasChild(sender)) { //we don't have a room yet, let's go to it (delegate task of creating it to switchRoom)
+							$scope.helpClass = 'info';
+							$scope.help = sender + ' initiated a private chat with you';
+							switchRoom(sender, $scope);
+							a = dataSnapshot;
+						}
+						else if(message.date - dataSnapshot.child(sender).child('remove').val() > 0 //message is newer than remove time
+								&& message.date > dataSnapshot.child(sender).child('seen').val() //message is not seen
+								&& $scope.privateChatUser !== sender) { //not already in room
+							$scope.helpClass = 'info';
+							$scope.help = sender + ' continued a private chat with you';
+							switchRoom(sender, $scope);
+						}
+					});
 				}
 			}
 		}
 		return result;
-	}
-});
-
-$(window).unload(function() {
-	if(removeUser) {
-		userRef.child('online').remove();
-		userRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
 	}
 });
 
