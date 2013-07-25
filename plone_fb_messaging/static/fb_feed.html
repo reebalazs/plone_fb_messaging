@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" ng-app="addActivity">
+<head>
+  <meta charset="UTF-8">
+  <title>FireBase Activity Simulation</title>
+  <link rel="stylesheet" type="text/css" href="./fb_feed.css">
+  <script src="./dist/jquery.min.js"></script>
+  <!-- <script src="./dist/angular.min.js"></script> -->
+  <script src="./dist/angular.unstable.min.js"></script>
+</head>
+<body ng-controller="AddActivityController">
+  <h1>Simulate New Activity</h1>
+  <form ng-submit="addActivity()" id="activityForm" name="activityForm">
+	<div class="form_control">
+	  <label for="uid">Plone Object UID: </label>
+	  <input type="text" id="uid" ng-model="uid" ng-trim="false" value='' required>
+	</div>
+	
+	<div class="form_control">
+	  <label for="message">Activity Message: </label>
+	  <input id="message" ng-model="message" placeholder="Short Message..." maxlength="150" value='' required></textarea>
+	</div>
+	
+	<div class="form_control">
+	  <label for="description">Activity Description: </label>
+	  <textarea id="description" ng-model="description" placeholder="Optional detailed activity description..." rows="6"></textarea>
+	</div>
+	
+	<div class="form_control">
+	  <label for="userID">User ID: </label>
+	  <input type="text" id="userID" ng-model="userID" required>
+	</div>
+	
+	<div class="form_control">
+	  <label for="eventType">Event Type: </label>
+	  <select id="eventType" ng-cloak ng-model="eventType" required>
+		<option value="t1">Type 1</option>
+		<option value="t2">Type 2</option>
+		<option value="t3">Type 3</option>
+		<option value="t4">Type 4</option>
+	  </select>
+	</div></br>
+	
+	<input type="submit" id="submit" value="Add Message">
+  </form>
+  
+  <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+  <script src="./dist/bower_components/angularFire/angularFire.js"></script>
+  <script src="./fb_feed.js"></script>
+  <script src="./jquery.cookie.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 .messages {
-	height: 400px;
+	max-height: 400px;
 	width: 300px;
 	overflow: auto;
+	padding-bottom: 20px;
 }
 
 .helpMesssage.error {
@@ -29,12 +30,12 @@
 .roomList {
 	float: left;
 	border-right: 3px solid;
-	width: 17%;
+	width: 18%;
 	height: 650px;
 }
 
 .chat {
 	margin: 0;
 	float: right;
-	width: 80%;
+	width: 79%;
 }

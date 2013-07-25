@@ -18,7 +18,7 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
 		$scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+');
 		var username = $.cookie('username');
-		if(username === undefined) {
+		if(username === undefined || username.search($scope.usernameRegexp) !== 0) {
 			var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
 			$scope.username = anonUser; //Very bad things happen if two people have the same username
 			$.cookie('username', anonUser);
@@ -379,12 +379,4 @@ function encodeHTML(value){
   //create a in-memory div, set it's inner text(which jQuery automatically encodes)
   //then grab the encoded contents back out.  The div never exists on the page.
   return $('<div/>').text(value).html();
-}
-
-//from http://stackoverflow.com/a/901144/1266600
-function getParameterByName(name) { 
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
