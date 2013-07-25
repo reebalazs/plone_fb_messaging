@@ -22,6 +22,7 @@
     <div><strong>User ID:</strong> {{activity.userID}}</div>
     <div><strong>Event Type:</strong> {{activity.eventType}}</div>
     <div><strong>Change Time:</strong> {{activity.time | millisToReadableDate}}</div>
+    <div><strong>Expires In:</strong> {{activity.expiration | timeFromNow}}</div>
     <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
   </div>
   </div>

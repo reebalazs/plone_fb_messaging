@@ -73,6 +73,18 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
                 $scope.username = $.cookie('username');
             location.reload(); //username will never change like this in deployment anyways
         };
+
+        /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
+          However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
+          Comment out the setInterval call to disable this functionality */
+        setInterval(refresh, 10000); 
+
+        function refresh() {
+            $scope.activities = angularFireCollection(firebaseURL + 'activity', function() {
+                $scope.scroll();
+                $scope.$apply();
+            });
+        }
     }
 ]);
 
@@ -83,7 +95,7 @@ app.filter('activityFilter', function() {
 
         for(var i = 0; i < activities.length; i++) {
             var activity = activities[i];
-            if(activity.time > lastSeen)
+            if(activity.time > lastSeen && activity.expiration > Date.now())
                 result.push(activity);
         };
         return result;
@@ -93,6 +105,12 @@ app.filter('activityFilter', function() {
 app.filter('millisToReadableDate', function() {
     return function(date) {
         return new Date(date).toString();
+    }
+});
+
+app.filter('timeFromNow', function() {
+    return function(date) {
+        return (date - Date.now())/1000 + ' seconds'; //This can be easily improved to increase verbosity
     }
 });
 

@@ -5,3 +5,7 @@ form label {
 .form_control * {
     vertical-align: middle;
 }
+
+.date {
+    width: 100px;
+}
