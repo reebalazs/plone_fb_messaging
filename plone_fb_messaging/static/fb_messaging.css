@@ -1,25 +1,25 @@
 .messages {
-	max-height: 400px;
-	width: 300px;
-	overflow: auto;
-	padding-bottom: 20px;
+    max-height: 400px;
+    width: 300px;
+    overflow: auto;
+    padding-bottom: 20px;
 }
 
 .helpMesssage.error {
-	opacity: 1;
-	color: red;
-	-webkit-transition: opacity .25s linear;
+    opacity: 1;
+    color: red;
+    -webkit-transition: opacity .25s linear;
 }
 
 .helpMesssage.info {
-	opacity: 1;
-	color: green;
-	-webkit-transition: opacity .25s linear;
+    opacity: 1;
+    color: green;
+    -webkit-transition: opacity .25s linear;
 }
 
 .helpMesssage.hidden {
-	opacity: 0 !important;
-	-webkit-transition: opacity .25s linear;
+    opacity: 0 !important;
+    -webkit-transition: opacity .25s linear;
 }
 
 .message .public, .privateChat { color: black; }
@@ -28,14 +28,14 @@
 .message .action { color: purple; }
 
 .roomList {
-	float: left;
-	border-right: 3px solid;
-	width: 18%;
-	height: 650px;
+    float: left;
+    border-right: 3px solid;
+    width: 18%;
+    height: 650px;
 }
 
 .chat {
-	margin: 0;
-	float: right;
-	width: 79%;
+    margin: 0;
+    float: right;
+    width: 79%;
 }

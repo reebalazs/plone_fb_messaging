@@ -1,8 +1,7 @@
 form label {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 .form_control * {
-	vertical-align: middle;
+    vertical-align: middle;
 }
-
