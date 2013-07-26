@@ -10,12 +10,14 @@
 </head>
 <body ng-controller="AddActivityController">
   <h1>Simulate New Activity</h1>
-  <form ng-submit="addActivity()" id="activityForm" name="activityForm">
+  <form ng-submit="addActivity()" id="activityForm" name="activityForm" ng-model="activityForm">
+  <h2>Activity General Info</h2>
+
   <div class="form_control">
-    <label for="uid">Plone Object UID: </label>
-    <input type="text" id="uid" ng-model="uid" ng-trim="false" value='' required autofocus>
+    <label for="userID">User ID: </label>
+    <input type="text" id="userID" ng-model="userID" required autofocus>
   </div>
-  
+
   <div class="form_control">
     <label for="message">Activity Message: </label>
     <input id="message" ng-model="message" placeholder="Short Message..." maxlength="150" value='' required></textarea>
@@ -24,11 +26,6 @@
   <div class="form_control">
     <label for="description">Activity Description: </label>
     <textarea id="description" ng-model="description" placeholder="Optional detailed activity description..." rows="6"></textarea>
-  </div>
-  
-  <div class="form_control">
-    <label for="userID">User ID: </label>
-    <input type="text" id="userID" ng-model="userID" required>
   </div>
 
   <div class="form_control">
@@ -39,17 +36,36 @@
     <input class="date" type="number" id="months" ng-model="months" title="Months" placeholder="Months">
   </div>
   
+  <h2>Change Specific Info</h2>
+  <div class="form_control">
+    <label for="uid">Plone Object UID: </label>
+    <input type="text" id="uid" ng-model="uid" ng-trim="false" value='' required>
+  </div>
+
+  <div class="form_control">
+    <label for="changeMessage">Activity Message: </label>
+    <input id="changeMessage" ng-model="changeMessage" placeholder="Short Message..." maxlength="150" value='' required></textarea>
+  </div>
+  
+  <div class="form_control">
+    <label for="changeDescription">Activity Description: </label>
+    <textarea id="changeDescription" ng-model="changeDescription" placeholder="Optional detailed activity description..." rows="6"></textarea>
+  </div>
+
   <div class="form_control">
     <label for="eventType">Event Type: </label>
-    <select id="eventType" ng-cloak ng-model="eventType" required>
-    <option value="t1">Type 1</option>
-    <option value="t2">Type 2</option>
-    <option value="t3">Type 3</option>
-    <option value="t4">Type 4</option>
+    <select id="eventType" ng-cloak ng-model="eventType" ng-init="eventType = 'modified'" required>
+      <option value="modified">Modified</option>
+      <option value="added">Added</option>
+      <option value="deleted">Deleted</option>
     </select>
-  </div></br>
+  </div>
+
+  <label for="numItems">Number of Items: </label>
+  <input type="number" id="numItems" ng-model="numItems" title="Number of Items" placeholder="Item Number" ng-init="numItems = 1">
+  For testing purposes, changing this number will add multiple changed items to this activity
   
-  <input type="submit" id="submit" value="Add Message">
+  </br></br><input type="submit" id="submit" value="Add Message">
   </form>
   
   <script src="https://cdn.firebase.com/v0/firebase.js"></script>

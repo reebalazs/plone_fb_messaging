@@ -102,9 +102,9 @@ app.filter('activityFilter', function() {
     }
 });
 
-app.filter('millisToReadableDate', function() {
-    return function(date) {
-        return new Date(date).toString();
+app.filter('objLenIsOne', function() {
+    return function(first) {
+        return Object.keys(first).length == 1;
     }
 });
 

@@ -11,20 +11,50 @@
 <body ng-controller="ActivityStreamController">
   <h1>Activity Stream</h1>
   <div>
-  <label for="username">Username: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
+    <label for="username">Username: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
   </div>
-  
-  <p></p>
+
   <div class="activities" id="activitiesDiv">
-  <div class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:this">
-    <div><strong>Message:</strong> {{activity.message}}</div>
-    <div><strong>Object UID:</strong> {{activity.uid}}</div>
-    <div><strong>User ID:</strong> {{activity.userID}}</div>
-    <div><strong>Event Type:</strong> {{activity.eventType}}</div>
-    <div><strong>Change Time:</strong> {{activity.time | millisToReadableDate}}</div>
-    <div><strong>Expires In:</strong> {{activity.expiration | timeFromNow}}</div>
-    <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
-  </div>
+    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:this">
+      <summary>
+        <strong>Message:</strong> {{activity.message}}
+        <div>
+          <div><strong>User ID:</strong> {{activity.userID}}</div>
+          <div><strong>Change Time:</strong> {{activity.time | date:'yyyy-MM-dd HH:mm:ss Z'}}</div>
+        </div>
+      </summary>
+      <div class="details">
+        <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
+        <div><strong>Expires In:</strong> {{activity.expiration | timeFromNow}}</div>
+        <div class="changes" id="changesDiv">
+          <div ng-cloak ng-repeat="change in activity.changes">
+            <span ng-switch="$first && {{activity.changes | objLenIsOne}}">
+              <details ng-switch-when="true" class="change" open>
+                <summary>
+                  <strong>Change Message:</strong> {{change.message}}
+                </summary>
+                <div class="details">
+                  <div><strong>Object UID:</strong> {{change.uid}}</div>
+                  <div><strong>Event Type:</strong> {{change.eventType}}</div>
+                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
+                </div>
+              </details>
+
+              <details ng-switch-default class="change">
+                <summary>
+                  <strong>Change Message:</strong> {{change.message}}
+                </summary>
+                <div class="details">
+                  <div><strong>Object UID:</strong> {{change.uid}}</div>
+                  <div><strong>Event Type:</strong> {{change.eventType}}</div>
+                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
+                </div>
+              </details>
+            </span>
+          </div>
+        </div>
+      </div>
+    </details>
   </div>
   
   <button ng-click="markSeen()">Mark All as Read</button>

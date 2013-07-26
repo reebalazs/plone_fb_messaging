@@ -1,6 +1,6 @@
 .activities {
     max-height: 460px;
-    width: 350px;
+    width: 550px;
     overflow: auto;
     padding-bottom: 20px;
 }
@@ -11,13 +11,12 @@
     padding-bottom: 5px;
 }
 
-.activity:last-child {
-    border-bottom: 0px;
+.activity:last-child { border-bottom: 0px; }
+
+.description {
+    width: 450px;
+    word-wrap: break-word;
 }
 
-.activity .description {
-    text-overflow: ellipsis;
-    width: 330px;
-    white-space: nowrap;
-    overflow:hidden;
-}
+summary div { margin-left: 10px; }
+.details { margin-left: 20px; }
