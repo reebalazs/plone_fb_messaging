@@ -1,0 +1,51 @@
+<div class="roomList">
+  <h1>Active Rooms</h1>
+  <span ng-show="privateChatUser == ''">* </span><a class="room" ng-click="changeRoom('public')" href="">Public</a>
+  <div ng-cloak ng-repeat="room in rooms">
+    <span ng-if="!room.remove">
+      <span ng-show="privateChatUser == room.username">* </span><a class="room" ng-click="changeRoom($event)" data-username="{{room.username}}" href="">Private: {{room.username}}</a>
+      <input type="submit" data-username="{{room.username}}" ng-click="removeRoom($event)" value="Remove">
+    </span>
+  </div>
+</div>
+
+<div class="chat">
+  <h1 ng-bind="heading"></h1>
+  <div>
+    <label for="username">Your name: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
+  </div>
+
+  <div class="users">
+    <strong>Online users<span ng-bind="numUsers"></span>:</strong>
+      <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
+        {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat">
+      </div>
+  </div>
+
+  <p></p>
+  <div class="messages" id="messagesDiv">
+    <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:this">
+      <div ng-switch-when="public" class="public">
+          <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+      </div>
+      <div ng-switch-when="privateChat" class="privateChat">
+          <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+      </div>
+      <div ng-switch-when="private" class="private">
+          <em>{{message.sender}} (private)</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+      </div>
+      <div ng-switch-when="action" class="action">
+          * <em>{{message.sender}}</em> <strong><span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span></strong>
+      </div>
+      <div ng-switch-when="server" class="server" ng-bind-html-unsafe="'*** ' + message.content"></div>
+      <div ng-hide="true">{{message.$id}}</div>
+    </div>
+  </div>
+  
+  <form ng-submit="addMessage()">
+    <input type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
+    <input type="submit" id="submit" value="Send">
+    <div class="helpMesssage" ng-class="helpClass" ng-bind="help"></div>
+  </form>
+  <div ng-bind-html-unsafe="info"></div>
+</div>
