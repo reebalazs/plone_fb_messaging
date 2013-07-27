@@ -14,11 +14,13 @@ jQuery(function () {
 
 app.config(['$routeProvider', function($routeProvider) {
     // Pick up templates from Plone.
+    var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
+    console.log(staticRoot);
 
     $routeProvider.
-      when('/', {templateUrl: 'CC.html', controller: 'CommandCentralController'}).
-      when('/activity', {templateUrl: 'fb_activity.html', controller: 'ActivityStreamController'}).
-      when('/messaging', {templateUrl: 'fb_messaging.html', controller: 'MessagingController'}).
+      when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
+      when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'}).
+      when('/messaging', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'MessagingController'}).
       otherwise({redirectTo: '/'});
 }]);
 

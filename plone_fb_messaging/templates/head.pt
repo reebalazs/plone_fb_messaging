@@ -6,5 +6,5 @@
     <meta name="fb-messaging-url"
         tal:attributes="content view/config/firebase_url">
     <meta name="fb-messaging-static"
-        tal:attributes="content string:${context/@@plone_portal_state/portal_url}/++resource++fb_messaging">
+        tal:attributes="content string:${context/@@plone_portal_state/portal_url}/++resource++fb_messaging/">
 </tal:head>
