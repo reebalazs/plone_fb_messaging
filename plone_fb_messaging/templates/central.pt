@@ -2,7 +2,7 @@
     ><!--tal:define="auth_token python: view.auth_token;"
     tal:attributes="ng-init string:firebase_url = '${view/data/firebase_url}';; auth_token = '${auth_token}';; plone_username='${view/auth_data/ploneUsername}';;
       "-->
-  <div class="close noti-close"></div>
+  <div class="close fb-close"></div>
   <div class="fb-overlay-content">
 
     *** Awesomeness coming up here. ***
@@ -19,5 +19,25 @@
   // Boot the angular app
   // (we don't need ng-app in this case, which allows us to
   // coexist with more apps in the same page)
-  angular.bootstrap(document.getElementById(root_id), ['presence']);
+  angular.bootstrap(document.getElementById(root_id), ['commandCentral']);
+
+  // Overlay creation for Plone
+  jQuery(function ($) {
+
+    var $overlay = $('#' + root_id);
+
+    $overlay.overlay({
+    });
+
+    // global helper function to show the overlay
+    window.showFbOverlay = function() {
+        $overlay.overlay().load();
+    };
+
+    $overlay.find('.fb-close').click(function (evt) {
+        $overlay.overlay().close();
+        return false;
+    });
+
+});
 </script>

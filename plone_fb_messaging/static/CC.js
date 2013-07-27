@@ -1,9 +1,17 @@
 var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 var firebaseURL = 'https://sushain.firebaseio.com/';
-var onlineRef = new Firebase(firebaseURL + 'presence');
-var connectedRef = new Firebase(firebaseURL + '.info/connected');
+
+var onlineRef;
+var connectedRef;
 var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
 var userRef;
+// XXX probably should move these in the controllers.
+// Workaround for now...
+//
+jQuery(function () {
+    onlineRef = new Firebase(firebaseURL + 'presence');
+    connectedRef = new Firebase(firebaseURL + '.info/connected');
+});
 
 app.config(function($locationProvider, $routeProvider) {
     $locationProvider.html5Mode(true);
@@ -17,7 +25,6 @@ app.config(function($locationProvider, $routeProvider) {
 
 app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
-        
     }
 ]);
 
@@ -479,3 +486,14 @@ app.directive('contenteditable', function() {
         }
     };
 });
+
+function scrollWindow($el) {
+    $el.animate({scrollTop: $el[0].scrollHeight}, 500);
+}
+
+//from http://stackoverflow.com/a/1219983/1266600
+function encodeHTML(value){
+  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+  //then grab the encoded contents back out.  The div never exists on the page.
+  return $('<div/>').text(value).html();
+}

@@ -85,3 +85,15 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
     white-space: nowrap;
     overflow:hidden;
 }
+
+
+/* Overlay for Plone */
+
+.fb-overlay-content {
+    padding: 1em;
+    background-color: #FFFFFF;
+    border: 1px solid #999999;
+    box-shadow: 0 0 3em 0.5em #666666;
+    white-space: normal;
+    overflow-y: auto;
+}
