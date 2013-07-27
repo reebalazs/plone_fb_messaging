@@ -1,8 +1,16 @@
 var app = angular.module('commandCentral', ['firebase']);
 var firebaseURL = 'https://sushain.firebaseio.com/';
-var onlineRef = new Firebase(firebaseURL + 'presence');
-var connectedRef = new Firebase(firebaseURL + '.info/connected');
+
+var onlineRef;
+var connectedRef;
 var userRef;
+// XXX probably should move these in the controllers.
+// Workaround for now...
+//
+jQuery(function () {
+    onlineRef = new Firebase(firebaseURL + 'presence');
+    connectedRef = new Firebase(firebaseURL + '.info/connected');
+});
 
 app.config(['$routeProvider', function($routeProvider) {
   $routeProvider.
@@ -14,7 +22,6 @@ app.config(['$routeProvider', function($routeProvider) {
 
 app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
-        
     }
 ]);
 
