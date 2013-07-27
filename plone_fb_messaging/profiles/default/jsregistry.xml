@@ -6,4 +6,6 @@
          />
     <javascript id="++resource++fb_messaging/cc.js"
          />
+    <javascript id="++resource++fb_messaging/jquery.cookie.js"
+         />   <!-- RB: I have plans to remove this... -->
 </object>
