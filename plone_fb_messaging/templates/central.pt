@@ -1,0 +1,23 @@
+<div id="fb-overlay" class="overlay overlay-ajax"  
+    ><!--tal:define="auth_token python: view.auth_token;"
+    tal:attributes="ng-init string:firebase_url = '${view/data/firebase_url}';; auth_token = '${auth_token}';; plone_username='${view/auth_data/ploneUsername}';;
+      "-->
+  <div class="close noti-close"></div>
+  <div class="fb-overlay-content">
+
+    *** Awesomeness coming up here. ***
+
+  </div>
+</div>
+<script type="text/javascript">
+  var root_id = 'fb-overlay';
+
+  // Add me to the end of the body. Fixes z-index issue.
+  // Make sure this all takes place before angular starts to kick in.
+  jQuery('#' + root_id).appendTo('body');
+  
+  // Boot the angular app
+  // (we don't need ng-app in this case, which allows us to
+  // coexist with more apps in the same page)
+  angular.bootstrap(document.getElementById(root_id), ['presence']);
+</script>

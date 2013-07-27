@@ -10,9 +10,9 @@
     
     <genericsetup:registerProfile
        name="default"
-       title="Plone Collective Firebase"
+       title="Plone Firebase Messaging"
        directory="profiles/default"
-       description="Viewlet provides a live notification UI"
+       description="Command Central"
        provides="Products.GenericSetup.interfaces.EXTENSION"
        />
 
@@ -22,10 +22,19 @@
         />
 
     <browser:viewlet
-        name="collective_firebase.head"
+        name="fb_messaging.head"
         class=".viewlet.FirebaseViewlet"
         manager="plone.app.layout.viewlets.interfaces.IHtmlHead"
         template="templates/head.pt"
+        layer="*"
+        permission="zope2.View"
+        />
+
+    <browser:viewlet
+        name="fb_messaging.central"
+        class=".viewlet.FirebaseViewlet"
+        manager="plone.app.layout.viewlets.interfaces.IPortalHeader"
+        template="templates/central.pt"
         layer="*"
         permission="zope2.View"
         />
