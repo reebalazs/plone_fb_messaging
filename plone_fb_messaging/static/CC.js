@@ -14,12 +14,16 @@ jQuery(function () {
 });
 
 app.config(function($locationProvider, $routeProvider) {
+    // Pick up templates from Plone.
+    var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
+    console.log(staticRoot);
+
     $locationProvider.html5Mode(true);
     $routeProvider.
-        when('/', {templateUrl: 'CC.html', controller: 'CommandCentralController'}).
-        when('/activity', {templateUrl: 'fb_activity.html', controller: 'ActivityStreamController'}).
-        when('/messaging', {templateUrl: 'fb_messaging.html', controller: 'PublicMessagingController'}).
-        when('/messaging/private/:privateChatUser', {templateUrl: 'fb_messaging.html', controller: 'PrivateMessagingController'}).
+        when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
+        when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'}).
+        when('/messaging', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'PublicMessagingController'}).
+        when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'PrivateMessagingController'}).
         otherwise({redirectTo: '/'});
 });
 
