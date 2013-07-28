@@ -13,12 +13,14 @@ jQuery(function () {
     connectedRef = new Firebase(firebaseURL + '.info/connected');
 });
 
-app.config(function($locationProvider, $routeProvider) {
+app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     // Pick up templates from Plone.
     var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
-    console.log(staticRoot);
 
-    $locationProvider.html5Mode(true);
+    $locationProvider
+      .html5Mode(false)
+      .hashPrefix('!');
+
     $routeProvider.
         when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
         when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'}).
