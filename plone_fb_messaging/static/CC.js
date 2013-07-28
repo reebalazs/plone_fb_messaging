@@ -20,7 +20,7 @@ app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire',
 
 app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route',
     function($scope, $timeout, angularFire, angularFireCollection, $q, $route) {
-        $scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+');
+        $scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
         var username = $.cookie('username');
         if(username === undefined || username.search($scope.usernameRegexp) !== 0) {
             var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
@@ -74,7 +74,8 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
         };
         
         $scope.updateUsername = function() {
-            if($('#username').val() !== '') {
+            var username = $('#username').val();
+            if(username.search($scope.usernameRegexp) === 0) {
                 var oldUserRef = onlineRef.child($.cookie('username'));
                 var connRef = oldUserRef.child('online').remove();
                 oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
@@ -133,7 +134,7 @@ var privateChatUser;
 
 app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q, $route) {
-        $scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+');
+        $scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
         var username = $.cookie('username');
         if(username === undefined || username.search($scope.usernameRegexp) !== 0) {
             var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
@@ -210,8 +211,8 @@ app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'ang
         };
         
         $scope.updateUsername = function() {
-            if($('#username').val() !== '') {
-                var oldUserRef = onlineRef.child($.cookie('username'));
+            var username = $('#username').val();
+            if(username.search($scope.usernameRegexp) === 0) {
                 var connRef = oldUserRef.child('online').remove();
                 oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
                 oldUserRef.child('online').remove();
