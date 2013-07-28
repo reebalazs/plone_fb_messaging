@@ -8,12 +8,12 @@ A messaging application to demonstrate interactivity brought to Plone via the te
 
 The package can be installed in the same way as Plone packages are usually installed.
 
-After the installation, the `collective_firebase` package has to be installed from `Site Setup / Add Packages`.
+After the installation, the `plone_fb_messaging` package has to be installed from `Site Setup / Add Packages`.
 
 
 ### Buildout example ###
 
-There is an example buildout configuration in the package that can be alternately used to install the package with the Plone 4.1 version. You can also use the buildout as a starting point for your own site setup. However, using the provided configuration is not required, the package can just be installed as an egg.
+There is an example buildout configuration in the package that can be alternately used to install the package with the Plone 4.3 version. You can also use the buildout as a starting point for your own site setup. However, using the provided configuration is not required, the package can just be installed as an egg.
 
 
 ## Setup ##
@@ -59,23 +59,12 @@ Keep the secret confidential, because if you give this secret to anyone, you gra
 If this property is left empty, the value of the `PLONE_COLLECTIVE_FIREBASE_SECRET` environment variable will be used as a default.
 
 
-
-#### filter_users
-
-If set to `False` (which is the default value), then the service is enabled for all logged-in users. If set to `True`, then the service is only enabled for the list of users explicitely specified.
-
-
-#### allowed_users
-
- Contains the list of users that can use the service. Only has an effect if `filter_users` is set to `True`. One Plone user id per line has to be specified.
-
-
 ### Alternate way: customize via enviromnent variables ###
 
 As mentioned above, the `firebase_url` and `firebase_secret` properties can also be specified from environment variables:
 
-    % export PLONE_COLLECTIVE_FIREBASE_SECRET='ZsAjg**********...'
-    % export PLONE_COLLECTIVE_FIREBASE_URL='https://my-firebase.firebaseio.com/collective_firebase'
+    % export PLONE_FIREBASE_SECRET='ZsAjg**********...'
+    % export PLONE_FIREBASE_URL='https://my-firebase.firebaseio.com/collective_firebase'
 
 If these values exist, they serve as a default value and the property fields in site_properties can be left empty. If the properties are also specified, they will take precedence over the environment variables.
 
@@ -100,42 +89,8 @@ On the same page, you can find the firebase authentication tokens and can add or
 
 #### Permissions tab
 
-The following permissions are suggested. This makes sure that each user can only access their own messages. In addition, there is a global admin access mode, which is used by the console scripts, meaning that the console scripts will always have full access to your *entire* database. The firebase permissions are very flexible, and coupled with custom authentication that generates the token in Plone, it could be further develop to satisfy virtually any use case.
-
-    {   
-        "rules": {
-            "users": {
-                "$user": {
-                    ".read":  "auth !== null && auth.ploneUserid == $user",
-                    ".write": "auth !== null && auth.ploneUserid == $user"
-                }
-            }
-        }
-    }
-
-This assumes that you have no prefix in your url, e.g. `https://my-firebase.firebaseio.com/`.
-
-If you do have a prefix in the url, then you must make up this structure to match up your prefix. For example if your url is `https://my-firebase.firebaseio.com/vipclients/omg/plone_interact`, then you can set the firebase in the following way. If you are using the firebase shared with multiple applications, then you may want to merge the ruleset with the other applications' rules as well.
-
-    {
-        "rules": {
-            "vipclients": {
-                "omg": {
-                    "collective_firebase": {
-                        "users": {
-                            "$user": {
-                                ".read":  "auth !== null && auth.ploneUserid == $user",
-                                ".write": "auth !== null && auth.ploneUserid == $user"
-                            }
-                        }
-                    }
-                }
-            },
-            "other_apps": {
-                ... ... ...
-            }
-        }
-    }
+XXX
+ 
 
 
 #### Data creation
