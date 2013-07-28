@@ -3,15 +3,30 @@ Plone and AngularJS issues:
 
 - form_tabbing.js
 
-  form_tabbing processes the hash segment of the url in a way that it takes the value literally and constructs a css selector from it. This causes a JS error in case the hashtag contains anything that will cause a 
+  form_tabbing processes the hash segment of the url in a way that it
+  takes the value literally and constructs a css selector from it.
+  This causes a JS error in case the hashtag contains anything that
+  will cause an invalid css selector.
 
-  Currently I have a workaround but what we really want is that Angular's hashbang gets ignored by this code, and Plone's anchor tab links still gets processed. So several types of hash segments can coexist peacefully, if only form_tabbing makes the processing smarter.
+  Currently I have a workaround but what we really want is that
+  Angular's hashbang gets ignored by this code, and Plone's anchor tab
+  links still gets processed. So several types of hash segments can
+  coexist peacefully, if only form_tabbing makes the processing
+  smarter.
 
 - BASE tag problem. Also "ALL YOUR BASE ARE BELONG TO US"
 
-  The problem is that Plone generates the base tag to refer to the document. For example if we are in an .../edit view, then the <base> does not contain "edit". Consequently any "#xxx" href url's stop working because they do not stay inside the page but the edit page will be left and the view page will be erronously loaded.
+  The problem is that Plone generates the base tag to refer to the
+  document. For example if we are in an .../edit view, then the <base>
+  does not contain "edit". Consequently any "#xxx" href url's stop
+  working because they do not stay inside the page but the edit page
+  will be left and the view page will be erronously loaded.
 
-  Currently I am removing the base tag which fixes Angular and the hashbang to work, but which breaks Plone miserably because several components depend on the base tag to be present. Another solution will be to generate full absolute url's instead of every "#xxx" anchor.
+  Currently I am removing the base tag which fixes Angular and the
+  hashbang to work, but which breaks Plone miserably because several
+  components depend on the base tag to be present. Another solution
+  will be to generate full absolute url's instead of every "#xxx"
+  anchor.
 
-  However this solution is unacceptable if you need to work with any MVC such as AngularJS or anything that uses non-html5 url history.
-  
+  However this solution is unacceptable if you need to work with any
+  MVC such as AngularJS or anything that uses non-html5 url history.
