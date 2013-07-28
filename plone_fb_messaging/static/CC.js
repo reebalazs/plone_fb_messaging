@@ -12,6 +12,27 @@ jQuery(function () {
     connectedRef = new Firebase(firebaseURL + '.info/connected');
 });
 
+function getConfig($scope) {
+    var config;
+    if ($scope.firebaseUrl) {
+        config = {
+            firebaseUrl: $scope.firebaseUrl,
+            authToken: $scope.authToken,
+            ploneUserid: $scope.ploneUserid
+        };
+    } else {
+        // We are in the static html. Let's provide
+        // constants for testing.
+        config = {
+            firebaseUrl: 'https://sushain.firebaseio.com/',
+            authToken: '',
+            ploneUserid: ''
+        };
+    }
+    console.log('getConfig', config);
+    return config;
+}
+
 app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     // Pick up templates from Plone.
     var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
@@ -43,7 +64,7 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
         }
         else if(username.search($scope.usernameRegexp) === 0)
             $scope.username = username;
-            
+
         connectedRef.on('value', function(snap) {
             if(snap.val() === true) {
                 userRef = onlineRef.child($scope.username);
@@ -147,6 +168,9 @@ var privateChatUser;
 
 app.controller('MessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q, $route) {
+
+        getConfig($scope);
+
         $scope.usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+');
         var username = $.cookie('username');
         if(username === undefined || username.search($scope.usernameRegexp) !== 0) {

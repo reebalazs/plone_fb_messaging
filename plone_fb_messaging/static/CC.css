@@ -76,7 +76,7 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
 }
 
 .activity:last-child {
-    border-bottom: 0px;
+    border-bottom: 0;
 }
 
 .activity .description {

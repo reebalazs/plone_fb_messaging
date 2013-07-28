@@ -63,14 +63,10 @@ If this property is left empty, the value of the `PLONE_COLLECTIVE_FIREBASE_SECR
 
 As mentioned above, the `firebase_url` and `firebase_secret` properties can also be specified from environment variables:
 
-    % export PLONE_FIREBASE_SECRET='ZsAjg**********...'
-    % export PLONE_FIREBASE_URL='https://my-firebase.firebaseio.com/collective_firebase'
+    % export PLONE_MESSAGING_SECRET='ZsAjg**********...'
+    % export PLONE_MESSAGING_URL='https://my-firebase.firebaseio.com/.....'
 
 If these values exist, they serve as a default value and the property fields in site_properties can be left empty. If the properties are also specified, they will take precedence over the environment variables.
-
-The `filter_users` and `allowed_users` properties cannot currently be specified via environment variables.
-
-The package also provides a set of example scripts, which use the same environment variable as a source of configuration.
 
 
 ### Customize Firebase ###

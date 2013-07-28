@@ -30,24 +30,31 @@ def get_auth_token_for_admin():
 
 
 def get_allowed_userid(context, request):
-    """Return the userid, None (if anon), or False,
+    """Return the userid, None (if anon),
+
+    or (XXX currently disabled) False,
     if the user is not allowed to use this feature.
     """
     portal_state = getMultiAdapter((context, request), name="plone_portal_state")
     plone_userid = portal_state.member().getId()
 
-    # If the user is not allowed, refuse to give a token.
-    props = get_properties()
-    if props is not None and \
-            props.getProperty('filter_users', False) and \
-            plone_userid not in props.getProperty('allowed_users', ()):
-        # User is not allowed.
-        return False
-    else:
-        return plone_userid
+    return plone_userid
+
+    # XXX XXX filter_users is currently not used.
+    #
+    ## If the user is not allowed, refuse to give a token.
+    #props = get_properties()
+    #
+    #if props is not None and \
+    #        props.getProperty('filter_users', False) and \
+    #        plone_userid not in props.getProperty('allowed_users', ()):
+    #    # User is not allowed.
+    #    return False
+    #else:
+    #    return plone_userid
 
 
-def get_auth_token(context, request):
+def get_auth_info(context, request):
     plone_userid = get_allowed_userid(context, request)
 
     if plone_userid is False:
@@ -64,14 +71,21 @@ def get_auth_token(context, request):
 
     custom_data = {
         'ploneUserid': plone_userid,
-        'userPrefix': '/users/%s' % (plone_userid, ),
     }
     options = {
         'admin': admin,
     }
     config = get_config()
     token = create_token(config['firebase_secret'], custom_data, options)
-    return token
+    return dict(
+        auth_token=token,
+        auth_data=custom_data,
+        config=config,
+    )
+
+
+def get_auth_token(context, request):
+    get_auth_info(context, request)['auth_token']
 
 
 class AllowedUseridView(BrowserView):
