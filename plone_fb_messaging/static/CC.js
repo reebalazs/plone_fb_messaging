@@ -12,16 +12,19 @@ jQuery(function () {
     connectedRef = new Firebase(firebaseURL + '.info/connected');
 });
 
-app.config(['$routeProvider', function($routeProvider) {
+app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     // Pick up templates from Plone.
     var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
-    console.log(staticRoot);
 
-    $routeProvider.
-      when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
-      when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'}).
-      when('/messaging', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'MessagingController'}).
-      otherwise({redirectTo: '/'});
+    $locationProvider
+      .html5Mode(false)
+      .hashPrefix('!');
+
+    $routeProvider
+      .when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'})
+      .when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'})
+      .when('/messaging', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'MessagingController'})
+      .otherwise({redirectTo: '/'});
 }]);
 
 app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
