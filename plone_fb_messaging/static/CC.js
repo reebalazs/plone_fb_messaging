@@ -1,4 +1,4 @@
-var app = angular.module('commandCentral', ['firebase']);
+var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 var firebaseURL = 'https://sushain.firebaseio.com/';
 var onlineRef = new Firebase(firebaseURL + 'presence');
 var connectedRef = new Firebase(firebaseURL + '.info/connected');
@@ -21,9 +21,9 @@ app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire',
     }
 ]);
 
-app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route',
-    function($scope, $timeout, angularFire, angularFireCollection, $q, $route) {
-        setUsername($scope);
+app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$cookieStore',
+    function($scope, $timeout, angularFire, angularFireCollection, $q, $route, $cookieStore) {
+        setUsername($scope, $cookieStore);
 
         connectedRef.on('value', function(dataSnapshot) {
             if(dataSnapshot.val() === true) login($scope);
@@ -55,7 +55,7 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
         $scope.markSeen = function() { userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP); };
         
         $scope.updateUsername = function() {
-            updateUsername($scope);
+            updateUsername($scope, $cookieStore);
         }
 
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
@@ -72,9 +72,9 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
     }
 ]);
 
-app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$location',
-    function($scope, $timeout, angularFire, angularFireCollection, $q, $route, $location) {
-        setUsername($scope);
+app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$location', '$cookieStore',
+    function($scope, $timeout, angularFire, angularFireCollection, $q, $route, $location, $cookieStore) {
+        setUsername($scope, $cookieStore);
 
         $scope.privateChat = false;
         $scope.privateChatUser = false;
@@ -82,7 +82,7 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
         $scope.$location = $location;
 
         $scope.processMessage = function() { processMessage($scope, $location, $('#messagesDiv')); };
-        $scope.updateUsername = function() { updateUsername($scope, angularFireCollection); };
+        $scope.updateUsername = function() { updateUsername($scope, $cookieStore, angularFireCollection); };
         $scope.startPrivateChat = function($event) { commandHandler($scope, $location, '/query ' + $($event.target).data('username')); };
         $scope.removeRoom = function($event) { removeRoom($scope, $location, $event); };
         $scope.scroll = function() { setWindowToBottom($('#messagesDiv'), $timeout) };
@@ -112,9 +112,9 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
     }
 ]);
 
-app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q', '$routeParams', '$location',
-    function($scope, $timeout, angularFire, angularFireCollection, $route, $q, $routeParams, $location) {
-        setUsername($scope);
+app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q', '$routeParams', '$location', '$cookieStore',
+    function($scope, $timeout, angularFire, angularFireCollection, $route, $q, $routeParams, $location, $cookieStore) {
+        setUsername($scope, $cookieStore);
 
         $scope.privateChat = true;
         $scope.privateChatUser = $routeParams.privateChatUser;
@@ -127,7 +127,7 @@ app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire
         });
 
         $scope.processMessage = function() { processMessage($scope, $location, $('#messagesDiv')); };
-        $scope.updateUsername = function() { updateUsername($scope, angularFireCollection); };
+        $scope.updateUsername = function() { updateUsername($scope, $cookieStore, angularFireCollection); };
         $scope.startPrivateChat = function($event) { commandHandler($scope, $location, '/query ' + $($event.target).data('username')); };
         $scope.removeRoom = function($event) { removeRoom($scope, $location, $event); };
         $scope.scroll = function() { setWindowToBottom($('#messagesDiv'), $timeout) };
@@ -143,12 +143,12 @@ app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire
     }
 ]);
 
-function setUsername($scope) {
-    var username = $.cookie('username');
+function setUsername($scope, $cookieStore) {
+    var username = $cookieStore.get('username');
     if(username === undefined || username.search(usernameRegexp) !== 0) {
         var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
         $scope.username = anonUser; //Very bad things happen if two people have the same username
-        $.cookie('username', anonUser);
+        $cookieStore.put('username', anonUser);
     }
     else if(username.search(usernameRegexp) === 0)
         $scope.username = username;
@@ -192,21 +192,21 @@ function removeRoom($scope, $location, $event) {
     $location.url('/messaging');
 }
 
-function updateUsername($scope, angularFireCollection) {
+function updateUsername($scope, $cookieStore, angularFireCollection) {
     var username = $scope.username;
     if(username.search(usernameRegexp) === 0) {
-        var oldUserRef = onlineRef.child($.cookie('username'));
+        var oldUserRef = onlineRef.child($cookieStore.get('username'));
         var connRef = oldUserRef.child('online').remove();
         oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
         oldUserRef.child('online').remove();
-        $.cookie('username', $('#username').val());
+        $cookieStore.put('username', $('#username').val());
         
         userRef = onlineRef.child($scope.username);
         connRef = userRef.child('online').push(1);
         if(angularFireCollection) $scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
     }
     else
-        $scope.username = $.cookie('username'); //Revert to valid username if the one user provides is invalid
+        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
 }
 
 function processMessage($scope, $location, messageWindow) {
