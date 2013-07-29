@@ -1,9 +1,10 @@
 <div class="roomList">
   <h1>Active Rooms</h1>
-  <span ng-show="privateChatUser == ''">* </span><a class="room" ng-click="changeRoom('public')" href="">Public</a>
+  <span ng-show="!privateChat">* </span><a class="room" href="/messaging" ng-click="switchRoom('public')">Public</a>
   <div ng-cloak ng-repeat="room in rooms">
     <span ng-if="!room.remove">
-      <span ng-show="privateChatUser == room.username">* </span><a class="room" ng-click="changeRoom($event)" data-username="{{room.username}}" href="">Private: {{room.username}}</a>
+      <span ng-show="privateChatUser == room.username">* </span> 
+      <a class="room" href="/messaging/private/{{room.username}}" ng-click="switchRoom(room.username)">Private: {{room.username}}</a>
       <input type="submit" data-username="{{room.username}}" ng-click="removeRoom($event)" value="Remove">
     </span>
   </div>
@@ -18,7 +19,7 @@
   <div class="users">
     <strong>Online users<span ng-bind="numUsers"></span>:</strong>
       <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
-        {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="privateChat($event)" value="Private Chat">
+        {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="startPrivateChat($event)" value="Private Chat">
       </div>
   </div>
 
@@ -42,7 +43,7 @@
     </div>
   </div>
   
-  <form ng-submit="addMessage()">
+  <form ng-submit="processMessage()">
     <input type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
     <input type="submit" id="submit" value="Send">
     <div class="helpMesssage" ng-class="helpClass" ng-bind="help"></div>
