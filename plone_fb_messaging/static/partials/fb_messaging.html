@@ -1,10 +1,10 @@
 <div class="roomList">
   <h1>Active Rooms</h1>
-  <span ng-show="!privateChat">* </span><a class="room" href="/messaging" ng-click="switchRoom('public')">Public</a>
+  <span ng-show="!privateChat">* </span><a class="room" href="#!/messaging" ng-click="switchRoom('public')">Public</a>
   <div ng-cloak ng-repeat="room in rooms">
     <span ng-if="!room.remove">
       <span ng-show="privateChatUser == room.username">* </span> 
-      <a class="room" href="/messaging/private/{{room.username}}" ng-click="switchRoom(room.username)">Private: {{room.username}}</a>
+      <a class="room" href="#!/messaging/private/{{room.username}}" ng-click="switchRoom(room.username)">Private: {{room.username}}</a>
       <input type="submit" data-username="{{room.username}}" ng-click="removeRoom($event)" value="Remove">
     </span>
   </div>
