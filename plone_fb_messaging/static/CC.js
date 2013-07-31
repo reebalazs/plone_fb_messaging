@@ -44,17 +44,16 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         $rootScope.rootUrl = parser.protocol + '//' + parser.hostname + '/';
 
         console.log('firebaseUrl:', $rootScope.firebaseUrl);
-        console.log('ploneUserid:', $rootScope.ploneUserid);
 
-        // Log me in.
-        // 
-        //var dataRef = new Firebase(firebaseUrl);
-        //
-        //dataRef.auth(authToken, function(error, result) {
-        //    if (error) {
-        //        throw new Error("Login Failed! \n" + error);
-        //    }
-        //});
+        // Authenticate me.
+        var dataRef = new Firebase($rootScope.firebaseUrl);
+        dataRef.auth($rootScope.authToken, function(error, result) {
+            if (error) {
+                throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
+            } else {
+                console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
+            }
+        });
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
         var connectedRef = new Firebase($rootScope.rootUrl + '.info/connected');
