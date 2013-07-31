@@ -42,9 +42,9 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PrivateMessagingController'}).
         otherwise({redirectTo: '/'});
 
-    $provide.service('authService', function() {
+    $provide.service('authService', function($rootScope) {
 
-        console.log('RRRR');
+        console.log('RRRR', $rootScope);
 
         // Log me in.
         // 
