@@ -2,9 +2,7 @@ var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 var firebaseURL = 'https://sushain.firebaseio.com/';
 
 var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
-var userRef;
 var firebaseURL = 'https://green-cc.firebaseio.com/';
-
 
 function getConfig($scope) {
     var config;
@@ -27,28 +25,9 @@ function getConfig($scope) {
     return config;
 }
 
-app.service('authService', ["$rootScope", function($rootScope) {
-    var onlineRef = new Firebase(firebaseURL + 'presence');
-    var connectedRef = new Firebase(firebaseURL + '.info/connected');
-    username = "testuser1";
-    connectedRef.on('value', function(snap) {
-        if(snap.val() === true) {
-            // We're connected or reconnected.
-            // Set up our presence state and
-            // tell the server to set a timestamp when we leave.
-            userRef = onlineRef.child(username);
-            var connRef = userRef.child('online').push(1);
-            userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-            userRef.child('online').onDisconnect().remove();
-            userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-        }
-    });
-}]);
 
-
-
-
-app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+app.config(['$routeProvider', '$locationProvider', '$provide',
+    function ($routeProvider, $locationProvider, $provide) {
     // Pick up templates from Plone.
     var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
 
@@ -57,20 +36,64 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
       .hashPrefix('!');
 
     $routeProvider.
-        when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
+        when('/', {templateUrl: staticRoot + 'partials/CC.html', controller: 'CommandCentralController'}).
         when('/activity', {templateUrl: staticRoot + 'partials/fb_activity.html', controller: 'ActivityStreamController'}).
         when('/messaging', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PublicMessagingController'}).
         when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PrivateMessagingController'}).
         otherwise({redirectTo: '/'});
+
+    $provide.service('authService', function() {
+
+        console.log('RRRR');
+
+        // Log me in.
+        // 
+        //var dataRef = new Firebase(firebaseURL);
+        //
+        //dataRef.auth(authToken, function(error, result) {
+        //    if (error) {
+        //        throw new Error("Login Failed! \n" + error);
+        //    }
+        //});
+
+        var onlineRef = new Firebase(firebaseURL + 'presence');
+        var connectedRef = new Firebase(firebaseURL + '.info/connected');
+        username = "testuser1";
+        connectedRef.on('value', function (snap) {
+            if(snap.val() === true) {
+                // We're connected or reconnected.
+                // Set up our presence state and
+                // tell the server to set a timestamp when we leave.
+                var userRef = onlineRef.child(username);
+                var connRef = userRef.child('online').push(1);
+                userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+                userRef.child('online').onDisconnect().remove();
+                userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+            }
+        });
+
+    });
+
+
+
 }]);
 
-app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q) {
-    }
-]);
 
-app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$cookieStore',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q, $route, $cookieStore) {
+
+
+
+app.controller('CommandCentralController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
+    
+
+}]);
+
+app.controller('ActivityStreamController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
+    '$route', '$cookieStore', 'authService',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q,
+        $route, $cookieStore, authService) {
 
         setUsername($scope, $cookieStore);
 
@@ -107,7 +130,9 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
         };
 
         $scope.markSeen = function () {
-            userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+            // XXX XXX XXX
+
+            //userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
         };
 
         $scope.updateUsername = function () {
@@ -128,8 +153,11 @@ app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire',
     }
 ]);
 
-app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$location', '$cookieStore',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q, $route, $location, $cookieStore) {
+app.controller('PublicMessagingController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 
+    '$route', '$location', '$cookieStore', 'authService',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q,
+        $route, $location, $cookieStore, authService) {
         setUsername($scope, $cookieStore);
 
         var onlineRef = new Firebase(firebaseURL + 'presence');
@@ -191,8 +219,11 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
     }
 ]);
 
-app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q', '$routeParams', '$location', '$cookieStore',
-    function ($scope, $timeout, angularFire, angularFireCollection, $route, $q, $routeParams, $location, $cookieStore) {
+app.controller('PrivateMessagingController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
+    '$routeParams', '$location', '$cookieStore', 'authService',
+    function ($scope, $timeout, angularFire, angularFireCollection, $route, $q,
+        $routeParams, $location, $cookieStore, authService) {
         setUsername($scope, $cookieStore);
 
         var onlineRef = new Firebase(firebaseURL + 'presence');
@@ -248,14 +279,14 @@ function setUsername($scope, $cookieStore) {
     return;
     // XXX XXX
     //var username = $cookieStore.get('username');
-    if (username === undefined || username.search(usernameRegexp) !== 0) {
-        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
-        $scope.username = anonUser; //Very bad things happen if two people have the same username
-        $cookieStore.put('username', anonUser);
-    }
-    else if (username.search(usernameRegexp) === 0)
-        $scope.username = username;
-}
+//    if (username === undefined || username.search(usernameRegexp) !== 0) {
+//        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
+//        $scope.username = anonUser; //Very bad things happen if two people have the same username
+//        $cookieStore.put('username', anonUser);
+//    }
+//    else if (username.search(usernameRegexp) === 0)
+//        $scope.username = username;
+//}
 
 //function login($scope) {
 //    // We're connected (or reconnected)!  Set up our presence state and
@@ -265,7 +296,7 @@ function setUsername($scope, $cookieStore) {
 //    userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
 //    userRef.child('online').onDisconnect().remove();
 //    userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-//}
+}
 
 function onRoomSwitch($scope, targetRoom, modified) {
     var privateChatUser = $scope.privateChatUser;
@@ -302,23 +333,27 @@ function removeRoom($scope, $location, $event) {
 }
 
 function updateUsername($scope, $cookieStore, angularFireCollection) {
-    var username = $scope.username;
-    if (username.search(usernameRegexp) === 0) {
-        var oldUserRef = onlineRef.child($cookieStore.get('username'));
-        var connRef = oldUserRef.child('online').remove();
-        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
-        oldUserRef.child('online').remove();
-        $cookieStore.put('username', $('#username').val());
+    return;
 
-        userRef = onlineRef.child($scope.username);
-        connRef = userRef.child('online').push(1);
-        if (angularFireCollection) {
-            $scope.rooms = angularFireCollection(firebaseURL + 
-                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
-        }
-    }
-    else
-        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
+    // XXX XXX XXX
+
+//    var username = $scope.username;
+//    if (username.search(usernameRegexp) === 0) {
+//        var oldUserRef = onlineRef.child($cookieStore.get('username'));
+//        var connRef = oldUserRef.child('online').remove();
+//        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
+//        oldUserRef.child('online').remove();
+//        $cookieStore.put('username', $('#username').val());
+//
+//        userRef = onlineRef.child($scope.username);
+//        connRef = userRef.child('online').push(1);
+//        if (angularFireCollection) {
+//            $scope.rooms = angularFireCollection(firebaseURL + 
+//                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
+//        }
+//    }
+//    else
+//        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
 }
 
 function processMessage($scope, $location, messageWindow) {
@@ -506,7 +541,7 @@ function commandHandler($scope, $location, msg) {
 }
 
 //from http://stackoverflow.com/a/1219983/1266600
-function encodeHTML(value){
+function encodeHTML(value) {
   //create a in-memory div, set it's inner text(which jQuery automatically encodes)
   //then grab the encoded contents back out.  The div never exists on the page.
   return $('<div/>').text(value).html();
@@ -632,14 +667,3 @@ app.directive('contenteditable', function () {
         }
     };
 });
-
-function scrollWindow($el) {
-    $el.animate({scrollTop: $el[0].scrollHeight}, 500);
-}
-
-//from http://stackoverflow.com/a/1219983/1266600
-function encodeHTML(value){
-  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
-  //then grab the encoded contents back out.  The div never exists on the page.
-  return $('<div/>').text(value).html();
-}
