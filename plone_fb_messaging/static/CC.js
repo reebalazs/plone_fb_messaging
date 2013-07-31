@@ -1,17 +1,52 @@
 var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 var firebaseURL = 'https://sushain.firebaseio.com/';
 
-var onlineRef;
-var connectedRef;
 var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
 var userRef;
-// XXX probably should move these in the controllers.
-// Workaround for now...
-//
-jQuery(function () {
-    onlineRef = new Firebase(firebaseURL + 'presence');
-    connectedRef = new Firebase(firebaseURL + '.info/connected');
-});
+var firebaseURL = 'https://green-cc.firebaseio.com/';
+
+
+function getConfig($scope) {
+    var config;
+    if ($scope.firebaseUrl) {
+        config = {
+            firebaseUrl: $scope.firebaseUrl,
+            authToken: $scope.authToken,
+            ploneUserid: $scope.ploneUserid
+        };
+    } else {
+        // We are in the static html. Let's provide
+        // constants for testing.
+        config = {
+            firebaseUrl: 'https://sushain.firebaseio.com/',
+            authToken: '',
+            ploneUserid: ''
+        };
+    }
+    console.log('getConfig', config);
+    return config;
+}
+
+app.service('authService', ["$rootScope", function($rootScope) {
+    var onlineRef = new Firebase(firebaseURL + 'presence');
+    var connectedRef = new Firebase(firebaseURL + '.info/connected');
+    username = "testuser1";
+    connectedRef.on('value', function(snap) {
+        if(snap.val() === true) {
+            // We're connected or reconnected.
+            // Set up our presence state and
+            // tell the server to set a timestamp when we leave.
+            userRef = onlineRef.child(username);
+            var connRef = userRef.child('online').push(1);
+            userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+            userRef.child('online').onDisconnect().remove();
+            userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+        }
+    });
+}]);
+
+
+
 
 app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
     // Pick up templates from Plone.
@@ -36,11 +71,14 @@ app.controller('CommandCentralController', ['$scope', '$timeout', 'angularFire',
 
 app.controller('ActivityStreamController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$route', '$cookieStore',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $route, $cookieStore) {
+
         setUsername($scope, $cookieStore);
 
-        connectedRef.on('value', function (dataSnapshot) {
-            if (dataSnapshot.val() === true) login($scope);
-        });
+        var onlineRef = new Firebase(firebaseURL + 'presence');
+
+        //connectedRef.on('value', function (dataSnapshot) {
+        //    if (dataSnapshot.val() === true) login($scope);
+        //});
 
         $scope.getLastSeen = function () {
             var deferred = $q.defer();
@@ -94,6 +132,8 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $route, $location, $cookieStore) {
         setUsername($scope, $cookieStore);
 
+        var onlineRef = new Firebase(firebaseURL + 'presence');
+
         $scope.privateChat = false;
         $scope.privateChatUser = false;
         $scope.heading = 'Public Chat';
@@ -137,11 +177,11 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
         // Presence
         //
 
-        connectedRef.on('value', function (dataSnapshot) {
-            if (dataSnapshot.val() === true) {
-                login($scope);
-            }
-        });
+        //connectedRef.on('value', function (dataSnapshot) {
+        //    if (dataSnapshot.val() === true) {
+        //        login($scope);
+        //    }
+        //});
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
         $scope.messages = angularFireCollection(firebaseURL + '/messages', function () {
@@ -154,6 +194,8 @@ app.controller('PublicMessagingController', ['$scope', '$timeout', 'angularFire'
 app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q', '$routeParams', '$location', '$cookieStore',
     function ($scope, $timeout, angularFire, angularFireCollection, $route, $q, $routeParams, $location, $cookieStore) {
         setUsername($scope, $cookieStore);
+
+        var onlineRef = new Firebase(firebaseURL + 'presence');
 
         $scope.privateChat = true;
         $scope.privateChatUser = $routeParams.privateChatUser;
@@ -189,9 +231,9 @@ app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire
             onRoomSwitch($scope, target, false);
         };
 
-        connectedRef.on('value', function (dataSnapshot) {
-            if (dataSnapshot.val() === true) login($scope);
-        });
+        //connectedRef.on('value', function (dataSnapshot) {
+        //    if (dataSnapshot.val() === true) login($scope);
+        //});
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
         $scope.messages = angularFireCollection(firebaseURL + '/messages', function () { $scope.scroll(); });
@@ -202,6 +244,9 @@ app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire
 function setUsername($scope, $cookieStore) {
     // XXX XXX XXX
     var username = 'TestUserX';
+    $scope.username = username;
+    return;
+    // XXX XXX
     //var username = $cookieStore.get('username');
     if (username === undefined || username.search(usernameRegexp) !== 0) {
         var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
@@ -212,15 +257,15 @@ function setUsername($scope, $cookieStore) {
         $scope.username = username;
 }
 
-function login($scope) {
-    // We're connected (or reconnected)!  Set up our presence state and
-    // tell the server to set a timestamp when we leave.
-    userRef = onlineRef.child($scope.username);
-    var connRef = userRef.child('online').push(1);
-    userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-    userRef.child('online').onDisconnect().remove();
-    userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-}
+//function login($scope) {
+//    // We're connected (or reconnected)!  Set up our presence state and
+//    // tell the server to set a timestamp when we leave.
+//    userRef = onlineRef.child($scope.username);
+//    var connRef = userRef.child('online').push(1);
+//    userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+//    userRef.child('online').onDisconnect().remove();
+//    userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+//}
 
 function onRoomSwitch($scope, targetRoom, modified) {
     var privateChatUser = $scope.privateChatUser;
