@@ -100,3 +100,8 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
     box-shadow: 0 0 3em 0.5em #666666;
     white-space: normal;
 }
+
+.fb-close {
+    z-index: 100;
+    position: fixed;
+}

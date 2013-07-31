@@ -79,14 +79,9 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 }]);
 
 
-
-
-
 app.controller('CommandCentralController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
-    
-
 }]);
 
 app.controller('ActivityStreamController',
