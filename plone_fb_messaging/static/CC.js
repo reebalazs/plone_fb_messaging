@@ -46,14 +46,18 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
 
         // Authenticate me.
-        var dataRef = new Firebase($rootScope.firebaseUrl);
-        dataRef.auth($rootScope.authToken, function(error, result) {
-            if (error) {
-                throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
-            } else {
-                console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
-            }
-        });
+        if ($rootScope.authToken) {
+            var dataRef = new Firebase($rootScope.firebaseUrl);
+            dataRef.auth($rootScope.authToken, function(error, result) {
+                if (error) {
+                    throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
+                } else {
+                    console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
+                }
+            });
+        } else {
+            console.log('No authentication token. Continuing in static mode.');
+        }
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
         var connectedRef = new Firebase($rootScope.rootUrl + '.info/connected');
