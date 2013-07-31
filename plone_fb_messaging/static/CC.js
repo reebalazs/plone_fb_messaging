@@ -200,7 +200,9 @@ app.controller('PrivateMessagingController', ['$scope', '$timeout', 'angularFire
 ]);
 
 function setUsername($scope, $cookieStore) {
-    var username = $cookieStore.get('username');
+    // XXX XXX XXX
+    var username = 'TestUserX';
+    //var username = $cookieStore.get('username');
     if (username === undefined || username.search(usernameRegexp) !== 0) {
         var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
         $scope.username = anonUser; //Very bad things happen if two people have the same username
