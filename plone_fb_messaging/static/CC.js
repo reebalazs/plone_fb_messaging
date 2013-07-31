@@ -23,9 +23,9 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
 
     $routeProvider.
         when('/', {templateUrl: staticRoot + 'CC.html', controller: 'CommandCentralController'}).
-        when('/activity', {templateUrl: staticRoot + 'fb_activity.html', controller: 'ActivityStreamController'}).
-        when('/messaging', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'PublicMessagingController'}).
-        when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'fb_messaging.html', controller: 'PrivateMessagingController'}).
+        when('/activity', {templateUrl: staticRoot + 'partials/fb_activity.html', controller: 'ActivityStreamController'}).
+        when('/messaging', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PublicMessagingController'}).
+        when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PrivateMessagingController'}).
         otherwise({redirectTo: '/'});
 }]);
 
