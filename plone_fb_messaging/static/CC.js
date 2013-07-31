@@ -1,34 +1,17 @@
 var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
-var firebaseURL = 'https://sushain.firebaseio.com/';
 
 var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
-var firebaseURL = 'https://green-cc.firebaseio.com/';
-
-function getConfig($scope) {
-    var config;
-    if ($scope.firebaseUrl) {
-        config = {
-            firebaseUrl: $scope.firebaseUrl,
-            authToken: $scope.authToken,
-            ploneUserid: $scope.ploneUserid
-        };
-    } else {
-        // We are in the static html. Let's provide
-        // constants for testing.
-        config = {
-            firebaseUrl: 'https://sushain.firebaseio.com/',
-            authToken: '',
-            ploneUserid: ''
-        };
-    }
-    console.log('getConfig', config);
-    return config;
-}
 
 
 app.config(['$routeProvider', '$locationProvider', '$provide',
     function ($routeProvider, $locationProvider, $provide) {
     // Pick up templates from Plone.
+    // 
+    // XXX I want to pass parameters to my configuration.
+    // XXX But it looks like this is either not documented or not possible 
+    // XXX with ng-init. So, staticRoot comes in another way, and
+    // the rest is configured not from config, but from authService.
+    //
     var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
 
     $locationProvider
@@ -44,11 +27,22 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
     $provide.service('authService', function($rootScope) {
 
-        console.log('RRRR', $rootScope);
+        // Configure parameters. In Plone these are provided from the template by ng-init.
+         if (! $rootScope.firebaseUrl) {
+            // We are in the static html. Let's provide
+            // constants for testing.
+            $rootScope.firebaseUrl = 'https://sushain.firebaseio.com/';
+            $rootScope.authToken = '';
+            $rootScope.ploneUserid = '';
+        }
+        $rootScope.staticRoot = staticRoot;
+
+        console.log('firebaseUrl:', $rootScope.firebaseUrl);
+        console.log('ploneUserid:', $rootScope.ploneUserid);
 
         // Log me in.
         // 
-        //var dataRef = new Firebase(firebaseURL);
+        //var dataRef = new Firebase(firebaseUrl);
         //
         //dataRef.auth(authToken, function(error, result) {
         //    if (error) {
@@ -56,8 +50,11 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         //    }
         //});
 
-        var onlineRef = new Firebase(firebaseURL + 'presence');
-        var connectedRef = new Firebase(firebaseURL + '.info/connected');
+        //
+        var rootUrl = $rootScope.firebaseUrl;
+
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+        var connectedRef = new Firebase(rootUrl + '.info/connected');
         username = "testuser1";
         connectedRef.on('value', function (snap) {
             if(snap.val() === true) {
@@ -86,13 +83,13 @@ app.controller('CommandCentralController',
 
 app.controller('ActivityStreamController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$route', '$cookieStore', 'authService',
+    '$route', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $route, $cookieStore, authService) {
+        $route, $cookieStore, authService, $rootScope) {
 
         setUsername($scope, $cookieStore);
 
-        var onlineRef = new Firebase(firebaseURL + 'presence');
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
 
         //connectedRef.on('value', function (dataSnapshot) {
         //    if (dataSnapshot.val() === true) login($scope);
@@ -115,7 +112,7 @@ app.controller('ActivityStreamController',
         var promise = $scope.getLastSeen();
         promise.then(function (lastSeen) {
             $scope.lastSeen = lastSeen;
-            $scope.activities = angularFireCollection(firebaseURL + 'activity', function() {
+            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function() {
                 $scope.scroll();
             });
         });
@@ -139,7 +136,7 @@ app.controller('ActivityStreamController',
           Comment out the setInterval call to disable this functionality */
         setInterval(refresh, 10000);
         function refresh() {
-            $scope.activities = angularFireCollection(firebaseURL + 'activity', function () {
+            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
                 $scope.scroll();
                 if(!$scope.$$phase) $scope.$apply();
             });
@@ -149,13 +146,13 @@ app.controller('ActivityStreamController',
 ]);
 
 app.controller('PublicMessagingController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 
-    '$route', '$location', '$cookieStore', 'authService',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
+    '$route', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $route, $location, $cookieStore, authService) {
+        $route, $location, $cookieStore, authService, $rootScope) {
         setUsername($scope, $cookieStore);
 
-        var onlineRef = new Firebase(firebaseURL + 'presence');
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
 
         $scope.privateChat = false;
         $scope.privateChatUser = false;
@@ -207,21 +204,21 @@ app.controller('PublicMessagingController',
         //});
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection(firebaseURL + '/messages', function () {
+        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages', function () {
             $scope.scroll();
         });
-        $scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms');
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
     }
 ]);
 
 app.controller('PrivateMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
-    '$routeParams', '$location', '$cookieStore', 'authService',
+    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $route, $q,
-        $routeParams, $location, $cookieStore, authService) {
+        $routeParams, $location, $cookieStore, authService, $rootScope) {
         setUsername($scope, $cookieStore);
 
-        var onlineRef = new Firebase(firebaseURL + 'presence');
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
 
         $scope.privateChat = true;
         $scope.privateChatUser = $routeParams.privateChatUser;
@@ -262,8 +259,8 @@ app.controller('PrivateMessagingController',
         //});
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection(firebaseURL + '/messages', function () { $scope.scroll(); });
-        $scope.rooms = angularFireCollection(firebaseURL + 'presence/' + $scope.username + '/' + 'rooms');
+        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages', function () { $scope.scroll(); });
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
     }
 ]);
 
@@ -343,7 +340,7 @@ function updateUsername($scope, $cookieStore, angularFireCollection) {
 //        userRef = onlineRef.child($scope.username);
 //        connRef = userRef.child('online').push(1);
 //        if (angularFireCollection) {
-//            $scope.rooms = angularFireCollection(firebaseURL + 
+//            $scope.rooms = angularFireCollection(firebaseUrl + 
 //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
 //        }
 //    }

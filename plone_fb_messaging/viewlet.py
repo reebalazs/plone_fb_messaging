@@ -2,8 +2,7 @@
 from Products.CMFCore.utils import getToolByName
 from plone.app.layout.viewlets import common as base
 
-from .config import get_config
-from .auth import get_auth_token
+from .auth import get_auth_info
 
 
 class FirebaseViewlet(base.ViewletBase):
@@ -12,8 +11,12 @@ class FirebaseViewlet(base.ViewletBase):
 
     def update(self):
         super(FirebaseViewlet, self).update()
-        self.auth_token = get_auth_token(self.context, self.request)
-        self.config = get_config()
+        auth_info = get_auth_info(self.context, self.request)
+        self.auth_token = auth_info['auth_token']
+        self.auth_data = auth_info['auth_data']
+        self.config = auth_info['config']
+        #print "Firebase messaging AUTH_INFO", auth_info
+
         # Is the product installed?
         # We need to check it, as this information is not obvious based on
         # the configuration alone.

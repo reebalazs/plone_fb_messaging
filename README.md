@@ -63,8 +63,8 @@ If this property is left empty, the value of the `PLONE_COLLECTIVE_FIREBASE_SECR
 
 As mentioned above, the `firebase_url` and `firebase_secret` properties can also be specified from environment variables:
 
-    % export PLONE_FIREBASE_SECRET='ZsAjg**********...'
     % export PLONE_FIREBASE_URL='https://my-firebase.firebaseio.com/...'
+    % export PLONE_FIREBASE_SECRET='ZsAjg**********...'
 
 If these values exist, they serve as a default value and the property fields in site_properties can be left empty. If the properties are also specified, they will take precedence over the environment variables.
 

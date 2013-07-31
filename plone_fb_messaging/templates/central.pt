@@ -1,7 +1,7 @@
-<div id="fb-overlay" class="overlay overlay-ajax"  
-    ><!--tal:define="auth_token python: view.auth_token;"
-    tal:attributes="ng-init string:firebase_url = '${view/data/firebase_url}';; auth_token = '${auth_token}';; plone_username='${view/auth_data/ploneUsername}';;
-      "-->
+<div id="fb-overlay" class="overlay overlay-ajax" 
+  tal:define="auth_token python: view.auth_token;"
+  tal:attributes="ng-init string:firebaseUrl = '${view/config/firebase_url}';; authToken = '${auth_token}';;
+                  ploneUserid='${view/auth_data/ploneUserid}';;" >
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
     <ul class="navbar">
