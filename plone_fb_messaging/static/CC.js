@@ -43,7 +43,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         parser.href = $rootScope.firebaseUrl;
         $rootScope.rootUrl = parser.protocol + '//' + parser.hostname + '/';
 
-        console.log('firebaseUrl:', $rootScope.firebaseUrl);
+        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
 
         // Authenticate me.
         var dataRef = new Firebase($rootScope.firebaseUrl);
