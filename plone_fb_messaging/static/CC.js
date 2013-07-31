@@ -37,6 +37,12 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         }
         $rootScope.staticRoot = staticRoot;
 
+        // Parse the url to find its root
+        // A neat trick: we use the DOM to parse our url.
+        var parser = document.createElement('a');
+        parser.href = $rootScope.firebaseUrl;
+        $rootScope.rootUrl = parser.protocol + '//' + parser.hostname + '/';
+
         console.log('firebaseUrl:', $rootScope.firebaseUrl);
         console.log('ploneUserid:', $rootScope.ploneUserid);
 
@@ -50,11 +56,8 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         //    }
         //});
 
-        //
-        var rootUrl = $rootScope.firebaseUrl;
-
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-        var connectedRef = new Firebase(rootUrl + '.info/connected');
+        var connectedRef = new Firebase($rootScope.rootUrl + '.info/connected');
         username = "testuser1";
         connectedRef.on('value', function (snap) {
             if(snap.val() === true) {
