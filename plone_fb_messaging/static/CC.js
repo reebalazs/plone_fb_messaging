@@ -605,6 +605,10 @@ app.filter('onlineFilter', function () {
 // XXX Accessing $scope from the filter should be avoided, as it makes
 // XXX the filter depending on the entire universe, instead it should depend
 // XXX on well defined input values.
+// 
+// XXX disable messages filter for now entirely. Discuss how to bring it back.
+
+/*
 app.filter('messageFilter', function () {
     return function (messages, $scope) {
         var result = [];
@@ -633,7 +637,7 @@ app.filter('messageFilter', function () {
                     //var userRef = onlineRef.child(username);
 
                     // XXX A filter is by definition readonly and this should be done from somewhere else.
-                    /*
+                    
                     userRef.child('rooms').once('value', function(dataSnapshot) {
                         if (!dataSnapshot.hasChild(sender)) { //we don't have a room yet, let's go to it (delegate task of creating it to onRoomSwitch)
                             $scope.helpClass = 'info';
@@ -651,7 +655,7 @@ app.filter('messageFilter', function () {
                             if ($scope.$location) $scope.$location.url('/messaging/private/' + sender); //nonfunctional at the moment
                         }
                     });
-                    */
+                    
                 }
             }
             
@@ -659,6 +663,7 @@ app.filter('messageFilter', function () {
         return result;
     };
 });
+*/
 
 app.directive('contenteditable', function () {
     return {

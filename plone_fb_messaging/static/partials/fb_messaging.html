@@ -29,7 +29,7 @@
   </div>
 
   <div class="messages" id="messagesDiv">
-    <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:this">
+    <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages">
       <div ng-switch-when="public" class="public">
           <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
       </div>
