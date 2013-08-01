@@ -20,8 +20,7 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
 
 /*CSS for Messaging */
 .messages {
-    height: 200px;
-    width: 300px;
+    height: 280px;
     overflow-y: auto;
     padding-bottom: 20px;
     margin-bottom: 1em;
@@ -87,6 +86,14 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
     overflow:hidden;
 }
 
+.whoispresent {
+    float: right;
+    width: 120px;
+}
+
+.users {
+    margin-top: 1em;
+}
 
 /* Overlay for Plone */
 

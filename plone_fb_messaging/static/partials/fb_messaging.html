@@ -1,5 +1,5 @@
 <div class="roomList">
-  <h1>Active Rooms</h1>
+  <h1>Rooms</h1>
   <span ng-show="!privateChat">* </span><a class="room" href="#!/messaging" ng-click="switchRoom('public')">Public</a>
   <div ng-cloak ng-repeat="room in rooms">
     <span ng-if="!room.remove">
@@ -12,18 +12,22 @@
 
 <div class="chat">
   <h1 ng-bind="heading"></h1>
-  <div>
-    <label for="username">Your name: </label><input type="text" ng-model="username" ng-change="updateUsername()" id="username">
+
+  <div class="whoispresent">
+    <div>
+      <label for="username">Your name: </label>
+      <!--input type="text" ng-model="username" ng-change="updateUsername()" id="username"-->
+      <span class="myusername">{{username}}</span>
+    </div>
+
+    <div class="users">
+      <strong>Online users<span ng-bind="numUsers"></span>:</strong>
+        <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
+          {{name}} <!--input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="startPrivateChat($event)" value="Private Chat"--> <!-- <== RB private chat disabled --> 
+        </div>
+    </div>
   </div>
 
-  <div class="users">
-    <strong>Online users<span ng-bind="numUsers"></span>:</strong>
-      <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
-        {{name}} <!--input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="startPrivateChat($event)" value="Private Chat"--> <!-- <== RB private chat disabled --> 
-      </div>
-  </div>
-
-  <p></p>
   <div class="messages" id="messagesDiv">
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:this">
       <div ng-switch-when="public" class="public">
