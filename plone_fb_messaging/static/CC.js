@@ -673,6 +673,7 @@ app.filter('messageFilter', function () {
 
 
 // editing messages
+// TODO: do not allow linebreaks
 app.directive('contenteditable', function () {
     return {
         restrict: 'A',
@@ -680,7 +681,6 @@ app.directive('contenteditable', function () {
         link: function( $scope, element, attrs, ngModel) {
 
             ngModel.$render = function () {
-                console.log('render', ngModel);
                 element.html(ngModel.$viewValue.content || '');
             };
 
