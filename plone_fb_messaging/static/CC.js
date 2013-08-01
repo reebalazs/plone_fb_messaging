@@ -671,40 +671,25 @@ app.filter('messageFilter', function () {
 });
 */
 
+
+// editing messages
 app.directive('contenteditable', function () {
     return {
         restrict: 'A',
         require: '?ngModel',
         link: function( $scope, element, attrs, ngModel) {
-            if (!ngModel) return;
 
             ngModel.$render = function () {
-                element.html(ngModel.$viewValue || '');
+                console.log('render', ngModel);
+                element.html(ngModel.$viewValue.content || '');
             };
 
             element.bind('blur', function () {
-                if(ngModel.$modelValue !== $.trim(element.html()))
-                    $scope.$apply(editMessage);
+                var message = ngModel.$modelValue;
+                message.content = $.trim(element.html());
+                $scope.messages.update(message);
             });
 
-            function editMessage() {
-                var newContent = $.trim(element.html());
-                var id = element.closest('div').next().html();
-                if(newContent !== '{{message.content}}' && id !== undefined && id !== '{{message.$id}}') {
-                    var messages = $scope.messages;
-                    for (var i = 0; i < $scope.messages.length; i++) {
-                        if($scope.messages[i].$id === id) {
-                            if(newContent !== '') {
-                                $scope.messages[i].content = newContent;
-                                $scope.messages.update($scope.messages[i]);
-                            }
-                            else
-                                $scope.messages.remove($scope.messages[i]);
-                            break;
-                        }
-                    }
-                }
-            }
         }
     };
 });

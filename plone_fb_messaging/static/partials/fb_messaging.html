@@ -31,8 +31,7 @@
   <div class="messages" id="messagesDiv" auto-scroll="messages">
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages">
       <div ng-switch-when="public" class="public">
-         <!--ng-attr-contenteditable="{{username == message.sender}}"--><!-- RB Contenteditable broken -->
-          <em>{{message.sender}}</em>: <span>{{message.content}}</span>
+          <em>{{message.sender}}</em>: <span ng-model="message" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
       </div>
       <!--div ng-switch-when="privateChat" class="privateChat">
           <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">AA{{message.content}}VV</span>
