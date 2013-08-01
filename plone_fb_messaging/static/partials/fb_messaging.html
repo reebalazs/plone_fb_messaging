@@ -19,7 +19,7 @@
   <div class="users">
     <strong>Online users<span ng-bind="numUsers"></span>:</strong>
       <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
-        {{name}} <input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="startPrivateChat($event)" value="Private Chat">
+        {{name}} <!--input type="submit" ng-hide="username == name" data-username="{{name}}" ng-click="startPrivateChat($event)" value="Private Chat"--> <!-- <== RB private chat disabled --> 
       </div>
   </div>
 
