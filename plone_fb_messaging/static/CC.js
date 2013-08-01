@@ -166,57 +166,63 @@ app.controller('PublicMessagingController',
         $scope.$location = $location;
 
         $scope.processMessage = function () {
-            processMessage($scope, $location, $('#messagesDiv'));
+            // Let's do this simple and easy. For the moment
+            // do not process commands.
+        
+            var from = $scope.username;
+            var msg = $scope.message; //encodeHTML($scope.message);
+
+            ///if ($scope.message.indexOf('/') === 0) {
+            //    ... process commands.
+            //}
+
+            $scope.messages.add({
+                sender: from,
+                content: msg,
+                private: false,
+                type: 'public',
+                date: Date.now()
+            });
+
         };
 
-        $scope.updateUsername = function () {
-            updateUsername($scope, $cookieStore, angularFireCollection);
-        };
+        //$scope.updateUsername = function () {
+        //    updateUsername($scope, $cookieStore, angularFireCollection);
+        //};
 
-        $scope.startPrivateChat = function (evt) {
-            throw new Error('Private chat disabled now.');
-            //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
-        };
+        //$scope.startPrivateChat = function (evt) {
+        //    throw new Error('Private chat disabled now.');
+        // c   //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
+        //};
 
-        $scope.removeRoom = function (evt) {
-            removeRoom($scope, $location, evt);
-        };
+        //$scope.removeRoom = function (evt) {
+        //    removeRoom($scope, $location, evt);
+        //};
 
-        $scope.scroll = function () {
-            setWindowToBottom($('#messagesDiv'), $timeout);
-        };
+        //$scope.scroll = function () {
+        //    setWindowToBottom($('#messagesDiv'), $timeout);
+        //};
 
-        $scope.switchRoom = function (target) {
-            onRoomSwitch($scope, target, false);
-        };
-
-        // Log me in.
-        // 
-        //var dataRef = new Firebase(url);
-        //
-        //dataRef.auth(authToken, function(error, result) {
-        //    if (error) {
-        //        throw new Error("Login Failed! \n" + error);
-        //    }
-        //});
-
-        //
-        // Presence
-        //
-
-        //connectedRef.on('value', function (dataSnapshot) {
-        //    if (dataSnapshot.val() === true) {
-        //        login($scope);
-        //    }
-        //});
+        //$scope.switchRoom = function (target) {
+        //    onRoomSwitch($scope, target, false);
+        //};
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages', function () {
-            $scope.scroll();
-        });
-        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
+        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' +
+            $scope.username + '/' + 'rooms');
     }
 ]);
+
+app.directive('autoScroll', function ($timeout) {
+    return function (scope, elements, attrs) {
+        scope.$watch("messages.length", function() {
+            $timeout(function() {
+                elements[0].scrollTop = elements[0].scrollHeight;
+            });
+        });
+    };
+});
 
 // XXX Private message controller disabled now, it requires a major reorganizing
 // XXX because the global functions makes it very hard to handle the scopes.

@@ -28,13 +28,14 @@
     </div>
   </div>
 
-  <div class="messages" id="messagesDiv">
+  <div class="messages" id="messagesDiv" auto-scroll="messages">
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages">
       <div ng-switch-when="public" class="public">
-          <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+         <!--ng-attr-contenteditable="{{username == message.sender}}"--><!-- RB Contenteditable broken -->
+          <em>{{message.sender}}</em>: <span>{{message.content}}</span>
       </div>
-      <div ng-switch-when="privateChat" class="privateChat">
-          <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
+      <!--div ng-switch-when="privateChat" class="privateChat">
+          <em>{{message.sender}}</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">AA{{message.content}}VV</span>
       </div>
       <div ng-switch-when="private" class="private">
           <em>{{message.sender}} (private)</em>: <span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span>
@@ -43,7 +44,7 @@
           * <em>{{message.sender}}</em> <strong><span ng-model="message.$id" ng-attr-contenteditable="{{username == message.sender}}">{{message.content}}</span></strong>
       </div>
       <div ng-switch-when="server" class="server" ng-bind-html-unsafe="'*** ' + message.content"></div>
-      <div ng-hide="true">{{message.$id}}</div>
+      <div ng-hide="true">{{message.$id}}</div-->
     </div>
   </div>
   
