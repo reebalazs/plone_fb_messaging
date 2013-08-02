@@ -40,10 +40,18 @@
         permission="zope2.View"
         />
 
-  <cmf:registerDirectory
-      name="skins"
-      directory="skins"
-      recursive="True"
+    <cmf:registerDirectory
+        name="skins"
+        directory="skins"
+        recursive="True"
+        />
+
+    <browser:page
+        for="*"
+        class=".auth.AllowedUseridView"
+        name="fb_messaging_allowed_userid"
+        permission="zope.Public"
       />
+
 
 </configure>
