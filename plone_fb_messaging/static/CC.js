@@ -61,7 +61,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
         var connectedRef = new Firebase($rootScope.rootUrl + '.info/connected');
-        username = "testuser1";
+        var username = $rootScope.ploneUserid;
         connectedRef.on('value', function (snap) {
             if(snap.val() === true) {
                 // We're connected or reconnected.
@@ -93,7 +93,7 @@ app.controller('ActivityStreamController',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $route, $cookieStore, authService, $rootScope) {
 
-        setUsername($scope, $cookieStore);
+        //setUsername($scope, $cookieStore);
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
 
@@ -101,27 +101,27 @@ app.controller('ActivityStreamController',
         //    if (dataSnapshot.val() === true) login($scope);
         //});
 
-        $scope.getLastSeen = function () {
-            var deferred = $q.defer();
-            onlineRef.child($scope.username).child('lastSeen').on('value', function (dataSnapshot) {
-                deferred.resolve(dataSnapshot.val());
-                if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
-            });
-            return deferred.promise;
-        };
+        //$scope.getLastSeen = function () {
+        //    var deferred = $q.defer();
+        //    onlineRef.child($rootScope.ploneUserid).child('lastSeen').on('value', function (dataSnapshot) {
+        //        deferred.resolve(dataSnapshot.val());
+        //        if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
+        //    });
+        //    return deferred.promise;
+        //};
 
-        onlineRef.child($scope.username).child('lastSeen').on('value', function (dataSnapshot) {
-            $scope.lastSeen = dataSnapshot.val();
-        });
+        //onlineRef.child($scope.ploneUserid).child('lastSeen').on('value', function (dataSnapshot) {
+        //    $scope.lastSeen = dataSnapshot.val();
+        //});
 
         $scope.activities = [];
-        var promise = $scope.getLastSeen();
-        promise.then(function (lastSeen) {
-            $scope.lastSeen = lastSeen;
+        //var promise = $scope.getLastSeen();
+        //promise.then(function (lastSeen) {
+            //$scope.lastSeen = lastSeen;
             $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function() {
                 $scope.scroll();
             });
-        });
+        //});
 
         $scope.scroll = function () {
             setWindowToBottom($('#activitiesDiv'), $timeout);
@@ -133,9 +133,9 @@ app.controller('ActivityStreamController',
             //userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
         };
 
-        $scope.updateUsername = function () {
-            updateUsername($scope, $cookieStore);
-        };
+        //$scope.updateUsername = function () {
+        //    updateUsername($scope, $cookieStore);
+        //};
 
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
           However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
@@ -156,7 +156,11 @@ app.controller('PublicMessagingController',
     '$route', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $route, $location, $cookieStore, authService, $rootScope) {
-        setUsername($scope, $cookieStore);
+
+        //setUsername($scope, $cookieStore);
+
+        var username = $rootScope.ploneUserid;
+        $scope.username = username;
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
 
@@ -168,8 +172,8 @@ app.controller('PublicMessagingController',
         $scope.processMessage = function () {
             // Let's do this simple and easy. For the moment
             // do not process commands.
-        
-            var from = $scope.username;
+
+            var from = username;
             var msg = $scope.message; //encodeHTML($scope.message);
 
             ///if ($scope.message.indexOf('/') === 0) {
@@ -183,6 +187,8 @@ app.controller('PublicMessagingController',
                 type: 'public',
                 date: Date.now()
             });
+
+            $scope.message = '';
 
         };
 
@@ -210,7 +216,7 @@ app.controller('PublicMessagingController',
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
         $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' +
-            $scope.username + '/' + 'rooms');
+            username + '/' + 'rooms');
     }
 ]);
 
@@ -281,11 +287,11 @@ app.controller('PrivateMessagingController',
 ]);
 */
 
-function setUsername($scope, $cookieStore) {
+//function setUsername($scope, $cookieStore) {
     // XXX XXX XXX
-    var username = 'TestUserX';
-    $scope.username = username;
-    return;
+    //var username = 'TestUserX';
+    //$scope.username = username;
+    //return;
     // XXX XXX
     //var username = $cookieStore.get('username');
 //    if (username === undefined || username.search(usernameRegexp) !== 0) {
@@ -305,7 +311,7 @@ function setUsername($scope, $cookieStore) {
 //    userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
 //    userRef.child('online').onDisconnect().remove();
 //    userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-}
+//}
 
 // XXX This looks like something to go in an event handler.
 function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
@@ -377,27 +383,28 @@ function updateUsername($scope, $cookieStore, angularFireCollection) {
 //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
 }
 
+/*
 function processMessage($scope, $location, messageWindow) {
 
     ///userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
 
     var from = $scope.username;
     var msg = encodeHTML($scope.message);
-    var privateChat = $scope.privateChat;
-    if ($scope.message.indexOf('/') === 0)
-        commandHandler($scope, $location, $scope.message);
-    else {
-        if (privateChat) {
-            $scope.messages.add({
-                sender: from,
-                content: msg,
-                private: true,
-                privateChat: true,
-                recipient: $scope.privateChatUser,
-                type: 'privateChat',
-                date: Date.now()
-            }, scrollWindow(messageWindow));
-        } else {
+    //var privateChat = $scope.privateChat;
+    //if ($scope.message.indexOf('/') === 0)
+    //    commandHandler($scope, $location, $scope.message);
+    //else {
+        //if (privateChat) {
+        //    $scope.messages.add({
+        //        sender: from,
+        //        content: msg,
+        //        private: true,
+        //        privateChat: true,
+        //        recipient: $scope.privateChatUser,
+        //        type: 'privateChat',
+        //        date: Date.now()
+        //    }, scrollWindow(messageWindow));
+        //} else {
             $scope.messages.add({
                 sender: from,
                 content: msg,
@@ -405,16 +412,17 @@ function processMessage($scope, $location, messageWindow) {
                 type: 'public',
                 date: Date.now()
             }, scrollWindow(messageWindow));
-        }
+        //}
         $scope.message = '';
         $scope.helpClass = 'hidden';
-    }
+    //}
 
     // prevent double click warning for this form
     // (this is a hack needed for Plone)
     //$root.find('input[value="Send"]')
     //    .removeClass('submitting');
 }
+*/
 
 function scrollWindow($el) {
     if($el.length) $el.animate({scrollTop: $el[0].scrollHeight}, 500);

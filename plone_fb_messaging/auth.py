@@ -56,16 +56,6 @@ def get_allowed_userid(context, request):
 
 def get_auth_info(context, request):
     plone_userid = get_allowed_userid(context, request)
-
-    if plone_userid is False:
-        # If the user is not allowed, return a void token.
-        return ''
-
-    if plone_userid is None:
-        # If the user is anonymous (not logged in), we do not
-        # allow it either. Return a void token.
-        return ''
-
     # Admin is always false for now.
     admin = False
 
@@ -76,7 +66,15 @@ def get_auth_info(context, request):
         'admin': admin,
     }
     config = get_config()
-    token = create_token(config['firebase_secret'], custom_data, options)
+
+    if plone_userid is not None and plone_userid is not False:
+        token = create_token(config['firebase_secret'], custom_data, options)
+    else:
+        # If the user is not allowed, (plone_userid is None) return a void token.
+        # If the user is anonymous (not logged in), (plone_userid is False) we do not
+        # allow it either. Return a void token.
+        token = ''
+
     return dict(
         auth_token=token,
         auth_data=custom_data,
