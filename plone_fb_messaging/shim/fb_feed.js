@@ -1,5 +1,5 @@
 var app = angular.module('addActivity', ['firebase']);
-var firebaseURL = 'https://sushain.firebaseio.com/';
+var firebaseURL = 'https://green-cc.firebaseio-demo.com/';
 
 app.controller('AddActivityController', ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     function($scope, $timeout, angularFire, angularFireCollection, $q) {
@@ -10,6 +10,6 @@ app.controller('AddActivityController', ['$scope', '$timeout', 'angularFire', 'a
             if($scope.description) newActivity.description = $scope.description;
             $scope.activities.add(newActivity);
             $scope.activityForm.$setPristine(); //Why doesn't this work?
-        }
+        };
     }
 ]);

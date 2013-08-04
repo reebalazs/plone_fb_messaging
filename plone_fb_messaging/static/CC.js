@@ -51,7 +51,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
          if (! $rootScope.firebaseUrl) {
             // We are in the static html. Let's provide
             // constants for testing.
-            $rootScope.firebaseUrl = 'https://sushain.firebaseio.com/';
+            $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
             $rootScope.authToken = '';
             $rootScope.ploneUserid = 'TestUser';
         }
