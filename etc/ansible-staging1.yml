@@ -1,0 +1,40 @@
+
+---
+
+- hosts: muki
+  user: gfsite
+  vars:
+    branch: "00"
+    repo: git@github.com:reebalazs/plone_fb_messaging.git
+
+    working_dir: ~/othersites/fb_messaging/$branch
+    buildout_cfg: buildout.cfg
+    python_dir: ~/python/python-2.7/bin
+    python_bin: python2.7
+
+
+  tasks:
+
+  - name: check if the dir exists
+    action: shell [ -d $working_dir ] && echo True || echo False
+    register: working_exists
+
+  - name: checkout or update the repo
+    action: git repo=$repo dest=$working_dir
+    register: checkout_result
+
+  - name: virtualenv based on $python_dir/$python_bin
+    action: shell $python_dir/virtualenv --no-setuptools -p $python_dir/$python_bin $working_dir
+    only_if: $working_exists['stdout'] != 'True'
+
+  - name: bootstrap
+    action: shell chdir=$working_dir bin/python bootstrap.py
+    only_if: $working_exists['stdout'] != 'True'
+
+  - name: buildout
+    action: shell chdir=$working_dir bin/buildout -c $buildout_cfg
+    only_if: $checkout_result['changed']
+
+  - name: restart
+    action: shell chdir=$working_dir bin/instance restart
+    only_if: $checkout_result['changed']
