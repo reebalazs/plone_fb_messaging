@@ -110,3 +110,20 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
 .fb-close {
     z-index: 100;
 }
+
+/* Needed for the simulate activity only */
+
+
+a.rnav:link,a.rnav:visited {
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: red;
+    text-align: center;
+    padding: 6px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.fb_simulate_activity .form_control {
+    margin: 1em;
+}

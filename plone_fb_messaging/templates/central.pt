@@ -7,6 +7,7 @@
     <ul class="navbar">
       <li><a class="nav" href="#!/activity">Activity Stream</a></li>
       <li><a class="nav" href="#!/messaging">Messaging</a></li>
+      <li><a class="rnav" href="#!/simulate_activity">Simulate Activity</a></li>
     </ul>
     <h1><a href="#!/">Command Central</a></h1>
     <div ng-view></div>
@@ -30,6 +31,11 @@
     var $overlay = $('#' + root_id);
 
     $overlay.overlay({
+        onClose: function () {
+            // since we are now auto-open, make sure that next reload
+            // will get us into a closed state.
+            window.location.hash = '!';
+        }
     });
 
     // global helper function to show the overlay
@@ -40,6 +46,9 @@
 
     $overlay.find('.fb-close').click(function (evt) {
         $overlay.overlay().close();
+        // since we are now auto-open, make sure that next reload
+        // will get us into a closed state.
+        window.location.hash = '!';
         return false;
     });
 

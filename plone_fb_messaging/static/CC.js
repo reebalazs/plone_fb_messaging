@@ -18,12 +18,32 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
       .html5Mode(false)
       .hashPrefix('!');
 
-    $routeProvider.
-        when('/', {templateUrl: staticRoot + 'partials/CC.html', controller: 'CommandCentralController'}).
-        when('/activity', {templateUrl: staticRoot + 'partials/fb_activity.html', controller: 'ActivityStreamController'}).
-        when('/messaging', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PublicMessagingController'}).
-        //when('/messaging/private/:privateChatUser', {templateUrl: staticRoot + 'partials/fb_messaging.html', controller: 'PrivateMessagingController'}).
-        otherwise({redirectTo: '/'});
+    $routeProvider
+
+        .when('/', {templateUrl: staticRoot + 'partials/CC.html',
+            controller: 'CommandCentralController'
+        })
+
+        .when('/activity', {
+            templateUrl: staticRoot + 'partials/fb_activity.html',
+            controller: 'ActivityStreamController'
+        })
+
+        .when('/messaging', {
+            templateUrl: staticRoot + 'partials/fb_messaging.html',
+            controller: 'PublicMessagingController'
+        })
+
+        //when('/messaging/private/:privateChatUser', {
+        //    templateUrl: staticRoot + 'partials/fb_messaging.html',
+        //    controller: 'PrivateMessagingController'})
+
+        .when('/simulate_activity', {
+            templateUrl: staticRoot + 'partials/fb_simulate_activity.html',
+            controller: 'SimulateActivityController'
+        })
+
+        .otherwise({redirectTo: '/'});
 
     $provide.service('authService', function($rootScope) {
 
@@ -87,11 +107,36 @@ app.controller('CommandCentralController',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
 }]);
 
+
+// XXX this is only needed for the simulation and will go away in the final product.
+app.controller('SimulateActivityController',
+    ['$scope',
+    function ($scope) {
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
+
+        $scope.eventTypeOptions = [
+            {id: 'modify', name: 'Modify'},
+            {id: 'add', name: 'Add'},
+            {id: 'delete', name: 'Delete'}
+        ];
+
+        $scope.eventType = $scope.eventTypeOptions[0];
+
+}]);
+
 app.controller('ActivityStreamController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     '$route', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $route, $cookieStore, authService, $rootScope) {
+
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
 
         //setUsername($scope, $cookieStore);
 
@@ -156,6 +201,11 @@ app.controller('PublicMessagingController',
     '$route', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $route, $location, $cookieStore, authService, $rootScope) {
+
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
 
         //setUsername($scope, $cookieStore);
 

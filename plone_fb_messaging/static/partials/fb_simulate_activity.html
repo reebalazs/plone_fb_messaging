@@ -1,0 +1,33 @@
+  <h1>Simulate Plone Activity</h1>
+
+  <p>
+    You can simulate content change on the <b>current context</b>
+    object. Feed will be visible on the Activity tab.
+  </p>
+
+  <form name="activityForm" class="fb_simulate_activity">
+    
+    <div class="form_control">
+      <label for="message">Activity Message: </label>
+      <input name="message" ng-model="message" 
+        placeholder="Short Message..." maxlength="150" value='' required>
+    </div>
+    
+    <div class="form_control">
+      <label for="description">Activity Description: </label>
+      <textarea name="description" ng-model="description"
+        placeholder="Optional detailed activity description..." rows="6"></textarea>
+    </div>
+  
+    
+    <div class="form_control">
+      <label for="eventType">Event Type: </label>
+      <select ng-model="eventType"
+        ng-options="item as item.name for item in eventTypeOptions" required value="0"></select>
+    </div>
+
+    <br>
+    
+    <input type="submit" name="submit" value="Simulate activity">
+
+  </form>
