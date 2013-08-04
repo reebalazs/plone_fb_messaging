@@ -2,7 +2,12 @@
 
   <p>
     You can simulate content change on the <b>current context</b>
-    object. Feed will be visible on the Activity tab.
+    object. Feed will be visible on the
+    <a href="#!/activity">Activity Stream</a> tab.
+  </p>
+
+  <p>This form will submit to a browser view which adds the activity
+    from python, very mush like it would happen from the post-commit handler.
   </p>
 
   <form name="activityForm" class="fb_simulate_activity">
@@ -18,7 +23,6 @@
       <textarea name="description" ng-model="description"
         placeholder="Optional detailed activity description..." rows="6"></textarea>
     </div>
-  
     
     <div class="form_control">
       <label for="eventType">Event Type: </label>
