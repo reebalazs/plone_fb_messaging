@@ -74,7 +74,7 @@ input.fb-message-input {
 
 .chat-sender, .chat-content {
     padding: 0.5em;
-    margin: 0.25em 0 0.75em;
+    margin: 0.25em 0 0;
 }
 
 .chat-sender {
@@ -88,6 +88,7 @@ input.fb-message-input {
     -webkit-border-radius: 5px;
     -moz-border-radius:5px;
     border-radius: 5px;
+    margin-bottom: 0.75em;
 }
 
 .chat-line-own {
