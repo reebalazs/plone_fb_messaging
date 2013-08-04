@@ -28,8 +28,8 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
     overflow-y: auto;
     padding: 0.5em 0.5em 1em 0.5em;
     margin: 0 0.5em 1em 0;
-    border: 1px solid #404040;
-    background-color: #ffffe0;
+    border: 1px solid #c0c0c0;
+    background-color: #fffff6;
 
 }
 
