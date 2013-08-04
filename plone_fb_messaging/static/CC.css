@@ -55,10 +55,14 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
     height: 380px;
 }
 
-.chat {
+.fb-messages-chat {
     margin: 0;
     float: right;
     width: 79%;
+}
+
+input.fb-message-input {
+    width: 400px;
 }
 
 /* CSS for Activity Stream */

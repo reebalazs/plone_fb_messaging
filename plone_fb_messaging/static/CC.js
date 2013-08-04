@@ -138,6 +138,7 @@ app.controller('ActivityStreamController',
             window.showFbOverlay();
         }
 
+
         //setUsername($scope, $cookieStore);
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
@@ -199,6 +200,9 @@ app.controller('PublicMessagingController',
             window.showFbOverlay();
         }
 
+        // focus to messagesDiv
+        $('#fb-messages-input')[0].focus();
+
         //setUsername($scope, $cookieStore);
 
         var username = $rootScope.ploneUserid;
@@ -259,13 +263,15 @@ app.controller('PublicMessagingController',
 ]);
 
 app.directive('autoScroll', function ($timeout) {
-    return function (scope, elements, attrs) {
-        scope.$watch("messages.length", function() {
+    return function ($scope, $el, attrs) {
+        $scope.$watch(attrs.autoScroll + '.length', function() {
             $timeout(function() {
-                //elements[0].scrollTop = elements[0].scrollHeight;
-                elements.animate({
-                    scrollTop: elements[0].scrollHeight
-                }, 500);
+                //$el[0].scrollTop = $el[0].scrollHeight;
+                $el
+                    .stop(false, false)
+                    .animate({
+                        scrollTop: $el[0].scrollHeight
+                    }, 500);
             });
         });
     };

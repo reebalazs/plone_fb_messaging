@@ -10,7 +10,7 @@
   </div>
 </div>
 
-<div class="chat">
+<div class="fb-messages-chat">
   <h1 ng-bind="heading"></h1>
 
   <div class="whoispresent">
@@ -47,8 +47,8 @@
     </div>
   </div>
   
-  <form id="fgMessageSubmitForm" ng-submit="processMessage()">
-    <input id="fgMessageSubmitText" type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
+  <form ng-submit="processMessage()">
+    <input id="fb-messages-input" class="fb-message-input" type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
     <input type="submit" id="submit" value="Send">
     <div class="helpMesssage" ng-class="helpClass" ng-bind="help"></div>
   </form>
