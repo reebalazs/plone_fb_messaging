@@ -100,7 +100,6 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
 .fb-overlay-content {
     height: 450px;
     width: 600px;
-    position: fixed;
     padding: 1em;
     background-color: #FFFFFF;
     border: 1px solid #999999;
@@ -110,5 +109,4 @@ a.nav:hover,a.nav:active { background-color: #0066FF; }
 
 .fb-close {
     z-index: 100;
-    position: fixed;
 }

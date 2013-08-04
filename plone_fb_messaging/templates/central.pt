@@ -35,6 +35,7 @@
     // global helper function to show the overlay
     window.showFbOverlay = function() {
         $overlay.overlay().load();
+        $overlay.css('position', 'fixed');
     };
 
     $overlay.find('.fb-close').click(function (evt) {
