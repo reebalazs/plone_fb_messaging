@@ -256,7 +256,7 @@ app.controller('PublicMessagingController',
         //};
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
+        $scope.messages = angularFireCollection(new Firebase($rootScope.firebaseUrl + '/messages').limit(500));
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' +
             username + '/' + 'rooms');
     }
