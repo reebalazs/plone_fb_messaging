@@ -9,14 +9,18 @@
 .navbar li { display: inline; }
 a.nav:link,a.nav:visited {
     font-weight: bold;
-    color: #FFFFFF;
-    background-color: #0066CC;
+    background-color: #4499FF;
+    color: #000000;
     text-align: center;
     padding: 6px;
     text-decoration: none;
     text-transform: uppercase;
 }
-a.nav:hover,a.nav:active { background-color: #0066FF; }
+a.nav:hover, a.nav:active,
+div.overlay a.nav:hover, div.overlay a.nav:active {
+    color: #FFFFFF;
+    background-color: #0066CC;
+}
 
 /*CSS for Messaging */
 .messages {
@@ -120,13 +124,20 @@ input.fb-message-input {
 
 a.rnav:link,a.rnav:visited {
     font-weight: bold;
-    color: #FFFFFF;
-    background-color: red;
+    background-color: #FF6666;
+    color: #000000;
     text-align: center;
     padding: 6px;
     text-decoration: none;
     text-transform: uppercase;
 }
+a.rnav:hover, a.rnav:active,
+div.overlay a.rnav:hover, div.overlay a.rnav:active {
+    color: #FFFFFF;
+    background-color: red;
+
+}
+
 
 .fb_simulate_activity .form_control {
     margin: 1em;
