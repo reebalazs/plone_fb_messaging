@@ -80,7 +80,6 @@ input.fb-message-input {
 }
 
 .chat-sender {
-    clear: both;
     color: #333 !important;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.33);
     -webkit-font-smoothing: antialiased;
@@ -94,6 +93,7 @@ input.fb-message-input {
 }
 
 .chat-line-own {
+    clear: both;
     text-align: right;
 }
 
@@ -123,7 +123,9 @@ input.fb-message-input {
 
 .chat-line-foreign {
     text-align: left;
+    clear: both;
 }
+
 .chat-line-foreign .chat-sender {
     float: left;
     display: inline-block;
