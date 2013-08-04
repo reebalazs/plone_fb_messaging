@@ -26,7 +26,8 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
 .messages {
     height: 280px;
     overflow-y: auto;
-    padding-bottom: 20px;
+    padding-bottom: 1em;
+    padding-right: 0.5em;
     margin-bottom: 1em;
 }
 
@@ -47,10 +48,12 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
     -webkit-transition: opacity .25s linear;
 }
 
+/*
 .message .public, .privateChat { color: black; }
 .message .private { color: red; }
 .message .server { color: green; }
 .message .action { color: purple; }
+*/
 
 .roomList {
     float: left;
@@ -68,6 +71,79 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
 input.fb-message-input {
     width: 400px;
 }
+
+.chat-sender, .chat-content {
+    padding: 0.5em;
+    margin: 0.25em 0 0.75em;
+}
+
+.chat-sender {
+    clear: both;
+    color: #333 !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.33);
+    -webkit-font-smoothing: antialiased;
+}
+
+.chat-content {
+    -webkit-border-radius: 5px;
+    -moz-border-radius:5px;
+    border-radius: 5px;
+}
+
+.chat-line-own {
+    text-align: right;
+}
+
+.chat-line-own .chat-sender {
+    display: inline-block;
+    float: right;
+}
+
+.chat-line-own .chat-content {
+    display: inline-block;
+    float: right;
+    background-color: hsl(58, 46%, 67%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#edecce", endColorstr="#d1ce84");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#edecce), to(#d1ce84));
+    background-image: -moz-linear-gradient(top, #edecce, #d1ce84);
+    background-image: -ms-linear-gradient(top, #edecce, #d1ce84);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #edecce), color-stop(100%, #d1ce84));
+    background-image: -webkit-linear-gradient(top, #edecce, #d1ce84);
+    background-image: -o-linear-gradient(top, #edecce, #d1ce84);
+    background-image: linear-gradient(#edecce, #d1ce84);
+    border-color: #d1ce84 #d1ce84 hsl(58, 46%, 62%);
+    color: #333 !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.33);
+    -webkit-font-smoothing: antialiased;
+}
+
+.chat-line-foreign {
+    text-align: left;
+}
+.chat-line-foreign .chat-sender {
+    float: left;
+    display: inline-block;
+}
+
+.chat-line-foreign .chat-content {
+    display: inline-block;
+    background-color: hsl(284, 46%, 67%) !important;
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#e4ceed", endColorstr="#bc84d1");
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#e4ceed), to(#bc84d1));
+    background-image: -moz-linear-gradient(top, #e4ceed, #bc84d1);
+    background-image: -ms-linear-gradient(top, #e4ceed, #bc84d1);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #e4ceed), color-stop(100%, #bc84d1));
+    background-image: -webkit-linear-gradient(top, #e4ceed, #bc84d1);
+    background-image: -o-linear-gradient(top, #e4ceed, #bc84d1);
+    background-image: linear-gradient(#e4ceed, #bc84d1);
+    border-color: #bc84d1 #bc84d1 hsl(284, 46%, 62%);
+    color: #333 !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.33);
+    -webkit-font-smoothing: antialiased;
+}
+
 
 /* CSS for Activity Stream */
 .activities {
