@@ -15,7 +15,7 @@
     <javascript id="++resource++fb_messaging/dist/bower_components/angularFire/angularFire.js"
         expression="context/@@fb_messaging_allowed_userid"
         />
-    <javascript id="++resource++fb_messaging/cc.js"
+    <javascript id="++resource++fb_messaging/CC.js"
         expression="context/@@fb_messaging_allowed_userid"
         />
 </object>
