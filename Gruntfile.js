@@ -12,6 +12,7 @@ module.exports = function(grunt) {
           'plone_fb_messaging/static/dist/': [
             collect.bower('jquery').path('jquery.js'),
             collect.bower('angular').path('angular.js'),
+            collect.bower('angular-cookies').path('angular-cookies.js'),
             collect.bower('angularFire').path('angularFire.js')
           ]
         }
@@ -22,6 +23,9 @@ module.exports = function(grunt) {
         files: {
           'plone_fb_messaging/static/dist/angular.min.js': [
             collect.bower('angular').path('angular.js')
+          ],
+          'plone_fb_messaging/static/dist/angular-cookies.min.js': [
+            collect.bower('angular-cookies').path('angular-cookies.js')
           ],
           'plone_fb_messaging/static/dist/jquery.min.js': [
             collect.bower('jquery').path('jquery.js')
@@ -38,6 +42,7 @@ module.exports = function(grunt) {
         files: [
           collect.bower('jquery').path('jquery.js'),
           collect.bower('angular').path('angular.js'),
+          collect.bower('angular-cookies').path('angular-cookies.js'),
           collect.bower('angularFire').path('angularFire.js')
         ],
         tasks: ['copy:default', 'uglify:default']

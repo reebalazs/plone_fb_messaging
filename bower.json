@@ -3,7 +3,8 @@
     "version": "0.1.0",
     "dependencies": {
         "jquery": "*",
-        "angular": "~1.0.5",
+        "angular": "*",
+        "angular-cookies": "*",
         "angularFire": "https://github.com/firebase/angularFire.git"
     }
 }
