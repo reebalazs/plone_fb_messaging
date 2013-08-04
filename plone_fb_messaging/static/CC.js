@@ -12,7 +12,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
     // XXX with ng-init. So, staticRoot comes in another way, and
     // the rest is configured not from config, but from authService.
     //
-    var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '';
+    var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '../static/';
 
     $locationProvider
       .html5Mode(false)
@@ -33,7 +33,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             // constants for testing.
             $rootScope.firebaseUrl = 'https://sushain.firebaseio.com/';
             $rootScope.authToken = '';
-            $rootScope.ploneUserid = '';
+            $rootScope.ploneUserid = 'TestUser';
         }
         $rootScope.staticRoot = staticRoot;
 
