@@ -163,14 +163,8 @@ app.controller('ActivityStreamController',
         //var promise = $scope.getLastSeen();
         //promise.then(function (lastSeen) {
             //$scope.lastSeen = lastSeen;
-            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function() {
-                $scope.scroll();
-            });
+            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity');
         //});
-
-        $scope.scroll = function () {
-            setWindowToBottom($('#activitiesDiv'), $timeout);
-        };
 
         $scope.markSeen = function () {
             // XXX XXX XXX
@@ -188,10 +182,8 @@ app.controller('ActivityStreamController',
         setInterval(refresh, 10000);
         function refresh() {
             $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
-                $scope.scroll();
                 if(!$scope.$$phase) $scope.$apply();
             });
-            $scope.scroll();
         }
     }
 ]);
@@ -255,10 +247,6 @@ app.controller('PublicMessagingController',
         //    removeRoom($scope, $location, evt);
         //};
 
-        //$scope.scroll = function () {
-        //    setWindowToBottom($('#messagesDiv'), $timeout);
-        //};
-
         //$scope.switchRoom = function (target) {
         //    onRoomSwitch($scope, target, false);
         //};
@@ -275,6 +263,7 @@ app.directive('autoScroll', function ($timeout) {
         scope.$watch("messages.length", function() {
             $timeout(function() {
                 elements[0].scrollTop = elements[0].scrollHeight;
+                //$el.animate({scrollTop: $el[0].scrollHeight}, 500);
             });
         });
     };
@@ -318,10 +307,6 @@ app.controller('PrivateMessagingController',
             removeRoom($scope, $location, evt);
         };
 
-        $scope.scroll = function () {
-            setWindowToBottom($('#messagesDiv'), $timeout);
-        };
-
         $scope.switchRoom = function (target) {
             onRoomSwitch($scope, target, false, $rootScope);
         };
@@ -331,7 +316,7 @@ app.controller('PrivateMessagingController',
         //});
 
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages', function () { $scope.scroll(); });
+        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
     }
 ]);
@@ -453,7 +438,7 @@ function processMessage($scope, $location, messageWindow) {
         //        recipient: $scope.privateChatUser,
         //        type: 'privateChat',
         //        date: Date.now()
-        //    }, scrollWindow(messageWindow));
+        //    });
         //} else {
             $scope.messages.add({
                 sender: from,
@@ -461,7 +446,7 @@ function processMessage($scope, $location, messageWindow) {
                 private: false,
                 type: 'public',
                 date: Date.now()
-            }, scrollWindow(messageWindow));
+            });
         //}
         $scope.message = '';
         $scope.helpClass = 'hidden';
@@ -474,15 +459,6 @@ function processMessage($scope, $location, messageWindow) {
 }
 */
 
-function scrollWindow($el) {
-    if($el.length) $el.animate({scrollTop: $el[0].scrollHeight}, 500);
-}
-
-function setWindowToBottom($el, $timeout) {
-    $timeout(function () {
-        if($el.length) $el[0].scrollTop = $el[0].scrollHeight;
-    });
-}
 
 function commandHandler($scope, $location, msg, $rootScope) {
     var delim = msg.indexOf(' ');
@@ -517,7 +493,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                     type: 'private',
                     recipient: target,
                     date: Date.now()
-                }, scrollWindow($el));
+                });
                 $scope.messages.add({
                     sender: username,
                     recipient: privateChat ? privateChatUser : username,
@@ -526,7 +502,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                     privateChat: privateChat,
                     type: 'server',
                     date: Date.now()
-                }, scrollWindow($el));
+                });
                 $scope.helpClass = 'info';
                 $scope.help = 'Message sent to ' + target;
             }
@@ -556,7 +532,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                 $scope.help = 'Bad syntax - /me {action}';
             }
             else {
-                $scope.messages.add({sender: username, content: action, private: privateChat, type: 'action', privateChat: privateChat, recipient: privateChatUser, date: Date.now()}, scrollWindow($el));
+                $scope.messages.add({sender: username, content: action, private: privateChat, type: 'action', privateChat: privateChat, recipient: privateChatUser, date: Date.now()});
                 $scope.helpClass = 'hidden';
             }
             break;
@@ -571,7 +547,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                     if (dataSnapshot.hasChild('lastActive')) {
                         $scope.messages.add({sender: username, recipient: privateChat ? privateChatUser : username,
                             content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
-                            private: true, privateChat: privateChat, type: 'server', date: Date.now()}, scrollWindow($el));
+                            private: true, privateChat: privateChat, type: 'server', date: Date.now()});
                         whoisResult(true);
                     }
                     else if (dataSnapshot.hasChild('logout')) {
@@ -585,7 +561,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                             privateChat: privateChat,
                             type: 'server',
                             date: Date.now()
-                        }, scrollWindow($el));
+                        });
                         whoisResult(true);
                     } else {
                         whoisResult(false);
@@ -607,7 +583,7 @@ function commandHandler($scope, $location, msg, $rootScope) {
                     privateChat: privateChat,
                     type: 'server',
                     date: Date.now()
-                }, scrollWindow($el));
+                });
                 $scope.helpClass = 'hidden';
             }
             break;
