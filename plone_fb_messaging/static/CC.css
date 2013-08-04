@@ -26,9 +26,9 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
 .messages {
     height: 280px;
     overflow-y: auto;
-    padding-bottom: 1em;
-    padding-right: 0.5em;
+    padding: 0.5em 0.5em 1em 0.5em;
     margin-bottom: 1em;
+    background-color: #ffffe0;
 }
 
 .helpMesssage.error {
