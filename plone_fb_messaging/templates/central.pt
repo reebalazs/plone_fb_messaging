@@ -55,6 +55,8 @@
     // remove the base tag, a dirty hack to make
     // hashbang urls work as expected
     // XXX of course this breaks plenty of Plone.
+
+    window.fbMessagingHereUrl = $('base').attr('href');
     $('base').remove();
 
 });

@@ -45,6 +45,10 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
         .otherwise({redirectTo: '/'});
 
+    $provide.service('getGlobals', function($rootScope) {
+        $rootScope.staticRoot = staticRoot;
+    });
+
     $provide.service('authService', function($rootScope) {
 
         // Configure parameters. In Plone these are provided from the template by ng-init.
@@ -55,7 +59,6 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             $rootScope.authToken = '';
             $rootScope.ploneUserid = 'TestUser';
         }
-        $rootScope.staticRoot = staticRoot;
 
         // Parse the url to find its root
         // A neat trick: we use the DOM to parse our url.
@@ -110,8 +113,8 @@ app.controller('CommandCentralController',
 
 // XXX this is only needed for the simulation and will go away in the final product.
 app.controller('SimulateActivityController',
-    ['$scope',
-    function ($scope) {
+    ['$scope', '$rootScope', '$http', 'getGlobals',
+    function ($scope, $rootScope, $http, getGlobals) {
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
@@ -123,7 +126,23 @@ app.controller('SimulateActivityController',
             {id: 'delete', name: 'Delete'}
         ];
 
-        $scope.eventType = $scope.eventTypeOptions[0];
+        $scope.activity = {};
+
+        $scope.activity.eventType = $scope.eventTypeOptions[0];
+
+        var fbMessagingHereUrl = window.fbMessagingHereUrl || '';
+        $scope.save = function () {
+            console.log('save');
+            $http({
+                method: 'GET',
+                url: fbMessagingHereUrl + '/fb_messaging_simulate_activity',
+                params: {
+                    message: $scope.activity.message,
+                    description: $scope.activity.description,
+                    eventType: $scope.activity.eventType.id
+                }
+            });
+        };
 
 }]);
 
