@@ -46,10 +46,13 @@ setup(name='plone_fb_messaging',
           'zope.schema',
           'Zope2',
           'firebase_token_generator',
+          'python-firebase==0.1.0',
           #'requests',
       ],
       dependency_links=[
-
+          # It looks like this one has two spawns with the same name?
+          # Make sure we use this one and not the one from pypi.
+          'http://github.com/mikexstudios/python-firebase/tarball/master#egg=python-firebase-0.1.0',
       ],
       entry_points="""
 
