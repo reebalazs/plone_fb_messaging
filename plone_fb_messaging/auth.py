@@ -12,23 +12,6 @@ from .config import (
 )
 
 
-def get_auth_token_for_admin():
-    """Create an auth token with full admin rights.
-
-    Used from privilegized console scripts.
-    This needs the url, and the secret from env variables.
-    """
-    config = get_env_config()
-    custom_data = {
-        'ploneUserid': 'admin',
-    }
-    options = {
-        'admin': True,
-    }
-    token = create_token(config['firebase_secret'], custom_data, options)
-    return token
-
-
 def get_allowed_userid(context, request):
     """Return the userid, None (if anon),
 
@@ -54,10 +37,11 @@ def get_allowed_userid(context, request):
     #    return plone_userid
 
 
-def get_auth_info(context, request):
-    plone_userid = get_allowed_userid(context, request)
-    # Admin is always false for now.
-    admin = False
+def get_auth_info(context, request, admin=False):
+    if not admin:
+        plone_userid = get_allowed_userid(context, request)
+    else:
+        plone_userid = 'admin'
 
     custom_data = {
         'ploneUserid': plone_userid,
@@ -82,8 +66,8 @@ def get_auth_info(context, request):
     )
 
 
-def get_auth_token(context, request):
-    get_auth_info(context, request)['auth_token']
+def get_auth_token(context, request, admin=False):
+    get_auth_info(context, request, admin=False)['auth_token']
 
 
 class AllowedUseridView(BrowserView):
