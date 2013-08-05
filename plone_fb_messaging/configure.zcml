@@ -60,7 +60,11 @@
         for="*"
         class=".activity.SimulateActivity"
         name="fb_messaging_simulate_activity"
-        permission="cmf.ManagePortal"
+        permission="zope.Public"
       />
+
+<!-- ... should be:
+        permission="cmf.ManagePortal"
+-->
 
 </configure>
