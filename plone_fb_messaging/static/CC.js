@@ -147,24 +147,15 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$route', '$cookieStore', 'authService', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $route, $cookieStore, authService, $rootScope) {
+    ['$scope', 'angularFireCollection', 'authService', '$rootScope',
+    function ($scope, angularFireCollection, authService, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
         }
 
-
-        //setUsername($scope, $cookieStore);
-
-        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-
-        //connectedRef.on('value', function (dataSnapshot) {
-        //    if (dataSnapshot.val() === true) login($scope);
-        //});
+        $scope.filtered = false;
 
         //$scope.getLastSeen = function () {
         //    var deferred = $q.defer();
@@ -175,20 +166,15 @@ app.controller('ActivityStreamController',
         //    return deferred.promise;
         //};
 
-        //onlineRef.child($scope.ploneUserid).child('lastSeen').on('value', function (dataSnapshot) {
-        //    $scope.lastSeen = dataSnapshot.val();
-        //});
-
         $scope.activities = [];
         //var promise = $scope.getLastSeen();
         //promise.then(function (lastSeen) {
             //$scope.lastSeen = lastSeen;
-            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity');
+            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         //});
+        //
 
         $scope.markSeen = function () {
-            // XXX XXX XXX
-
             //userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
         };
 
@@ -199,12 +185,12 @@ app.controller('ActivityStreamController',
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
           However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
           Comment out the setInterval call to disable this functionality */
-        setInterval(refresh, 10000);
-        function refresh() {
-            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
-                if(!$scope.$$phase) $scope.$apply();
-            });
-        }
+        //setInterval(refresh, 10000);
+        //function refresh() {
+        //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
+        //        if(!$scope.$$phase) $scope.$apply();
+        //    });
+        //}
     }
 ]);
 
@@ -631,12 +617,11 @@ function encodeHTML(value) {
 }
 
 app.filter('activityFilter', function() {
-    return function (activities, $scope) {
+    return function (activities, filtered, lastSeen) {
         var result = [];
-        var lastSeen = $scope.lastSeen === undefined ? -1 : $scope.lastSeen; //-1 will effectively show all activity
         for (var i = 0; i < activities.length; i++) {
             var activity = activities[i];
-            if(activity.time > lastSeen && activity.expiration > Date.now())
+            if (! filtered || activity.time > lastSeen)
                 result.push(activity);
         }
         return result;

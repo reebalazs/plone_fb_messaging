@@ -154,7 +154,6 @@ input.fb-message-input {
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
-    width: 350px;
     overflow-y: auto;
     padding-bottom: 20px;
 }
