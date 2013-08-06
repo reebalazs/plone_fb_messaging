@@ -122,6 +122,12 @@ app.controller('CommandCentralController',
 app.controller('CreateBroadcastController',
     ['$scope', '$rootScope', 'angularFireCollection', 'authService',
     function ($scope, $rootScope, angularFireCollection, authService) {
+
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
+
         $scope.broadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.sendBroadcast = function () {
             $scope.broadcasts.add({
@@ -130,12 +136,13 @@ app.controller('CreateBroadcastController',
                 user: $rootScope.ploneUserid,
                 expiration: Date.now() + $scope.broadcast.expiration * 60000
             });
-        }
+        };
 }]);
 
 app.controller('ViewBroadcastsController',
     ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection', 'authService',
     function ($scope, $rootScope, $q, $filter, angularFireCollection, authService) {
+        
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
