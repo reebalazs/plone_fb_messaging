@@ -317,20 +317,24 @@ app.controller('PublicMessagingController',
         //    $scope.rooms.('hidden').set($scope.ploneUserid, Firebase.ServerValue.TIMESTAMP);
         //};
 
-        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
         $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
         $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
         $scope.currentRoomName = $routeParams.room;
-        $scope.currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms/publicRooms/' + $scope.currentRoomName);
-        $scope.currentRoomRef.child('name').set($scope.currentRoomName);
-        $scope.messages = angularFireCollection($scope.currentRoomRef.child('messages').limit(500));
-        $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
 
-        var inRoomRef = $scope.currentRoomRef.child('members').push($rootScope.ploneUserid);
+        var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms/publicRooms/' + $scope.currentRoomName);
+        var promise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        currentRoomRef.child('name').set($scope.currentRoomName);
+        $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
+        $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
+        
+        var inRoomRef = currentRoomRef.child('members').push($rootScope.ploneUserid);
         inRoomRef.onDisconnect().remove();
-        $scope.currentRoomRef.child('messages').on('value', function(dataSnapshot) {
-            $scope.currentRoomRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+        currentRoomRef.child('messages').on('value', function(dataSnapshot) {
+            currentRoomRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+        });
+        currentRoomRef.child('members').on('value', function(dataSnapshot) {
+            $scope.numMembers = ' (' + Object.keys(dataSnapshot.val()).length + ')';
         });
     }
 ]);
@@ -723,19 +727,17 @@ app.filter('timeFromNow', function () {
     };
 });
 
-app.filter('onlineFilter', function () {
-    return function (users, $scope) {
-        var result = {};
-        for (var username in users) {
-            var user = users[username];
-            if(user.online)
-                result[username] = user;
-        }
-        // XXX The filter should not update, just - as the name says - filter.
-        $scope.numUsers = ' (' + Object.keys(result).length + ')';
-        return result;
-    };
-});
+// app.filter('onlineFilter', function () {
+//     return function (users, $scope) {
+//         var result = {};
+//         for (var username in users) {
+//             var user = users[username];
+//             if(user.online)
+//                 result[username] = user;
+//         }
+//         return result;
+//     };
+// });
 
 // XXX Accessing $scope from the filter should be avoided, as it makes
 // XXX the filter depending on the entire universe, instead it should depend

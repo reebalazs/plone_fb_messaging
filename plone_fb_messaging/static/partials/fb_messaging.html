@@ -24,9 +24,9 @@
     </div>
 
     <div class="users">
-      <strong>Online users<span ng-bind="numUsers"></span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(name, user) in users | onlineFilter:this">
-          {{name}}
+      <strong>Online Members <span ng-bind="numMembers"></span>:</strong>
+        <div class="user" ng-cloak ng-repeat="member in members">
+          {{member}}
         </div>
     </div>
   </div>
