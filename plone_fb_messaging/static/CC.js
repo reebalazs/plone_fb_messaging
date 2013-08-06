@@ -25,12 +25,14 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
         .when('/activity', {
             templateUrl: staticRoot + 'partials/fb_activity.html',
-            controller: 'ActivityStreamController'
+            controller: 'ActivityStreamController',
+            activetab: 'activityStream'
         })
 
         .when('/messaging', {
             templateUrl: staticRoot + 'partials/fb_messaging.html',
-            controller: 'PublicMessagingController'
+            controller: 'PublicMessagingController',
+            activetab: 'messaging'
         })
 
         //when('/messaging/private/:privateChatUser', {
@@ -44,12 +46,14 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
         .when('/createBroadcast', {
             templateUrl: staticRoot + 'partials/fb_create_broadcast.html',
-            controller: 'CreateBroadcastController'
+            controller: 'CreateBroadcastController',
+            activetab: 'createBroadcast'
         })
 
         .when('/broadcast', {
             templateUrl: staticRoot + 'partials/fb_broadcasts.html',
-            controller: 'ViewBroadcastsController'
+            controller: 'ViewBroadcastsController',
+            activetab: 'broadcasts'
         })
 
         .otherwise({redirectTo: '/'});
@@ -106,17 +110,20 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
                 userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
             }
         });
-
     });
-
-
-
 }]);
+
 
 
 app.controller('CommandCentralController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
+}]);
+
+app.controller('MenuController',
+    ['$scope', '$route', 'authService',
+    function ($scope, $route, authService) {
+        $scope.$route = $route;
 }]);
 
 app.controller('CreateBroadcastController',

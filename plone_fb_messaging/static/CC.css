@@ -7,7 +7,7 @@
     padding-bottom: 6px;
 }
 .navbar li { display: inline; }
-a.nav:link,a.nav:visited {
+a.nav:link, a.nav:visited {
     font-weight: bold;
     background-color: #4499FF;
     color: #000000;
@@ -16,7 +16,7 @@ a.nav:link,a.nav:visited {
     text-decoration: none;
     text-transform: uppercase;
 }
-a.nav:hover, a.nav:active,
+a.nav:hover, a.nav.active,
 div.overlay a.nav:hover, div.overlay a.nav:active {
     color: #FFFFFF;
     background-color: #0066CC;
