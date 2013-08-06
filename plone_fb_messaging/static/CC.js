@@ -28,7 +28,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             controller: 'ActivityStreamController'
         })
 
-        .when('/messaging', {
+        .when('/messaging/public/:room', {
             templateUrl: staticRoot + 'partials/fb_messaging.html',
             controller: 'PublicMessagingController'
         })
@@ -255,9 +255,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$route', '$location', '$cookieStore', 'authService', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $route, $location, $cookieStore, authService, $rootScope) {
+        $routeParams, $location, $cookieStore, authService, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -276,7 +276,6 @@ app.controller('PublicMessagingController',
 
         $scope.privateChat = false;
         $scope.privateChatUser = false;
-        $scope.heading = 'Public Chat';
         $scope.$location = $location;
 
         $scope.processMessage = function () {
@@ -299,7 +298,6 @@ app.controller('PublicMessagingController',
             });
 
             $scope.message = '';
-
         };
 
         //$scope.updateUsername = function () {
@@ -311,18 +309,29 @@ app.controller('PublicMessagingController',
         // c   //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
         //};
 
-        //$scope.removeRoom = function (evt) {
-        //    removeRoom($scope, $location, evt);
-        //};
-
         //$scope.switchRoom = function (target) {
         //    onRoomSwitch($scope, target, false);
         //};
 
+        // $scope.removeRoom = function (evt, room) {
+        //    $scope.rooms.('hidden').set($scope.ploneUserid, Firebase.ServerValue.TIMESTAMP);
+        //};
+
         var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection(new Firebase($rootScope.firebaseUrl + '/messages').limit(500));
-        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' +
-            username + '/' + 'rooms');
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
+        $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
+        $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
+        $scope.currentRoomName = $routeParams.room;
+        $scope.currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms/publicRooms/' + $scope.currentRoomName);
+        $scope.currentRoomRef.child('name').set($scope.currentRoomName);
+        $scope.messages = angularFireCollection($scope.currentRoomRef.child('messages').limit(500));
+        $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
+
+        var inRoomRef = $scope.currentRoomRef.child('members').push($rootScope.ploneUserid);
+        inRoomRef.onDisconnect().remove();
+        $scope.currentRoomRef.child('messages').on('value', function(dataSnapshot) {
+            $scope.currentRoomRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+        });
     }
 ]);
 
