@@ -149,8 +149,6 @@ input.fb-message-input {
     -webkit-font-smoothing: antialiased;
 }
 
-
-
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
@@ -186,6 +184,29 @@ input.fb-message-input {
     margin-top: 1em;
 }
 
+/* CSS for Broadcasts */
+.broadcasts {
+    height: 280px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+    max-width: 300px;
+}
+
+.broadcast:not(:last-child) {
+    border-bottom: 1px solid;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+/* CSS for Create Broadcast */
+.fb_create_broadcast .form_control {
+    margin: 1em;
+}
+
+.fb_create_broadcast .message * {
+    vertical-align: middle;
+}
+
 /* Overlay for Plone */
 
 .fb-overlay-content {
@@ -204,7 +225,6 @@ input.fb-message-input {
 
 /* Needed for the simulate activity only */
 
-
 a.rnav:link,a.rnav:visited {
     font-weight: bold;
     background-color: #FF6666;
@@ -218,9 +238,7 @@ a.rnav:hover, a.rnav:active,
 div.overlay a.rnav:hover, div.overlay a.rnav:active {
     color: #FFFFFF;
     background-color: red;
-
 }
-
 
 .fb_simulate_activity .form_control {
     margin: 1em;

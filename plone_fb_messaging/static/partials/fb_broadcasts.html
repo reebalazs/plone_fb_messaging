@@ -1,0 +1,13 @@
+<h2>Broadcasts</h2>
+
+<div class="broadcasts" id="broadcastsDiv" auto-scroll="broadcasts">
+  <div class="broadcast" ng-cloak ng-repeat="broadcast in broadcasts | broadcastFilter:broadcastsSeenTS:showAll">
+    <div><strong>Message:</strong> {{broadcast.message}}</div>
+    <div><strong>User:</strong> {{broadcast.user}}</div>
+    <div><strong>Timestamp:</strong> {{broadcast.time | date:'medium'}}</div>
+    <div><strong>Expiration:</strong> {{broadcast.expiration | date:'medium'}}</div>
+  </div>
+</div>
+
+Show All: <input type="checkbox" ng-model="showAll" ng-click="scroll()" ng-true-value="true" ng-false-value="false"><br/>
+<button ng-click="markSeen()">Mark All as Read</button>

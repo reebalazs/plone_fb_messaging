@@ -2,7 +2,6 @@ var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 
 var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
 
-
 app.config(['$routeProvider', '$locationProvider', '$provide',
     function ($routeProvider, $locationProvider, $provide) {
     // Pick up templates from Plone.
@@ -41,6 +40,16 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .when('/simulate_activity', {
             templateUrl: staticRoot + 'partials/fb_simulate_activity.html',
             controller: 'SimulateActivityController'
+        })
+
+        .when('/createBroadcast', {
+            templateUrl: staticRoot + 'partials/fb_create_broadcast.html',
+            controller: 'CreateBroadcastController'
+        })
+
+        .when('/broadcast', {
+            templateUrl: staticRoot + 'partials/fb_broadcasts.html',
+            controller: 'ViewBroadcastsController'
         })
 
         .otherwise({redirectTo: '/'});
@@ -108,6 +117,56 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 app.controller('CommandCentralController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
+}]);
+
+app.controller('CreateBroadcastController',
+    ['$scope', '$rootScope', 'angularFireCollection', 'authService',
+    function ($scope, $rootScope, angularFireCollection, authService) {
+        $scope.broadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
+        $scope.sendBroadcast = function () {
+            $scope.broadcasts.add({
+                message: $scope.broadcast.message,
+                time: Firebase.ServerValue.TIMESTAMP,
+                user: $rootScope.ploneUserid,
+                expiration: Date.now() + $scope.broadcast.expiration * 60000
+            });
+        }
+}]);
+
+app.controller('ViewBroadcastsController',
+    ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection', 'authService',
+    function ($scope, $rootScope, $q, $filter, angularFireCollection, authService) {
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
+
+        var profileRef = new Firebase($rootScope.firebaseUrl + 'profile');
+        $scope.getBroadcastsSeenTS = function () {
+            var deferred = $q.defer();
+            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').on('value', function (dataSnapshot) {
+                deferred.resolve(dataSnapshot.val());
+                if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
+                $scope.broadcastsSeenTS = dataSnapshot.val();
+            });
+            return deferred.promise;
+        };
+
+        $scope.broadcasts = [];
+        var promise = $scope.getBroadcastsSeenTS();
+        promise.then(function (broadcastsSeenTS) {
+            $scope.broadcastsSeenTS = broadcastsSeenTS;
+            $scope.broadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
+        });
+
+        $scope.markSeen = function () {
+            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
+        };
+
+        $scope.scroll = function () {
+            var $el = $('#broadcastsDiv');
+            $el[0].scrollTop = $el[0].scrollHeight;
+        }
 }]);
 
 
@@ -267,7 +326,7 @@ app.controller('PublicMessagingController',
     }
 ]);
 
-app.directive('autoScroll', function ($timeout) {
+app.directive('autoScroll', function ($timeout) { //This will behave badly on *initial* pageload
     return function ($scope, $el, attrs) {
         $scope.$watch(attrs.autoScroll + '.length', function() {
             $timeout(function() {
@@ -615,6 +674,21 @@ function encodeHTML(value) {
   //then grab the encoded contents back out.  The div never exists on the page.
   return $('<div/>').text(value).html();
 }
+
+app.filter('broadcastFilter', function() {
+    return function (broadcasts, broadcastsSeenTS, showAll) {
+        if (showAll === 'true') return broadcasts;
+        else {
+            var result = [];
+            for (var i = 0; i < broadcasts.length; i++) {
+                var broadcast = broadcasts[i];
+                if (broadcast.time > broadcastsSeenTS)
+                    result.push(broadcast);
+            }
+            return result;
+        }
+    };
+});
 
 app.filter('activityFilter', function() {
     return function (activities, filtered, lastSeen) {
