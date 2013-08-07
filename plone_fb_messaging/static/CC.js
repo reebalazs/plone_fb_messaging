@@ -45,7 +45,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             activetab: 'simulateActivity'
         })
 
-        .when('/createBroadcast', {
+        .when('/create_broadcast', {
             templateUrl: staticRoot + 'partials/fb_create_broadcast.html',
             controller: 'CreateBroadcastController',
             activetab: 'createBroadcast'
@@ -150,7 +150,7 @@ app.controller('CreateBroadcastController',
 app.controller('ViewBroadcastsController',
     ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection', 'authService',
     function ($scope, $rootScope, $q, $filter, angularFireCollection, authService) {
-        
+
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
