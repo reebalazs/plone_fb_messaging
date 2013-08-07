@@ -330,17 +330,18 @@ app.controller('PublicMessagingController',
             currentRoomRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
         });
         currentRoomRef.child('members').on('value', function(dataSnapshot) {
-            $scope.numMembers = ' (' + Object.keys(dataSnapshot.val()).length + ')';
+            $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
         });
 
         $scope.createPublicRoom = function (evt) {
-            inRoomRef.remove();
             $location.url('/messaging/public/' + $scope.newRoomName);
         }
 
-        $scope.onRoomSwitch = function (evt) {
-            inRoomRef.remove(); //This needs to occur whenever the URL changes, e.g. on tab switch
-        };
+        $scope.$watch(function () {
+            return $location.path();
+        }, function (newValue, oldValue) {
+            if(newValue !== oldValue) inRoomRef.remove(); //Remove user from members if they are no longer on the same page
+        });
     }
 ]);
 
