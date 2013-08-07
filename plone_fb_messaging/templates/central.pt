@@ -11,7 +11,7 @@
       <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#!/create_broadcast">Send Broadcast</a></li>
       <li><a class="rnav" ng-class="{active: $route.current.activetab == 'simulateActivity'}" href="#!/simulate_activity">Simulate Activity</a></li>
     </ul>
-    <h1><a href="#!/">Command Central</a></h1>
+    <h1><a href="#!/">Com Central</a></h1>
     <div ng-view></div>
   </div>
 </div>
