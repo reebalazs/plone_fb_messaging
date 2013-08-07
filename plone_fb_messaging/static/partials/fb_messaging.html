@@ -1,20 +1,20 @@
 <div class="roomList">
   <h1>Rooms</h1>
   <h2>Public Rooms</h2>
-    <div ng-cloak ng-repeat="room in publicRooms">
+    <div ng-cloak ng-repeat="room in publicRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#!/messaging/public/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-click="removeRoom(room.name)" value="Remove">
+      <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom('public', room.name)" value="Hide">
     </div>
     <p>
       <input type="text" ng-model="newRoomName">
       <input type="submit" ng-click="createPublicRoom()" value="Create Public Room">
     </p>
   <h2>Private Rooms</h2>
-    <div ng-cloak ng-repeat="room in privateRooms">
+    <div ng-cloak ng-repeat="room in privateRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#!/messaging/private/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-click="removeRoom(room.name)" value="Remove">
+      <input type="submit" ng-click="hideRoom('private', room.name)" value="Hide">
     </div>
 </div>
 
