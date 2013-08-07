@@ -309,10 +309,6 @@ app.controller('PublicMessagingController',
         // c   //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
         //};
 
-        //$scope.switchRoom = function (target) {
-        //    onRoomSwitch($scope, target, false);
-        //};
-
         // $scope.removeRoom = function (evt, room) {
         //    $scope.rooms.('hidden').set($scope.ploneUserid, Firebase.ServerValue.TIMESTAMP);
         //};
@@ -336,6 +332,15 @@ app.controller('PublicMessagingController',
         currentRoomRef.child('members').on('value', function(dataSnapshot) {
             $scope.numMembers = ' (' + Object.keys(dataSnapshot.val()).length + ')';
         });
+
+        $scope.createPublicRoom = function (evt) {
+            inRoomRef.remove();
+            $location.url('/messaging/public/' + $scope.newRoomName);
+        }
+
+        $scope.onRoomSwitch = function (evt) {
+            inRoomRef.remove(); //This needs to occur whenever the URL changes, e.g. on tab switch
+        };
     }
 ]);
 

@@ -3,13 +3,17 @@
   <h2>Public Rooms</h2>
     <div ng-cloak ng-repeat="room in publicRooms">
       <span ng-show="currentRoomName == room.name">* </span> 
-      <a class="room" href="#!/messaging/public/{{room.name}}" ng-click="switchRoom(room.name)">{{room.name}}</a>
+      <a class="room" href="#!/messaging/public/{{room.name}}" ng-click="onRoomSwitch()">{{room.name}}</a>
       <input type="submit" ng-click="removeRoom(room.name)" value="Remove">
     </div>
+    <p>
+      <input type="text" ng-model="newRoomName">
+      <input type="submit" ng-click="createPublicRoom()" value="Create Public Room">
+    </p>
   <h2>Private Rooms</h2>
     <div ng-cloak ng-repeat="room in privateRooms">
       <span ng-show="currentRoomName == room.name">* </span> 
-      <a class="room" href="#!/messaging/public/{{room.name}}" ng-click="switchRoom(room.name)">{{room.name}}</a>
+      <a class="room" href="#!/messaging/private/{{room.name}}" ng-click="onRoomSwitch()">{{room.name}}</a>
       <input type="submit" ng-click="removeRoom(room.name)" value="Remove">
     </div>
 </div>
