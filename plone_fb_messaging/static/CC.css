@@ -234,7 +234,7 @@ a.rnav:link,a.rnav:visited {
     text-decoration: none;
     text-transform: uppercase;
 }
-a.rnav:hover, a.rnav:active,
+a.rnav:hover, a.rnav:active, a.rnav.active,
 div.overlay a.rnav:hover, div.overlay a.rnav:active {
     color: #FFFFFF;
     background-color: red;

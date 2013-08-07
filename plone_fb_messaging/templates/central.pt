@@ -4,12 +4,12 @@
                   ploneUserid='${view/auth_data/ploneUserid}';;" >
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
-    <ul class="navbar">
-      <li><a class="nav" href="#!/activity">Activity</a></li>
-      <li><a class="nav" href="#!/broadcast">Broadcast</a></li>
-      <li><a class="nav" href="#!/messaging">Messaging</a></li>
-      <li><a class="rnav" href="#!/createBroadcast">Send Broadcast</a></li>
-      <li><a class="rnav" href="#!/simulate_activity">Simulate Activity</a></li>
+    <ul class="navbar" ng-controller="MenuController">
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#!/activity">Activity</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#!/broadcast">Broadcast</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#!/messaging">Messaging</a></li>
+      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#!/createBroadcast">Send Broadcast</a></li>
+      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'simulateActivity'}" href="#!/simulateActivity">Simulate Activity</a></li>
     </ul>
     <h1><a href="#!/">Command Central</a></h1>
     <div ng-view></div>

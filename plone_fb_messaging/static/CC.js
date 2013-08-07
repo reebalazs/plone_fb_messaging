@@ -41,7 +41,8 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
         .when('/simulate_activity', {
             templateUrl: staticRoot + 'partials/fb_simulate_activity.html',
-            controller: 'SimulateActivityController'
+            controller: 'SimulateActivityController',
+            activetab: 'simulateActivity'
         })
 
         .when('/createBroadcast', {
