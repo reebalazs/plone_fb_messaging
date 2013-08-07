@@ -149,6 +149,11 @@ input.fb-message-input {
     -webkit-font-smoothing: antialiased;
 }
 
+.fb-newroom-input, .fb-newroom-submit {
+    width: 100px;
+    display: block;
+}
+
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
@@ -175,7 +180,7 @@ input.fb-message-input {
 
 .whoispresent {
     float: right;
-    width: 120px;
+    width: 150px;
     margin-left: 0.5em;
 
 }

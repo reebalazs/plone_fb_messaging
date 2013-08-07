@@ -29,7 +29,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             activetab: 'activityStream'
         })
 
-        .when('/messaging', {
+        .when('/messaging/public/:room', {
             templateUrl: staticRoot + 'partials/fb_messaging.html',
             controller: 'PublicMessagingController',
             activetab: 'messaging'
@@ -270,9 +270,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$route', '$location', '$cookieStore', 'authService', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $route, $location, $cookieStore, authService, $rootScope) {
+        $routeParams, $location, $cookieStore, authService, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -291,8 +291,6 @@ app.controller('PublicMessagingController',
 
         $scope.privateChat = false;
         $scope.privateChatUser = false;
-        $scope.heading = 'Public Chat';
-        $scope.$location = $location;
 
         $scope.processMessage = function () {
             // Let's do this simple and easy. For the moment
@@ -314,7 +312,6 @@ app.controller('PublicMessagingController',
             });
 
             $scope.message = '';
-
         };
 
         //$scope.updateUsername = function () {
@@ -326,18 +323,43 @@ app.controller('PublicMessagingController',
         // c   //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
         //};
 
-        //$scope.removeRoom = function (evt) {
-        //    removeRoom($scope, $location, evt);
-        //};
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
+        $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
+        $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
+        $scope.currentRoomName = $routeParams.room;
 
-        //$scope.switchRoom = function (target) {
-        //    onRoomSwitch($scope, target, false);
-        //};
+        var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms/publicRooms/' + $scope.currentRoomName);
+        var promise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        currentRoomRef.child('name').set($scope.currentRoomName);
+        currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
+        $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
+        $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
+        
+        var inRoomRef = currentRoomRef.child('members').push(username);
+        inRoomRef.onDisconnect().remove();
+        currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
+            currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
+        });
+        currentRoomRef.child('members').on('value', function(dataSnapshot) {
+            $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
+        });
 
-        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection(new Firebase($rootScope.firebaseUrl + '/messages').limit(500));
-        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' +
-            username + '/' + 'rooms');
+        $scope.createPublicRoom = function () {
+            $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
+        }
+
+        $scope.hideRoom = function (roomType, roomName) {
+            var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
+            if(roomType === 'public' || roomType === 'private')
+                roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+            $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
+        };
+
+        $scope.$watch(function () {
+            return $location.path();
+        }, function (newValue, oldValue) {
+            if(newValue !== oldValue) inRoomRef.remove(); //Remove user from members if they are no longer on the same page
+        });
     }
 ]);
 
@@ -436,50 +458,50 @@ app.controller('PrivateMessagingController',
 //}
 
 // XXX This looks like something to go in an event handler.
-function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
+// function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
 
-    var privateChatUser = $scope.privateChatUser;
-    var privateChat = $scope.privateChat;
-    if (targetRoom === 'public') {
-        if( privateChat && !modified)
-            userRef.child('rooms').child(privateChatUser).set({
-                username: privateChatUser,
-                seen: Date.now()
-            }); //if we're leaving private to go to public, we've seen the private message
-    }
-    else {
-        if (privateChat && !modified && privateChatUser) {
-                userRef.child('rooms').child(privateChatUser).set({
-                    username: privateChatUser,
-                    seen: Date.now()
-                }); //if we're leaving private to go to private, we've seen the private message
-        }
+//     var privateChatUser = $scope.privateChatUser;
+//     var privateChat = $scope.privateChat;
+//     if (targetRoom === 'public') {
+//         if( privateChat && !modified)
+//             userRef.child('rooms').child(privateChatUser).set({
+//                 username: privateChatUser,
+//                 seen: Date.now()
+//             }); //if we're leaving private to go to public, we've seen the private message
+//     }
+//     else {
+//         if (privateChat && !modified && privateChatUser) {
+//                 userRef.child('rooms').child(privateChatUser).set({
+//                     username: privateChatUser,
+//                     seen: Date.now()
+//                 }); //if we're leaving private to go to private, we've seen the private message
+//         }
 
-        // XXX This should also be done differently.
-        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-        var userRef = onlineRef.child(username);
+//         // XXX This should also be done differently.
+//         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+//         var userRef = onlineRef.child(username);
 
-        userRef.child('rooms').child(targetRoom).set({
-            username: targetRoom,
-            seen: Date.now(),
-            remove: 0
-        }); //create the new room if one doesn't exist, otherwise it's simply updated
-    }
-}
+//         userRef.child('rooms').child(targetRoom).set({
+//             username: targetRoom,
+//             seen: Date.now(),
+//             remove: 0
+//         }); //create the new room if one doesn't exist, otherwise it's simply updated
+//     }
+// }
 
-function removeRoom($scope, $location, $event) {
-    var username = $($event.target).data('username');
-    for (var i = 0; i < $scope.rooms.length; i++) {
-        if ($scope.rooms[i].username === username) {
-            $scope.rooms[i].remove = Date.now();
-            $scope.rooms[i].seen = Date.now();
-            $scope.rooms.update($scope.rooms[i]);
-            break;
-        }
-    }
-    onRoomSwitch($scope, 'public', true, $rootScope); //last argument specifies dictates to not mess with the current room
-    $location.url('/messaging');
-}
+// function removeRoom($scope, $location, $event) {
+//     var username = $($event.target).data('username');
+//     for (var i = 0; i < $scope.rooms.length; i++) {
+//         if ($scope.rooms[i].username === username) {
+//             $scope.rooms[i].remove = Date.now();
+//             $scope.rooms[i].seen = Date.now();
+//             $scope.rooms.update($scope.rooms[i]);
+//             break;
+//         }
+//     }
+//     onRoomSwitch($scope, 'public', true, $rootScope); //last argument specifies dictates to not mess with the current room
+//     $location.url('/messaging');
+// }
 
 function updateUsername($scope, $cookieStore, angularFireCollection) {
     return;
@@ -705,6 +727,18 @@ app.filter('broadcastFilter', function() {
     };
 });
 
+app.filter('roomFilter', function() {
+    return function (rooms, ploneUserid) {
+        var result = [];
+        for (var i = 0; i < rooms.length; i++) {
+            var room = rooms[i];
+            if ((room.hidden && room.hidden[ploneUserid] && room.lastMessaged > room.hidden[ploneUserid]) || !room.hidden)
+                result.push(room); //if either it is hidden and there is a message newer than the time of hiding or it was not hidden
+        }
+        return result;
+    };
+});
+
 app.filter('activityFilter', function() {
     return function (activities, filtered, lastSeen) {
         var result = [];
@@ -729,19 +763,17 @@ app.filter('timeFromNow', function () {
     };
 });
 
-app.filter('onlineFilter', function () {
-    return function (users, $scope) {
-        var result = {};
-        for (var username in users) {
-            var user = users[username];
-            if(user.online)
-                result[username] = user;
-        }
-        // XXX The filter should not update, just - as the name says - filter.
-        $scope.numUsers = ' (' + Object.keys(result).length + ')';
-        return result;
-    };
-});
+// app.filter('onlineFilter', function () {
+//     return function (users, $scope) {
+//         var result = {};
+//         for (var username in users) {
+//             var user = users[username];
+//             if(user.online)
+//                 result[username] = user;
+//         }
+//         return result;
+//     };
+// });
 
 // XXX Accessing $scope from the filter should be avoided, as it makes
 // XXX the filter depending on the entire universe, instead it should depend

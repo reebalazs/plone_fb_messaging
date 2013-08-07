@@ -7,7 +7,7 @@
     <ul class="navbar" ng-controller="MenuController">
       <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#!/activity">Activity</a></li>
       <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#!/broadcast">Broadcast</a></li>
-      <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#!/messaging">Messaging</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#!/messaging/public/main">Messaging</a></li>
       <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#!/create_broadcast">Send Broadcast</a></li>
       <li><a class="rnav" ng-class="{active: $route.current.activetab == 'simulateActivity'}" href="#!/simulate_activity">Simulate Activity</a></li>
     </ul>
