@@ -10,11 +10,11 @@
   <script src="../static/dist/angular-cookies.min.js"></script>
 </head>
 <body>
-  <ul class="navbar">
-    <li><a class="nav" href="#!/activity">Activity Stream</a></li>
-    <li><a class="nav" href="#!/broadcast">Broadcast Stream</a></li>
-    <li><a class="nav" href="#!/messaging">Messaging</a></li>
-    <li><a class="rnav" href="#!/createBroadcast">Send Broadcast</a></li>
+  <ul class="navbar" ng-controller="MenuController">
+    <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#!/activity">Activity Stream</a></li>
+    <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#!/broadcast">Broadcast Stream</a></li>
+    <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#!/messaging">Messaging</a></li>
+    <li><a class="nav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#!/createBroadcast">Send Broadcast</a></li>
   </ul>
   <h1><a href="#!/">Command Central</a></h1>
   
