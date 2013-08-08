@@ -15,7 +15,9 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
     $locationProvider
       .html5Mode(false)
-      .hashPrefix('!');
+      // need to use '*'' as a prefix to distinguish from Plone,
+      // as Plone's TOC uses already '!
+      .hashPrefix('*');
 
     $routeProvider
 

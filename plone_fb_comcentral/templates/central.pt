@@ -4,13 +4,13 @@
                   ploneUserid='${view/auth_data/ploneUserid}';;" >
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
-    <h1 class="fb-cc-title"><a href="#!/">Com Central</a></h1>
+    <h1 class="fb-cc-title"><a href="#*/">Com Central</a></h1>
     <ul class="navbar" ng-controller="MenuController">
-      <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#!/activity">Activity</a></li>
-      <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#!/broadcast">Broadcast</a></li>
-      <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#!/messaging/public/main">Messaging</a></li>
-      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#!/create_broadcast">Send Broadcast</a></li>
-      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'simulateActivity'}" href="#!/simulate_activity">Simulate Activity</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#*/activity">Activity</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#*/broadcast">Broadcast</a></li>
+      <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#*/messaging/public/main">Messaging</a></li>
+      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#*/create_broadcast">Send Broadcast</a></li>
+      <li><a class="rnav" ng-class="{active: $route.current.activetab == 'simulateActivity'}" href="#*/simulate_activity">Simulate Activity</a></li>
     </ul>
     <div ng-view></div>
   </div>

@@ -3,7 +3,7 @@
   <h2>Public</h2>
     <div ng-cloak ng-repeat="room in publicRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
-      <a class="room" href="#!/messaging/public/{{room.name}}">{{room.name}}</a>
+      <a class="room" href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
     <p>
@@ -13,7 +13,7 @@
   <h2>Private</h2>
     <div ng-cloak ng-repeat="room in privateRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
-      <a class="room" href="#!/messaging/private/{{room.name}}">{{room.name}}</a>
+      <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
 </div>
