@@ -19,7 +19,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
     $routeProvider
 
-        .when('/', {templateUrl: staticRoot + 'partials/CC.html',
+        .when('/', {templateUrl: staticRoot + 'partials/fb_comcentral.html',
             controller: 'CommandCentralController'
         })
 
@@ -30,7 +30,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         })
 
         .when('/messaging/public/:room', {
-            templateUrl: staticRoot + 'partials/fb_comcentral.html',
+            templateUrl: staticRoot + 'partials/fb_messaging.html',
             controller: 'PublicMessagingController',
             activetab: 'messaging'
         })
