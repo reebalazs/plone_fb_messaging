@@ -13,9 +13,9 @@
 
     <genericsetup:registerProfile
        name="default"
-       title="Plone Firebase Messaging"
+       title="Plone Firebase Com Central"
        directory="profiles/default"
-       description="Command Central"
+       description="Plone Firebase Com Central"
        provides="Products.GenericSetup.interfaces.EXTENSION"
        />
 

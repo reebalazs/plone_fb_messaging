@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <object name="portal_properties" meta_type="Plone Properties Tool">
- <object name="firebase_messaging_properties" meta_type="Plone Property Sheet">
-  <property name="title">Firebase messaging properties</property>
+ <object name="firebase_comcentral_properties" meta_type="Plone Property Sheet">
+  <property name="title">Firebase Com Central properties</property>
   <property name="firebase_url" type="string"></property>
   <property name="firebase_secret" type="string"></property>
   <!--property name="filter_users" type="boolean">False</property>

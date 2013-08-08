@@ -10,7 +10,7 @@ from Products.CMFCore.interfaces import IPropertiesTool
 def get_properties():
     ptool = queryUtility(IPropertiesTool)
     if ptool is not None:
-        return getattr(ptool, 'firebase_messaging_properties', None)
+        return getattr(ptool, 'firebase_comcentral_properties', None)
 
 
 def get_env_config():
