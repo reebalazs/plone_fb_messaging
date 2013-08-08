@@ -6,7 +6,11 @@
     padding-top: 6px;
     padding-bottom: 6px;
 }
-.navbar li { display: inline; }
+
+.navbar li {
+    display: inline; 
+}
+
 a.nav:link, a.nav:visited {
     font-weight: bold;
     background-color: #4499FF;
@@ -16,6 +20,7 @@ a.nav:link, a.nav:visited {
     text-decoration: none;
     text-transform: uppercase;
 }
+
 a.nav:hover, a.nav.active,
 div.overlay a.nav:hover, div.overlay a.nav:active {
     color: #FFFFFF;
@@ -33,19 +38,19 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
 
 }
 
-.helpMesssage.error {
+.helpMessage.error {
     opacity: 1;
     color: red;
     -webkit-transition: opacity .25s linear;
 }
 
-.helpMesssage.info {
+.helpMessage.info {
     opacity: 1;
     color: green;
     -webkit-transition: opacity .25s linear;
 }
 
-.helpMesssage.hidden {
+.helpMessage.hidden {
     opacity: 0 !important;
     -webkit-transition: opacity .25s linear;
 }
@@ -152,6 +157,10 @@ input.fb-message-input {
 .fb-newroom-input, .fb-newroom-submit {
     width: 100px;
     display: block;
+}
+
+.fb-messages-chat h1 {
+    margin-top: 0px;
 }
 
 /* CSS for Activity Stream */

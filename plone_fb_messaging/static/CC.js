@@ -114,8 +114,6 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
     });
 }]);
 
-
-
 app.controller('CommandCentralController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
@@ -184,7 +182,6 @@ app.controller('ViewBroadcastsController',
         }
 }]);
 
-
 // XXX this is only needed for the simulation and will go away in the final product.
 app.controller('SimulateActivityController',
     ['$scope', '$rootScope', '$http', 'getGlobals',
@@ -217,7 +214,6 @@ app.controller('SimulateActivityController',
                 }
             });
         };
-
 }]);
 
 app.controller('ActivityStreamController',
@@ -446,16 +442,6 @@ app.controller('PrivateMessagingController',
 //        $scope.username = username;
 //}
 
-//function login($scope) {
-//    // We're connected (or reconnected)!  Set up our presence state and
-//    // tell the server to set a timestamp when we leave.
-//    userRef = onlineRef.child($scope.username);
-//    var connRef = userRef.child('online').push(1);
-//    userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-//    userRef.child('online').onDisconnect().remove();
-//    userRef.child('logout').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-//}
-
 // XXX This looks like something to go in an event handler.
 // function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
 
@@ -488,84 +474,29 @@ app.controller('PrivateMessagingController',
 //     }
 // }
 
-// function removeRoom($scope, $location, $event) {
-//     var username = $($event.target).data('username');
-//     for (var i = 0; i < $scope.rooms.length; i++) {
-//         if ($scope.rooms[i].username === username) {
-//             $scope.rooms[i].remove = Date.now();
-//             $scope.rooms[i].seen = Date.now();
-//             $scope.rooms.update($scope.rooms[i]);
-//             break;
-//         }
-//     }
-//     onRoomSwitch($scope, 'public', true, $rootScope); //last argument specifies dictates to not mess with the current room
-//     $location.url('/messaging');
-// }
-
 function updateUsername($scope, $cookieStore, angularFireCollection) {
     return;
 
     // XXX XXX XXX
 
-//    var username = $scope.username;
-//    if (username.search(usernameRegexp) === 0) {
-//        var oldUserRef = onlineRef.child($cookieStore.get('username'));
-//        var connRef = oldUserRef.child('online').remove();
-//        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
-//        oldUserRef.child('online').remove();
-//        $cookieStore.put('username', $('#username').val());
-//
-//        userRef = onlineRef.child($scope.username);
-//        connRef = userRef.child('online').push(1);
-//        if (angularFireCollection) {
-//            $scope.rooms = angularFireCollection(firebaseUrl + 
-//                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
-//        }
-//    }
-//    else
-//        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
+    //    var username = $scope.username;
+    //    if (username.search(usernameRegexp) === 0) {
+    //        var oldUserRef = onlineRef.child($cookieStore.get('username'));
+    //        var connRef = oldUserRef.child('online').remove();
+    //        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
+    //        oldUserRef.child('online').remove();
+    //        $cookieStore.put('username', $('#username').val());
+    //
+    //        userRef = onlineRef.child($scope.username);
+    //        connRef = userRef.child('online').push(1);
+    //        if (angularFireCollection) {
+    //            $scope.rooms = angularFireCollection(firebaseUrl + 
+    //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
+    //        }
+    //    }
+    //    else
+    //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
 }
-
-/*
-function processMessage($scope, $location, messageWindow) {
-
-    ///userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-
-    var from = $scope.username;
-    var msg = encodeHTML($scope.message);
-    //var privateChat = $scope.privateChat;
-    //if ($scope.message.indexOf('/') === 0)
-    //    commandHandler($scope, $location, $scope.message);
-    //else {
-        //if (privateChat) {
-        //    $scope.messages.add({
-        //        sender: from,
-        //        content: msg,
-        //        private: true,
-        //        privateChat: true,
-        //        recipient: $scope.privateChatUser,
-        //        type: 'privateChat',
-        //        date: Date.now()
-        //    });
-        //} else {
-            $scope.messages.add({
-                sender: from,
-                content: msg,
-                private: false,
-                type: 'public',
-                date: Date.now()
-            });
-        //}
-        $scope.message = '';
-        $scope.helpClass = 'hidden';
-    //}
-
-    // prevent double click warning for this form
-    // (this is a hack needed for Plone)
-    //$root.find('input[value="Send"]')
-    //    .removeClass('submitting');
-}
-*/
 
 function handleCommand(msg, messages, ploneUserid, onlineRef, helpMessage) {
     var delim = msg.indexOf(' ');
@@ -759,18 +690,6 @@ app.filter('timeFromNow', function () {
     };
 });
 
-// app.filter('onlineFilter', function () {
-//     return function (users, $scope) {
-//         var result = {};
-//         for (var username in users) {
-//             var user = users[username];
-//             if(user.online)
-//                 result[username] = user;
-//         }
-//         return result;
-//     };
-// });
-
 app.filter('messageFilter', function () {
     return function (messages, ploneUserid) {
         var result = [];
@@ -791,7 +710,6 @@ app.filter('messageFilter', function () {
 // XXX on well defined input values.
 // 
 // XXX disable messages filter for now entirely. Discuss how to bring it back.
-
 /*
 app.filter('messageFilter', function () {
     return function (messages, $scope) {
@@ -848,7 +766,6 @@ app.filter('messageFilter', function () {
     };
 });
 */
-
 
 // editing messages
 // TODO: do not allow linebreaks
