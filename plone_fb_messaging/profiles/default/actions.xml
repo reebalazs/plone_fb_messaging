@@ -7,7 +7,7 @@
  <object name="user" meta_type="CMF Action Category">
   <property name="title"></property>
   <object name="notifications" meta_type="CMF Action" i18n:domain="plone">
-   <property name="title" i18n:translate="">Command Central</property>
+   <property name="title" i18n:translate="">Com Central</property>
    <property name="description" i18n:translate=""></property>
    <property name="url_expr">string:javascript:showFbOverlay();</property>
    <property name="icon_expr"></property>

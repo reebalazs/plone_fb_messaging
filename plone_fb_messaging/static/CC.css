@@ -27,6 +27,13 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
     background-color: #0066CC;
 }
 
+h1.fb-cc-title {
+    text-align: center;
+    background-color: #f0fff0;
+    font-size: 1.4em;
+    margin-bottom: 0.5em;
+}
+
 /*CSS for Messaging */
 .messages {
     height: 280px;
@@ -35,7 +42,6 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
     margin: 0 0.5em 1em 0;
     border: 1px solid #c0c0c0;
     background-color: #fffff6;
-
 }
 
 .helpMessage.error {
