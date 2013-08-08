@@ -4,7 +4,7 @@
     <div ng-cloak ng-repeat="room in publicRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#!/messaging/public/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom('public', room.name)" value="Hide">
+      <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
     <p>
       <input class="fb-newroom-input" type="text" ng-model="newRoomName">
@@ -14,7 +14,7 @@
     <div ng-cloak ng-repeat="room in privateRooms | roomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#!/messaging/private/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-click="hideRoom('private', room.name)" value="Hide">
+      <input type="submit" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
 </div>
 
@@ -36,12 +36,19 @@
   </div>
 
   <div class="messages" id="messagesDiv" auto-scroll="messages">
-    <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages">
+    <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:username">
       <div ng-switch-when="public" 
            class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <div class="chat-sender">{{message.sender}}</div>
         <div class="chat-content" ng-model="message"
           ng-attr-contenteditable="{{message.sender == username}}">{{message.content}}</div>
+      </div>
+      <div ng-switch-when="server" class="server chat-line-foreign"> <!-- Styling for this needed -->
+        <div class="chat-content" ng-model="message" ng-bind-html-unsafe="message.content"></div>
+      </div>
+      <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
+        <div class="chat-content" ng-model="message" 
+          ng-attr-contenteditable="{{message.sender == username}}"><em>{{message.sender}}</em> {{message.content}}</div>
       </div>
     </div>
   </div>
@@ -49,7 +56,7 @@
   <form ng-submit="processMessage()">
     <input id="fb-messages-input" class="fb-message-input" type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
     <input type="submit" id="submit" value="Send">
-    <div class="helpMesssage" ng-class="helpClass" ng-bind="help"></div>
+    <div class="helpMesssage" ng-class="helpMessage.helpClass" ng-bind="helpMessage.help"></div>
   </form>
   <div ng-bind-html-unsafe="info"></div>
 </div>
