@@ -24,7 +24,7 @@ class FirebaseViewlet(base.ViewletBase):
         # rendered before the product is installed with quickinstaller
         # in a newly created portal.
         qi = getToolByName(self.context, 'portal_quickinstaller')
-        self.is_installed = qi.isProductInstalled('plone_fb_messaging')
+        self.is_installed = qi.isProductInstalled('plone_fb_comcentral')
 
     def render(self):
         if self.is_installed and self.auth_token:

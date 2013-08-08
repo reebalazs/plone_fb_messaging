@@ -1,5 +1,5 @@
 
-# plone_fb_messaging #
+# plone_fb_comcentral #
 
 A messaging application to demonstrate interactivity brought to Plone via the technologies of [AngularJS](http://angularjs.org) and [FireBase](http://firebase.com).
 
@@ -8,7 +8,7 @@ A messaging application to demonstrate interactivity brought to Plone via the te
 
 The package can be installed in the same way as Plone packages are usually installed.
 
-After the installation, the `plone_fb_messaging` package has to be installed from `Site Setup / Add Packages`.
+After the installation, the `plone_fb_comcentral` package has to be installed from `Site Setup / Add Packages`.
 
 
 ### Buildout example ###
@@ -29,10 +29,6 @@ The package must be customized from the ZMI from the site_properties tool. Visit
 
 - **firebase_secret:** Your firebase secret.
 
-- **filter_users**: Enable/disable filtering of users who can access the service.
-
-- **allowed_users**: List users who can access the service (if `filter_users==True`)
-
 
 #### firebase_url
 
@@ -40,14 +36,14 @@ The url of the firebase data.
 
 For example:
 
-    https://my-firebase.firebaseio.com/collective_firebase
+    https://my-firebase.firebaseio.com/
 
 
 You can use the same firebase for more applications. You can specify an arbitrary path prefix to your database which at this point does not need to exist yet, but it is important that the url designates a path in the database that does not overlap with your other applications:
 
-    https://my-firebase.firebaseio.com/COMPANY/PROJECT/SITE/collective_firebase
+    https://my-firebase.firebaseio.com/COMPANY/PROJECT/SITE/com_central
 
-If this property is left empty, the value of the `PLONE_COLLECTIVE_FIREBASE_URL` environment variable will be used as a default.
+If this property is left empty, the value of the `PLONE_FIREBASE_URL` environment variable will be used as a default.
 
 
 #### firebase_secret
@@ -56,7 +52,7 @@ Your firebase secret as provided by the Firebase application (Forge).
 
 Keep the secret confidential, because if you give this secret to anyone, you grant full access to your entire database. If needed, you can generate more secrets, which gives you better control over them.
 
-If this property is left empty, the value of the `PLONE_COLLECTIVE_FIREBASE_SECRET` environment variable will be used as a default.
+If this property is left empty, the value of the `PLONE_FIREBASE_SECRET` environment variable will be used as a default.
 
 
 ### Alternate way: customize via enviromnent variables ###
@@ -95,6 +91,8 @@ There is no need to create any data in Firebase as the data will be created on t
 
 
 ## Using the UI from Plone ##
+
+Open 'Com Central' from the Plone user menu to access the UI.
 
 XXX
 

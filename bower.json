@@ -1,5 +1,5 @@
 {
-    "name": "plone_fb_messaging",
+    "name": "plone_fb_comcentral",
     "version": "0.1.0",
     "dependencies": {
         "jquery": "*",

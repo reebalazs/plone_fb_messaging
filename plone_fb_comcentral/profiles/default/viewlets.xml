@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <object>
     <order manager="plone.htmlhead" skinname="*">
-        <viewlet name="fb_messaging.head" insert-before="*"/>
+        <viewlet name="fb_comcentral.head" insert-before="*"/>
     </order>
 </object>

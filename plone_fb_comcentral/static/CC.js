@@ -11,7 +11,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
     // XXX with ng-init. So, staticRoot comes in another way, and
     // the rest is configured not from config, but from authService.
     //
-    var staticRoot = $('meta[name="fb-messaging-static"]').attr('content') || '../static/';
+    var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
 
     $locationProvider
       .html5Mode(false)
@@ -30,13 +30,13 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         })
 
         .when('/messaging/public/:room', {
-            templateUrl: staticRoot + 'partials/fb_messaging.html',
+            templateUrl: staticRoot + 'partials/fb_comcentral.html',
             controller: 'PublicMessagingController',
             activetab: 'messaging'
         })
 
         //when('/messaging/private/:privateChatUser', {
-        //    templateUrl: staticRoot + 'partials/fb_messaging.html',
+        //    templateUrl: staticRoot + 'partials/fb_comcentral.html',
         //    controller: 'PrivateMessagingController'})
 
         .when('/simulate_activity', {
@@ -202,7 +202,7 @@ app.controller('SimulateActivityController',
             console.log('save');
             $http({
                 method: 'GET',
-                url: fbMessagingHereUrl + '/fb_messaging_simulate_activity',
+                url: fbMessagingHereUrl + '/fb_comcentral_simulate_activity',
                 params: {
                     message: $scope.activity.message,
                     description: $scope.activity.description,

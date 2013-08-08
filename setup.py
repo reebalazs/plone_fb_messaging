@@ -8,7 +8,7 @@ def read(*rnames):
 
 version = '0.1.0'
 
-setup(name='plone_fb_messaging',
+setup(name='plone_fb_comcentral',
       version=version,
       description="",
       long_description=read('README.md'),

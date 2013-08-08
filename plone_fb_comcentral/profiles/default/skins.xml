@@ -8,9 +8,9 @@
        persistence'.
        -->
 <object name="portal_skins" meta_type="Plone Skins Tools">
- <object name="fb_messaging"
+ <object name="fb_comcentral"
     meta_type="Filesystem Directory View"
-    directory="plone_fb_messaging:skins/fb_messaging"/>
+    directory="plone_fb_comcentral:skins/fb_comcentral"/>
 
  <skin-path name="*">
 
@@ -21,7 +21,7 @@
        Note: insert-before (and -after) accepts the value "*" which means
        "all".
        -->
-  <layer name="fb_messaging"
+  <layer name="fb_comcentral"
      insert-after="custom"/>
  </skin-path>
 </object>
