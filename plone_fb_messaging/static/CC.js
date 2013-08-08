@@ -179,7 +179,7 @@ app.controller('ViewBroadcastsController',
         $scope.scroll = function () {
             var $el = $('#broadcastsDiv');
             $el[0].scrollTop = $el[0].scrollHeight;
-        }
+        };
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
@@ -330,7 +330,7 @@ app.controller('PublicMessagingController',
         currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
         $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
-        
+
         var inRoomRef = currentRoomRef.child('members').push(username);
         inRoomRef.onDisconnect().remove();
         currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
@@ -342,7 +342,7 @@ app.controller('PublicMessagingController',
 
         $scope.createPublicRoom = function () {
             $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
-        }
+        };
 
         $scope.hideRoom = function (roomType, roomName) {
             var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
@@ -358,6 +358,7 @@ app.controller('PublicMessagingController',
     }
 ]);
 
+// TODO fix for initial pageload
 app.directive('autoScroll', function ($timeout) { //This will behave badly on *initial* pageload
     return function ($scope, $el, attrs) {
         $scope.$watch(attrs.autoScroll + '.length', function() {
@@ -562,9 +563,9 @@ function handleCommand(msg, messages, ploneUserid, onlineRef, helpMessage) {
             }
             else {
                 messages.add({
-                    sender: ploneUserid, 
-                    content: action, 
-                    private: false, 
+                    sender: ploneUserid,
+                    content: action,
+                    private: false,
                     type: 'action',
                     date: Date.now()
                 });
