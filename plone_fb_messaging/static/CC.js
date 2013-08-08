@@ -176,10 +176,6 @@ app.controller('ViewBroadcastsController',
             profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
         };
 
-        $scope.scroll = function () {
-            var $el = $('#broadcastsDiv');
-            $el[0].scrollTop = $el[0].scrollHeight;
-        };
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
@@ -358,18 +354,46 @@ app.controller('PublicMessagingController',
     }
 ]);
 
-// TODO fix for initial pageload
-app.directive('autoScroll', function ($timeout) { //This will behave badly on *initial* pageload
+app.directive('autoScroll', function ($timeout) {
     return function ($scope, $el, attrs) {
-        $scope.$watch(attrs.autoScroll + '.length', function() {
-            $timeout(function() {
-                //$el[0].scrollTop = $el[0].scrollHeight;
-                $el
-                    .stop(false, false)
-                    .animate({
-                        scrollTop: $el[0].scrollHeight
-                    }, 500);
-            });
+        var timer = false;
+        // remember the minimal length during a batch of continous changes
+        // because we want to wait until the changes are over, and only
+        // scroll once in the end. This is most important when firebase
+        // loads a long list of items.
+        var minimalLength;
+        $scope.$watch(attrs.autoScroll + '.length', function(newLength, oldLength) {
+            if (newLength == oldLength) {
+                // triggers with 0, 0 initially. Let's skip it.
+                return;
+            }
+            // Do some delay to wait until changes are propagated
+            // and act only once.
+            // This makes initial scrolldown work better.
+            // (We will get called by (0, 1), (1, 2), (2, 3) and so on
+            // and we have to avoid acting so many times.)
+            if (timer) {
+                $timeout.cancel(timer);
+                minimalLength = Math.min(minimalLength, oldLength);
+            } else {
+                // the new batch of length changes start now
+                minimalLength = oldLength;
+            }
+            timer = $timeout(function() {
+                if (newLength - minimalLength > 5) {
+                    // big increase and initial load: jump to end
+                    $el[0].scrollTop = $el[0].scrollHeight;
+                } else {
+                    // small increase: scroll to end
+                    $el
+                        .stop(false, false)
+                        .animate({
+                            scrollTop: $el[0].scrollHeight
+                        }, 500);
+                }
+                // reset the timer, we are finished.
+                timer = null;
+            }, 100);
         });
     };
 });
