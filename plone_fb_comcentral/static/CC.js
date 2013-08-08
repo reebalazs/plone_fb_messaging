@@ -1,7 +1,5 @@
 var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
 
-var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
-
 app.config(['$routeProvider', '$locationProvider', '$provide',
     function ($routeProvider, $locationProvider, $provide) {
     // Pick up templates from Plone.
@@ -66,14 +64,13 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
     });
 
     $provide.service('authService', function($rootScope) {
-
         // Configure parameters. In Plone these are provided from the template by ng-init.
          if (! $rootScope.firebaseUrl) {
             // We are in the static html. Let's provide
             // constants for testing.
             $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
             $rootScope.authToken = '';
-            $rootScope.ploneUserid = 'TestUser';
+            $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
         }
 
         // Parse the url to find its root
@@ -177,7 +174,6 @@ app.controller('ViewBroadcastsController',
         $scope.markSeen = function () {
             profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
         };
-
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
@@ -264,9 +260,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', 'authService', 'handleCommand', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, authService, $rootScope) {
+        $routeParams, $location, $cookieStore, authService, handleCommand, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -287,11 +283,11 @@ app.controller('PublicMessagingController',
 
         $scope.processMessage = function () {
             var from = username;
-            var msg = encodeHTML($scope.message); //prevent HTML injection
+            var msg = $scope.message; //prevent HTML injection
 
             if ($scope.message.indexOf('/') === 0) {
                 handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage);
-                /* changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
+                /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
                 is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
             }
             else {
@@ -356,6 +352,7 @@ app.controller('PublicMessagingController',
     }
 ]);
 
+//TODO: Does not work with a filter
 app.directive('autoScroll', function ($timeout) {
     return function ($scope, $el, attrs) {
         var timer = false;
@@ -400,271 +397,165 @@ app.directive('autoScroll', function ($timeout) {
     };
 });
 
-// XXX Private message controller disabled now, it requires a major reorganizing
-// XXX because the global functions makes it very hard to handle the scopes.
-/*
-app.controller('PrivateMessagingController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
-    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $route, $q,
-        $routeParams, $location, $cookieStore, authService, $rootScope) {
-        setUsername($scope, $cookieStore);
+// editing messages
+// TODO: do not allow linebreaks
+// TODO: fix (not working)
+app.directive('contenteditable', function () {
+    return {
+        restrict: 'A',
+        require: '?ngModel',
+        link: function( $scope, element, attrs, ngModel) {
 
-        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+            ngModel.$render = function () {
+                element.html(ngModel.$viewValue.content || '');
+            };
 
-        $scope.privateChat = true;
-        $scope.privateChatUser = $routeParams.privateChatUser;
-        $scope.heading = 'Private Chat with ' + $scope.privateChatUser;
-        $scope.$location = $location;
+            element.bind('blur', function () {
+                var message = ngModel.$modelValue;
+                message.content = $.trim(element.html());
+                $scope.messages.update(message);
+            });
 
-        onlineRef.child($scope.privateChatUser).on('value', function (dataSnapshot) {
-            if ($scope.privateChat) //prevent this from being called in the wrong place
-                $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
-        });
+        }
+    };
+});
 
-        $scope.processMessage = function () {
-            processMessage($scope, $location, $('#messagesDiv'));
-        };
+app.factory('handleCommand', function() {
+    return function(msg, messages, ploneUserid, onlineRef, helpMessage) {
+        var delim = msg.indexOf(' ');
+        var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
+        var username = ploneUserid;
+        var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
+        var usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
 
-        $scope.updateUsername = function () {
-            updateUsername($scope, $cookieStore, angularFireCollection);
-        };
-
-        $scope.startPrivateChat = function (evt) {
-            commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
-        };
-
-        $scope.removeRoom = function (evt) {
-            removeRoom($scope, $location, evt);
-        };
-
-        $scope.switchRoom = function (target) {
-            onRoomSwitch($scope, target, false, $rootScope);
-        };
-
-        //connectedRef.on('value', function (dataSnapshot) {
-        //    if (dataSnapshot.val() === true) login($scope);
-        //});
-
-        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
-        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
-    }
-]);
-*/
-
-//function setUsername($scope, $cookieStore) {
-    // XXX XXX XXX
-    //var username = 'TestUserX';
-    //$scope.username = username;
-    //return;
-    // XXX XXX
-    //var username = $cookieStore.get('username');
-//    if (username === undefined || username.search(usernameRegexp) !== 0) {
-//        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
-//        $scope.username = anonUser; //Very bad things happen if two people have the same username
-//        $cookieStore.put('username', anonUser);
-//    }
-//    else if (username.search(usernameRegexp) === 0)
-//        $scope.username = username;
-//}
-
-// XXX This looks like something to go in an event handler.
-// function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
-
-//     var privateChatUser = $scope.privateChatUser;
-//     var privateChat = $scope.privateChat;
-//     if (targetRoom === 'public') {
-//         if( privateChat && !modified)
-//             userRef.child('rooms').child(privateChatUser).set({
-//                 username: privateChatUser,
-//                 seen: Date.now()
-//             }); //if we're leaving private to go to public, we've seen the private message
-//     }
-//     else {
-//         if (privateChat && !modified && privateChatUser) {
-//                 userRef.child('rooms').child(privateChatUser).set({
-//                     username: privateChatUser,
-//                     seen: Date.now()
-//                 }); //if we're leaving private to go to private, we've seen the private message
-//         }
-
-//         // XXX This should also be done differently.
-//         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-//         var userRef = onlineRef.child(username);
-
-//         userRef.child('rooms').child(targetRoom).set({
-//             username: targetRoom,
-//             seen: Date.now(),
-//             remove: 0
-//         }); //create the new room if one doesn't exist, otherwise it's simply updated
-//     }
-// }
-
-function updateUsername($scope, $cookieStore, angularFireCollection) {
-    return;
-
-    // XXX XXX XXX
-
-    //    var username = $scope.username;
-    //    if (username.search(usernameRegexp) === 0) {
-    //        var oldUserRef = onlineRef.child($cookieStore.get('username'));
-    //        var connRef = oldUserRef.child('online').remove();
-    //        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
-    //        oldUserRef.child('online').remove();
-    //        $cookieStore.put('username', $('#username').val());
-    //
-    //        userRef = onlineRef.child($scope.username);
-    //        connRef = userRef.child('online').push(1);
-    //        if (angularFireCollection) {
-    //            $scope.rooms = angularFireCollection(firebaseUrl + 
-    //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
-    //        }
-    //    }
-    //    else
-    //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
-}
-
-function handleCommand(msg, messages, ploneUserid, onlineRef, helpMessage) {
-    var delim = msg.indexOf(' ');
-    var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
-    var username = ploneUserid;
-    var usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
-
-    switch (command) {
-        /* case 'msg':
-            if(msg.search('/msg\\s' + usernameRegexpSource + '\\s.+') !== 0) {
-                $scope.helpClass = 'error';
-                $scope.help = 'Bad syntax - /msg {target username} {message}';
-            }
-            else {
-                var delim2 = msg.indexOf(' ', delim + 1);
-                target = msg.substring(delim + 1, delim2);
-                var message = encodeHTML(msg.substr(delim2 + 1));
-
-                $scope.messages.add({
-                    sender: ploneUserid,
-                    content: message,
-                    private: true,
-                    type: 'private',
-                    recipient: target,
-                    date: Date.now()
-                });
-                $scope.messages.add({
-                    sender: ploneUserid,
-                    recipient: privateChat ? privateChatUser : username,
-                    content: 'private message sent to <em>' + target + '</em>: "' + message + '"',
-                    private: true,
-                    privateChat: privateChat,
-                    type: 'server',
-                    date: Date.now()
-                });
-                $scope.helpClass = 'info';
-                $scope.help = 'Message sent to ' + target;
-            }
-            break; */
-        /* case 'query':
-            if (msg.search('/query\\s' + usernameRegexpSource + '$') !== 0) {
-                $scope.helpClass = 'error';
-                $scope.help = 'Bad syntax - /query {target username}';
-            } else {
-                target = msg.substr(delim + 1);
-                if (target !== ploneUserid) {
-                    $scope.helpClass = 'info';
-                    $scope.help = 'Opened private chat room with ' + target;
-                    onRoomSwitch($scope, target, false, $rootScope);
-                    $location.url('/messaging/private/' + target);
+        switch (command) {
+            /* case 'msg':
+                if(msg.search('/msg\\s' + usernameRegexpSource + '\\s.+') !== 0) {
+                    $scope.helpClass = 'error';
+                    $scope.help = 'Bad syntax - /msg {target username} {message}';
                 }
                 else {
-                    $scope.helpClass = 'error';
-                    $scope.help = 'You cannot private chat with yourself';
-                }
-            }
-            break; */
-        case 'me':
-            var action = encodeHTML(msg.substr(delim + 1));
-            if (msg.search('/me\\s.+') !== 0) {
-                helpMessage.helpClass = 'error';
-                helpMessage.help = 'Bad syntax - /me {action}: ' + msg;
-            }
-            else {
-                messages.add({
-                    sender: ploneUserid,
-                    content: action,
-                    private: false,
-                    type: 'action',
-                    date: Date.now()
-                });
-                helpMessage.helpClass = 'hidden';
-            }
-            break;
-        case 'whois':
-            if (msg.search('/whois\\s' + usernameRegexpSource + '$') !== 0) {
-                helpMessage.helpClass = 'error';
-                helpMessage.help = 'Bad syntax - /whois {target username}: ' + msg;
-            }
-            else {
-                target = msg.substr(delim + 1);
-                onlineRef.child(target).once('value', function(dataSnapshot) {
-                    if (dataSnapshot.hasChild('lastActive')) {
-                        messages.add({
-                            sender: ploneUserid,
-                            content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
-                            private: true,
-                            type: 'server',
-                            date: Date.now()
-                        });
-                        helpMessage.helpClass = 'info';
-                        helpMessage.help = 'Whois query successful';
-                    }
-                    else if (dataSnapshot.hasChild('logout')) {
-                        messages.add({
-                            sender: ploneUserid,
-                            content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
-                            private: true,
-                            type: 'server',
-                            date: Date.now()
-                        });
-                        helpMessage.helpClass = 'info';
-                        helpMessage.help = 'Whois query successful';
-                    } else {
-                        helpMessage.helpClass = 'error';
-                        helpMessage.help = 'Whois query unsuccessful: ' + msg;
-                    }
-                });
-            }
-            break;
-        case 'time':
-            if (msg.search('/time$') !== 0) {
-                //helpClass = 'derpaderp';
-                helpMessage.helpClass = 'error';
-                helpMessage.help = 'Bad syntax - /time: ' + msg;
-            }
-            else {
-                messages.add({
-                    sender: ploneUserid,
-                    content: '<strong>current time</strong>: ' + Date.now(),
-                    private: true,
-                    type: 'server',
-                    date: Date.now()
-                });
-                helpMessage.helpClass = 'hidden';
-            }
-            break;
-        //TODO: Add more commands if desired
-        default: {
-            helpMessage.helpClass = 'error';
-            helpMessage.help = 'Unrecognized command: ' + msg;
-        }
-    }
-}
+                    var delim2 = msg.indexOf(' ', delim + 1);
+                    target = msg.substring(delim + 1, delim2);
+                    var message = encodeHTML(msg.substr(delim2 + 1));
 
-//from http://stackoverflow.com/a/1219983/1266600
-function encodeHTML(value) {
-  //create a in-memory div, set it's inner text(which jQuery automatically encodes)
-  //then grab the encoded contents back out.  The div never exists on the page.
-  return $('<div/>').text(value).html();
-}
+                    $scope.messages.add({
+                        sender: ploneUserid,
+                        content: message,
+                        private: true,
+                        type: 'private',
+                        recipient: target,
+                        date: Date.now()
+                    });
+                    $scope.messages.add({
+                        sender: ploneUserid,
+                        recipient: privateChat ? privateChatUser : username,
+                        content: 'private message sent to <em>' + target + '</em>: "' + message + '"',
+                        private: true,
+                        privateChat: privateChat,
+                        type: 'server',
+                        date: Date.now()
+                    });
+                    $scope.helpClass = 'info';
+                    $scope.help = 'Message sent to ' + target;
+                }
+                break; */
+            /* case 'query':
+                if (msg.search('/query\\s' + usernameRegexpSource + '$') !== 0) {
+                    $scope.helpClass = 'error';
+                    $scope.help = 'Bad syntax - /query {target username}';
+                } else {
+                    target = msg.substr(delim + 1);
+                    if (target !== ploneUserid) {
+                        $scope.helpClass = 'info';
+                        $scope.help = 'Opened private chat room with ' + target;
+                        onRoomSwitch($scope, target, false, $rootScope);
+                        $location.url('/messaging/private/' + target);
+                    }
+                    else {
+                        $scope.helpClass = 'error';
+                        $scope.help = 'You cannot private chat with yourself';
+                    }
+                }
+                break; */
+            case 'me':
+                var action = msg.substr(delim + 1);
+                if (msg.search('/me\\s.+') !== 0) {
+                    helpMessage.helpClass = 'error';
+                    helpMessage.help = 'Bad syntax - /me {action}: ' + msg;
+                }
+                else {
+                    messages.add({
+                        sender: ploneUserid,
+                        content: action,
+                        private: false,
+                        type: 'action',
+                        date: Date.now()
+                    });
+                    helpMessage.helpClass = 'hidden';
+                }
+                break;
+            case 'whois':
+                if (msg.search('/whois\\s' + usernameRegexpSource + '$') !== 0) {
+                    helpMessage.helpClass = 'error';
+                    helpMessage.help = 'Bad syntax - /whois {target username}: ' + msg;
+                }
+                else {
+                    target = msg.substr(delim + 1);
+                    onlineRef.child(target).once('value', function(dataSnapshot) {
+                        if (dataSnapshot.hasChild('lastActive')) {
+                            messages.add({
+                                sender: ploneUserid,
+                                content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
+                                private: true,
+                                type: 'server',
+                                date: Date.now()
+                            });
+                            helpMessage.helpClass = 'info';
+                            helpMessage.help = 'Whois query successful';
+                        }
+                        else if (dataSnapshot.hasChild('logout')) {
+                            messages.add({
+                                sender: ploneUserid,
+                                content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
+                                private: true,
+                                type: 'server',
+                                date: Date.now()
+                            });
+                            helpMessage.helpClass = 'info';
+                            helpMessage.help = 'Whois query successful';
+                        } else {
+                            helpMessage.helpClass = 'error';
+                            helpMessage.help = 'Whois query unsuccessful: ' + msg;
+                        }
+                    });
+                }
+                break;
+            case 'time':
+                if (msg.search('/time$') !== 0) {
+                    //helpClass = 'derpaderp';
+                    helpMessage.helpClass = 'error';
+                    helpMessage.help = 'Bad syntax - /time: ' + msg;
+                }
+                else {
+                    messages.add({
+                        sender: ploneUserid,
+                        content: '<strong>current time</strong>: ' + Date.now(),
+                        private: true,
+                        type: 'server',
+                        date: Date.now()
+                    });
+                    helpMessage.helpClass = 'hidden';
+                }
+                break;
+            //TODO: Add more commands if desired
+            default: {
+                helpMessage.helpClass = 'error';
+                helpMessage.help = 'Unrecognized command: ' + msg;
+            }
+        }
+    };
+});
 
 app.filter('broadcastFilter', function() {
     return function (broadcasts, broadcastsSeenTS, showAll) {
@@ -732,6 +623,130 @@ app.filter('messageFilter', function () {
     };
 });
 
+// XXX Private message controller disabled now, it requires a major reorganizing
+// XXX because the global functions makes it very hard to handle the scopes.
+/*
+app.controller('PrivateMessagingController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
+    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
+    function ($scope, $timeout, angularFire, angularFireCollection, $route, $q,
+        $routeParams, $location, $cookieStore, authService, $rootScope) {
+        setUsername($scope, $cookieStore);
+
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+
+        $scope.privateChat = true;
+        $scope.privateChatUser = $routeParams.privateChatUser;
+        $scope.heading = 'Private Chat with ' + $scope.privateChatUser;
+        $scope.$location = $location;
+
+        onlineRef.child($scope.privateChatUser).on('value', function (dataSnapshot) {
+            if ($scope.privateChat) //prevent this from being called in the wrong place
+                $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
+        });
+
+        $scope.processMessage = function () {
+            processMessage($scope, $location, $('#messagesDiv'));
+        };
+
+        $scope.updateUsername = function () {
+            updateUsername($scope, $cookieStore, angularFireCollection);
+        };
+
+        $scope.startPrivateChat = function (evt) {
+            commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
+        };
+
+        $scope.removeRoom = function (evt) {
+            removeRoom($scope, $location, evt);
+        };
+
+        $scope.switchRoom = function (target) {
+            onRoomSwitch($scope, target, false, $rootScope);
+        };
+
+        //connectedRef.on('value', function (dataSnapshot) {
+        //    if (dataSnapshot.val() === true) login($scope);
+        //});
+
+        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
+        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
+    }
+]);
+*/
+
+//function setUsername($scope, $cookieStore) {
+    // XXX XXX XXX
+    //var username = 'TestUserX';
+    //$scope.username = username;
+    //return;
+    // XXX XXX
+    //var username = $cookieStore.get('username');
+    //    if (username === undefined || username.search(usernameRegexp) !== 0) {
+    //        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
+    //        $scope.username = anonUser; //Very bad things happen if two people have the same username
+    //        $cookieStore.put('username', anonUser);
+    //    }
+    //    else if (username.search(usernameRegexp) === 0)
+    //        $scope.username = username;
+//}
+
+// XXX This looks like something to go in an event handler.
+//function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
+    // var privateChatUser = $scope.privateChatUser;
+    // var privateChat = $scope.privateChat;
+    // if (targetRoom === 'public') {
+    //     if( privateChat && !modified)
+    //         userRef.child('rooms').child(privateChatUser).set({
+    //             username: privateChatUser,
+    //             seen: Date.now()
+    //         }); //if we're leaving private to go to public, we've seen the private message
+    // }
+    // else {
+    //     if (privateChat && !modified && privateChatUser) {
+    //             userRef.child('rooms').child(privateChatUser).set({
+    //                 username: privateChatUser,
+    //                 seen: Date.now()
+    //             }); //if we're leaving private to go to private, we've seen the private message
+    //     }
+
+    //     // XXX This should also be done differently.
+    //     var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+    //     var userRef = onlineRef.child(username);
+
+    //     userRef.child('rooms').child(targetRoom).set({
+    //         username: targetRoom,
+    //         seen: Date.now(),
+    //         remove: 0
+    //     }); //create the new room if one doesn't exist, otherwise it's simply updated
+    // }
+//}
+
+//function updateUsername($scope, $cookieStore, angularFireCollection) {
+    //return;
+
+    // XXX XXX XXX
+
+    //    var username = $scope.username;
+    //    if (username.search(usernameRegexp) === 0) {
+    //        var oldUserRef = onlineRef.child($cookieStore.get('username'));
+    //        var connRef = oldUserRef.child('online').remove();
+    //        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
+    //        oldUserRef.child('online').remove();
+    //        $cookieStore.put('username', $('#username').val());
+    //
+    //        userRef = onlineRef.child($scope.username);
+    //        connRef = userRef.child('online').push(1);
+    //        if (angularFireCollection) {
+    //            $scope.rooms = angularFireCollection(firebaseUrl + 
+    //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
+    //        }
+    //    }
+    //    else
+    //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
+//}
+
 // XXX Accessing $scope from the filter should be avoided, as it makes
 // XXX the filter depending on the entire universe, instead it should depend
 // XXX on well defined input values.
@@ -793,25 +808,3 @@ app.filter('messageFilter', function () {
     };
 });
 */
-
-// editing messages
-// TODO: do not allow linebreaks
-app.directive('contenteditable', function () {
-    return {
-        restrict: 'A',
-        require: '?ngModel',
-        link: function( $scope, element, attrs, ngModel) {
-
-            ngModel.$render = function () {
-                element.html(ngModel.$viewValue.content || '');
-            };
-
-            element.bind('blur', function () {
-                var message = ngModel.$modelValue;
-                message.content = $.trim(element.html());
-                $scope.messages.update(message);
-            });
-
-        }
-    };
-});
