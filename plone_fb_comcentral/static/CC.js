@@ -66,14 +66,13 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
     });
 
     $provide.service('authService', function($rootScope) {
-
         // Configure parameters. In Plone these are provided from the template by ng-init.
          if (! $rootScope.firebaseUrl) {
             // We are in the static html. Let's provide
             // constants for testing.
             $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
             $rootScope.authToken = '';
-            $rootScope.ploneUserid = 'TestUser';
+            $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
         }
 
         // Parse the url to find its root
@@ -177,7 +176,6 @@ app.controller('ViewBroadcastsController',
         $scope.markSeen = function () {
             profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
         };
-
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
@@ -291,7 +289,7 @@ app.controller('PublicMessagingController',
 
             if ($scope.message.indexOf('/') === 0) {
                 handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage);
-                /* changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
+                /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
                 is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
             }
             else {
@@ -356,6 +354,7 @@ app.controller('PublicMessagingController',
     }
 ]);
 
+//TODO: Does not work with a filter
 app.directive('autoScroll', function ($timeout) {
     return function ($scope, $el, attrs) {
         var timer = false;
