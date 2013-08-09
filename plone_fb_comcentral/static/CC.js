@@ -262,9 +262,11 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', 'createPrivateRoom', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', '$document',
+    'authService', 'handleCommand', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document, authService, handleCommand, createPrivateRoom, $rootScope) {
+        $routeParams, $location, $cookieStore, $document,
+        authService, handleCommand, createPrivateRoom, hideRoom, processMessage, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -283,26 +285,8 @@ app.controller('PublicMessagingController',
 
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
-        // TODO: make this into a factory
         $scope.processMessage = function () {
-            var from = username;
-            var msg = $scope.message; //prevent HTML injection
-
-            if ($scope.message.indexOf('/') === 0) {
-                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage, $location);
-                /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
-                is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
-            }
-            else {
-                $scope.messages.add({
-                    sender: from,
-                    content: msg,
-                    private: false,
-                    type: 'public',
-                    date: Date.now()
-                });
-                $scope.helpClass = 'hidden';
-            }
+            processMessage(username, $scope.message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
 
@@ -347,10 +331,8 @@ app.controller('PublicMessagingController',
             $location.url(newURL);
         };
 
-        // TODO: make this into a factory
         $scope.hideRoom = function (roomType, roomName) {
-            var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
-            roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+            hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
             $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
         };
 
@@ -374,9 +356,11 @@ app.controller('PublicMessagingController',
 
 app.controller('PrivateMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', 'createPrivateRoom', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', '$document',
+    'authService', 'handleCommand', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document, authService, handleCommand, createPrivateRoom, $rootScope) {
+        $routeParams, $location, $cookieStore, $document,
+        authService, handleCommand, createPrivateRoom, hideRoom, processMessage, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -395,26 +379,8 @@ app.controller('PrivateMessagingController',
 
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
-        // TODO: make this into a factory
         $scope.processMessage = function () {
-            var from = username;
-            var msg = $scope.message; //prevent HTML injection
-
-            if ($scope.message.indexOf('/') === 0) {
-                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage, $location);
-                /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
-                is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
-            }
-            else {
-                $scope.messages.add({
-                    sender: from,
-                    content: msg,
-                    private: false,
-                    type: 'public',
-                    date: Date.now()
-                });
-                $scope.helpClass = 'hidden';
-            }
+            processMessage(username, $scope.message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
     
@@ -457,10 +423,8 @@ app.controller('PrivateMessagingController',
             $location.url(newURL);
         };
 
-        // TODO: make this into a factory
         $scope.hideRoom = function (roomType, roomName) {
-            var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
-            roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+            hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
             $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
         };
 
@@ -553,7 +517,7 @@ app.directive('contenteditable', function () {
 });
 
 app.factory('handleCommand', function() {
-    return function(msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
+    return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
         var username = ploneUserid;
@@ -690,13 +654,40 @@ app.factory('handleCommand', function() {
 });
 
 app.factory('createPrivateRoom', function() {
-    return function(username, privateChatUser) {
+    return function (username, privateChatUser) {
         if(privateChatUser === username)
             throw new Error('Cannot private chat with yourself'); //Should not be easily possible after preventing in HTML
         var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
         return '/messaging/private/' + newRoomName; //This has the intended side effect of reopening created rooms (including hidden ones)
     }
 });
+
+app.factory('hideRoom', function() {
+    return function (roomType, roomName, username, firebaseUrl) {
+        var roomsRef = new Firebase(firebaseUrl + 'rooms');
+        roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+    };
+});
+
+app.factory('processMessage', ['handleCommand', function(handleCommand) {
+    return function (username, message, messages, onlineRef, helpMessage, $location) {
+        if (message.indexOf('/') === 0) {
+            handleCommand(message, messages, username, onlineRef, helpMessage, $location);
+            /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
+            is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
+        }
+        else {
+            messages.add({
+                sender: username,
+                content: message,
+                private: false,
+                type: 'public',
+                date: Date.now()
+            });
+            helpMessage.helpClass = 'hidden';
+        }
+    };
+}]);
 
 app.filter('broadcastFilter', function() {
     return function (broadcasts, broadcastsSeenTS, showAll) {
