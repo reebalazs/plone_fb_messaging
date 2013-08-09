@@ -262,9 +262,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', 'createPrivateRoom', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document, authService, handleCommand, $rootScope) {
+        $routeParams, $location, $cookieStore, $document, authService, handleCommand, createPrivateRoom, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -342,13 +342,9 @@ app.controller('PublicMessagingController',
             $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
         };
 
-        // TODO: make this into a factory
         $scope.createPrivateRoom = function (privateChatUser) {
-            if(privateChatUser === $scope.username)
-                throw new Error('Cannot private chat with yourself'); // temporary
-            var newRoomName = $scope.username < privateChatUser ? $scope.username + '!~!' + privateChatUser : privateChatUser + '!~!' + $scope.username;
-            $location.url('/messaging/private/' + newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
-            return false;
+            var newURL = createPrivateRoom($scope.username, privateChatUser);
+            $location.url(newURL);
         };
 
         // TODO: make this into a factory
@@ -378,9 +374,9 @@ app.controller('PublicMessagingController',
 
 app.controller('PrivateMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', 'createPrivateRoom', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document, authService, handleCommand, $rootScope) {
+        $routeParams, $location, $cookieStore, $document, authService, handleCommand, createPrivateRoom, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -456,13 +452,9 @@ app.controller('PrivateMessagingController',
             $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
         };
 
-        // TODO: make this into a factory
         $scope.createPrivateRoom = function (privateChatUser) {
-            if(privateChatUser === $scope.username)
-                throw new Error('Cannot private chat with yourself'); // temporary
-            var newRoomName = $scope.username < privateChatUser ? $scope.username + '!~!' + privateChatUser : privateChatUser + '!~!' + $scope.username;
-            $location.url('/messaging/private/' + newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
-            return false;
+            var newURL = createPrivateRoom($scope.username, privateChatUser);
+            $location.url(newURL);
         };
 
         // TODO: make this into a factory
@@ -609,9 +601,8 @@ app.factory('handleCommand', function() {
                     if (target !== ploneUserid) {
                         helpMessage.helpClass = 'info';
                         helpMessage.help = 'Opened private chat room with ' + target;
-                        // TODO: Use factory createPrivateRoom created later
                         var roomName = ploneUserid < target ? ploneUserid + '!~!' + target : ploneUserid + '!~!' + target;
-                        $location.url('/messaging/private/' + roomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
+                        $location.url('/messaging/private/' + roomName); //This has the intended side effect of reopening created rooms (including hidden ones)
                     }
                     else {
                         helpMessage.helpClass = 'error';
@@ -696,6 +687,15 @@ app.factory('handleCommand', function() {
             }
         }
     };
+});
+
+app.factory('createPrivateRoom', function() {
+    return function(username, privateChatUser) {
+        if(privateChatUser === username)
+            throw new Error('Cannot private chat with yourself'); //Should not be easily possible after preventing in HTML
+        var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
+        return '/messaging/private/' + newRoomName; //This has the intended side effect of reopening created rooms (including hidden ones)
+    }
 });
 
 app.filter('broadcastFilter', function() {
