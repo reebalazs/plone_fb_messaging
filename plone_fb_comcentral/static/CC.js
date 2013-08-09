@@ -35,9 +35,11 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             activetab: 'messaging'
         })
 
-        //when('/messaging/private/:privateChatUser', {
-        //    templateUrl: staticRoot + 'partials/fb_comcentral.html',
-        //    controller: 'PrivateMessagingController'})
+        .when('/messaging/private/:room', {
+            templateUrl: staticRoot + 'partials/fb_messaging.html',
+            controller: 'PrivateMessagingController',
+            activetab: 'messaging'
+        })
 
         .when('/simulate_activity', {
             templateUrl: staticRoot + 'partials/fb_simulate_activity.html',
@@ -281,6 +283,7 @@ app.controller('PublicMessagingController',
 
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
+        // TODO: make this into a factory
         $scope.processMessage = function () {
             var from = username;
             var msg = $scope.message; //prevent HTML injection
@@ -334,10 +337,21 @@ app.controller('PublicMessagingController',
             $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
         });
 
+        // TODO: make this into a factory
         $scope.createPublicRoom = function () {
             $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
         };
 
+        // TODO: make this into a factory
+        $scope.createPrivateRoom = function (privateChatUser) {
+            if(privateChatUser === $scope.username)
+                throw new Error('Cannot private chat with yourself'); // temporary
+            var newRoomName = $scope.username < privateChatUser ? $scope.username + '!~!' + privateChatUser : privateChatUser + '!~!' + $scope.username;
+            $location.url('/messaging/private/' + newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
+            return false;
+        };
+
+        // TODO: make this into a factory
         $scope.hideRoom = function (roomType, roomName) {
             var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
             roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
@@ -359,6 +373,113 @@ app.controller('PublicMessagingController',
                 }
             });
         }); */
+    }
+]);
+
+app.controller('PrivateMessagingController',
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
+    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', '$rootScope',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q,
+        $routeParams, $location, $cookieStore, $document, authService, handleCommand, $rootScope) {
+
+        // pop up the overlay
+        if (window.showFbOverlay) {
+            window.showFbOverlay();
+        }
+
+        // focus to messagesDiv
+        $('#fb-messages-input')[0].focus();
+
+        //setUsername($scope, $cookieStore);
+
+        var username = $rootScope.ploneUserid;
+        $scope.username = username;
+
+        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
+
+        $scope.helpMessage = {helpClass: 'hidden', help: ''};
+
+        // TODO: make this into a factory
+        $scope.processMessage = function () {
+            var from = username;
+            var msg = $scope.message; //prevent HTML injection
+
+            if ($scope.message.indexOf('/') === 0) {
+                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage);
+                /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
+                is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
+            }
+            else {
+                $scope.messages.add({
+                    sender: from,
+                    content: msg,
+                    private: false,
+                    type: 'public',
+                    date: Date.now()
+                });
+                $scope.helpClass = 'hidden';
+            }
+            $scope.message = ''; //clear message input
+        };
+    
+        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
+        $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
+        $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
+        $scope.currentRoomName = $routeParams.room;
+
+        var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms/privateRooms/' + $scope.currentRoomName);
+        var promise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        currentRoomRef.child('name').set($scope.currentRoomName);
+        currentRoomRef.child('type').set('private');
+        currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
+        $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
+
+        var users = $scope.currentRoomName.split('!~!');
+        var privateChatUser = users[0] === username ? users[1] : users[0]; // TODO: Kick out user if he/she doesn't belong
+        $scope.heading = 'Private Chat with ' + privateChatUser;
+
+        var inRoomRef = currentRoomRef.child('members').push(username);
+        inRoomRef.onDisconnect().remove();
+        currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
+            currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
+        });
+        currentRoomRef.child('members').on('value', function(dataSnapshot) {
+            $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
+        });
+
+        var checkOnline = onlineRef.child(privateChatUser).on('value', function (dataSnapshot) {
+            $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
+        });
+
+        // TODO: make this into a factory
+        $scope.createPublicRoom = function () {
+            $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
+        };
+
+        // TODO: make this into a factory
+        $scope.createPrivateRoom = function (privateChatUser) {
+            if(privateChatUser === $scope.username)
+                throw new Error('Cannot private chat with yourself'); // temporary
+            var newRoomName = $scope.username < privateChatUser ? $scope.username + '!~!' + privateChatUser : privateChatUser + '!~!' + $scope.username;
+            $location.url('/messaging/private/' + newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
+            return false;
+        };
+
+        // TODO: make this into a factory
+        $scope.hideRoom = function (roomType, roomName) {
+            var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
+            roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+            $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
+        };
+
+        $scope.$watch(function () {
+            return $location.path();
+        }, function (newValue, oldValue) {
+            if(newValue !== oldValue) {
+                inRoomRef.remove(); //Remove user from members if they are no longer on the same page
+                onlineRef.off('value', checkOnline); //Stop watching since we are no longer on the same page
+            }
+        });
     }
 ]);
 
@@ -591,12 +712,26 @@ app.filter('broadcastFilter', function() {
     };
 });
 
-app.filter('roomFilter', function() {
+app.filter('publicRoomFilter', function() {
     return function (rooms, ploneUserid) {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
             var room = rooms[i];
             if ((room.hidden && room.hidden[ploneUserid] && room.lastMessaged > room.hidden[ploneUserid]) || !room.hidden)
+                result.push(room); //if either it is hidden and there is a message newer than the time of hiding or it was not hidden
+        }
+        return result;
+    };
+});
+
+app.filter('privateRoomFilter', function() {
+    return function (rooms, ploneUserid) {
+        var result = [];
+        for (var i = 0; i < rooms.length; i++) {
+            var room = rooms[i];
+            var members = room.name.split('!~!');
+            var inPrivateRoom = members[0] === ploneUserid || members[1] === ploneUserid; //if this user is a member of the conversation
+            if (inPrivateRoom && ((room.hidden && room.hidden[ploneUserid] && room.lastMessaged > room.hidden[ploneUserid]) || !room.hidden))
                 result.push(room); //if either it is hidden and there is a message newer than the time of hiding or it was not hidden
         }
         return result;
@@ -641,59 +776,6 @@ app.filter('messageFilter', function () {
         return result;
     };
 });
-
-// XXX Private message controller disabled now, it requires a major reorganizing
-// XXX because the global functions makes it very hard to handle the scopes.
-/*
-app.controller('PrivateMessagingController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$route', '$q',
-    '$routeParams', '$location', '$cookieStore', 'authService', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $route, $q,
-        $routeParams, $location, $cookieStore, authService, $rootScope) {
-        setUsername($scope, $cookieStore);
-
-        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-
-        $scope.privateChat = true;
-        $scope.privateChatUser = $routeParams.privateChatUser;
-        $scope.heading = 'Private Chat with ' + $scope.privateChatUser;
-        $scope.$location = $location;
-
-        onlineRef.child($scope.privateChatUser).on('value', function (dataSnapshot) {
-            if ($scope.privateChat) //prevent this from being called in the wrong place
-                $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
-        });
-
-        $scope.processMessage = function () {
-            processMessage($scope, $location, $('#messagesDiv'));
-        };
-
-        $scope.updateUsername = function () {
-            updateUsername($scope, $cookieStore, angularFireCollection);
-        };
-
-        $scope.startPrivateChat = function (evt) {
-            commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
-        };
-
-        $scope.removeRoom = function (evt) {
-            removeRoom($scope, $location, evt);
-        };
-
-        $scope.switchRoom = function (target) {
-            onRoomSwitch($scope, target, false, $rootScope);
-        };
-
-        //connectedRef.on('value', function (dataSnapshot) {
-        //    if (dataSnapshot.val() === true) login($scope);
-        //});
-
-        var promise = angularFire(onlineRef, $scope, 'users', {}); // bind the data so we can display who is logged in
-        $scope.messages = angularFireCollection($rootScope.firebaseUrl + '/messages');
-        $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'presence/' + $scope.username + '/' + 'rooms');
-    }
-]);
-*/
 
 //function setUsername($scope, $cookieStore) {
     // XXX XXX XXX

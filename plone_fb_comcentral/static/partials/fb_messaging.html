@@ -1,7 +1,7 @@
 <div class="roomList">
   <h1>Rooms</h1>
   <h2>Public</h2>
-    <div ng-cloak ng-repeat="room in publicRooms | roomFilter:ploneUserid">
+    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name)" value="Hide">
@@ -11,8 +11,8 @@
       <input class="fb-newroom-submit" type="submit" ng-click="createPublicRoom()" value="Create">
     </p>
   <h2>Private</h2>
-    <div ng-cloak ng-repeat="room in privateRooms | roomFilter:ploneUserid">
-      <span ng-show="currentRoomName == room.name">* </span> 
+    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
+      <span ng-show="currentRoomName == room.name">* </span>
       <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
@@ -30,7 +30,7 @@
     <div class="users">
       <strong>Online Members <span ng-bind="numMembers"></span>:</strong>
         <div class="user" ng-cloak ng-repeat="member in members">
-          {{member}}
+          <a href="" ng-click="createPrivateRoom(member)">{{member}}</a> <!-- TODO: Disable link for self -->
         </div>
     </div>
   </div>
