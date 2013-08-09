@@ -260,9 +260,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', 'authService', 'handleCommand', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, authService, handleCommand, $rootScope) {
+        $routeParams, $location, $cookieStore, $document, authService, handleCommand, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -349,8 +349,25 @@ app.controller('PublicMessagingController',
         }, function (newValue, oldValue) {
             if(newValue !== oldValue) inRoomRef.remove(); //Remove user from members if they are no longer on the same page
         });
+
+        /* not working... angular.element($document).ready(function () {
+            $(document).on('[contenteditable="true"]', 'keydown', function(e) {
+                console.log('hi');
+                if(e.which == 13) {
+                    $(this).blur(); //let directive handle the rest
+                    return false; //prevent enter from being added to message content
+                }
+            });
+        }); */
     }
 ]);
+
+function handleMessageEdit(e) {
+    if(e.which == 13) {
+        $(e.srcElement).blur(); //let contenteditable directive handle the rest
+        return false; //prevent line break from being added to message content
+    }
+}
 
 //TODO: Does not work with a filter
 app.directive('autoScroll', function ($timeout) {
@@ -398,7 +415,6 @@ app.directive('autoScroll', function ($timeout) {
 });
 
 // editing messages
-// TODO: end editing (blur) on return/enter
 app.directive('contenteditable', function () {
     return {
         restrict: 'A',
@@ -412,11 +428,11 @@ app.directive('contenteditable', function () {
             element.bind('blur', function () {
                 var message = ngModel.$modelValue;
                 message.content = $.trim(element.text());
-                ngModel.$viewValue = message.content; // temporary workaround (will remove all html) - see TODO
+                ngModel.$setViewValue(message.content);
                 if(message.content === '')
                     $scope.messages.remove(message);
                 else 
-                    $scope.messages.update(message);
+                    $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
             });
 
         }
