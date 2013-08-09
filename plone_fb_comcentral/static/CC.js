@@ -289,7 +289,7 @@ app.controller('PublicMessagingController',
             var msg = $scope.message; //prevent HTML injection
 
             if ($scope.message.indexOf('/') === 0) {
-                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage);
+                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage, $location);
                 /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
                 is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
             }
@@ -405,7 +405,7 @@ app.controller('PrivateMessagingController',
             var msg = $scope.message; //prevent HTML injection
 
             if ($scope.message.indexOf('/') === 0) {
-                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage);
+                handleCommand(msg, $scope.messages, username, onlineRef, $scope.helpMessage, $location);
                 /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
                 is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
             }
@@ -561,7 +561,7 @@ app.directive('contenteditable', function () {
 });
 
 app.factory('handleCommand', function() {
-    return function(msg, messages, ploneUserid, onlineRef, helpMessage) {
+    return function(msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
         var username = ploneUserid;
@@ -600,24 +600,25 @@ app.factory('handleCommand', function() {
                     $scope.help = 'Message sent to ' + target;
                 }
                 break; */
-            /* case 'query':
+            case 'query':
                 if (msg.search('/query\\s' + usernameRegexpSource + '$') !== 0) {
-                    $scope.helpClass = 'error';
-                    $scope.help = 'Bad syntax - /query {target username}';
+                    helpMessage.helpClass = 'error';
+                    helpMessage.help = 'Bad syntax - /query {target username}: ' + msg;
                 } else {
                     target = msg.substr(delim + 1);
                     if (target !== ploneUserid) {
-                        $scope.helpClass = 'info';
-                        $scope.help = 'Opened private chat room with ' + target;
-                        onRoomSwitch($scope, target, false, $rootScope);
-                        $location.url('/messaging/private/' + target);
+                        helpMessage.helpClass = 'info';
+                        helpMessage.help = 'Opened private chat room with ' + target;
+                        // TODO: Use factory createPrivateRoom created later
+                        var roomName = ploneUserid < target ? ploneUserid + '!~!' + target : ploneUserid + '!~!' + target;
+                        $location.url('/messaging/private/' + roomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
                     }
                     else {
-                        $scope.helpClass = 'error';
-                        $scope.help = 'You cannot private chat with yourself';
+                        helpMessage.helpClass = 'error';
+                        helpMessage.help = 'You cannot private chat with yourself';
                     }
                 }
-                break; */
+                break;
             case 'me':
                 var action = msg.substr(delim + 1);
                 if (msg.search('/me\\s.+') !== 0) {
