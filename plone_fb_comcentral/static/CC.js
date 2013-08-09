@@ -318,11 +318,7 @@ app.controller('PublicMessagingController',
 
         $scope.createPublicRoom = createPublicRoom;
         $scope.createPrivateRoom = createPrivateRoom;
-        
-        $scope.hideRoom = function (roomType, roomName) {
-            hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
-            $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
-        };
+        $scope.hideRoom = hideRoom;
 
         $scope.$watch(function () {
             return $location.path();
@@ -403,11 +399,7 @@ app.controller('PrivateMessagingController',
 
         $scope.createPublicRoom = createPublicRoom;
         $scope.createPrivateRoom = createPrivateRoom;
-        
-        $scope.hideRoom = function (roomType, roomName) {
-            hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
-            $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
-        };
+        $scope.hideRoom = hideRoom;
 
         $scope.$watch(function () {
             return $location.path();
@@ -497,7 +489,7 @@ app.directive('contenteditable', function () {
     };
 });
 
-app.factory('handleCommand', function() {
+app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
@@ -546,8 +538,7 @@ app.factory('handleCommand', function() {
                     if (target !== ploneUserid) {
                         helpMessage.helpClass = 'info';
                         helpMessage.help = 'Opened private chat room with ' + target;
-                        var roomName = ploneUserid < target ? ploneUserid + '!~!' + target : ploneUserid + '!~!' + target;
-                        $location.url('/messaging/private/' + roomName); //This has the intended side effect of reopening created rooms (including hidden ones)
+                        createPrivateRoom(ploneUserid, target);
                     }
                     else {
                         helpMessage.helpClass = 'error';
@@ -632,7 +623,7 @@ app.factory('handleCommand', function() {
             }
         }
     };
-});
+}]);
 
 app.factory('createPublicRoom', ['$location', function ($location) {
     return function (newRoomName) {
@@ -649,12 +640,14 @@ app.factory('createPrivateRoom', ['$location', function ($location) {
     }
 }]);
 
-app.factory('hideRoom', function() {
-    return function (roomType, roomName, username, firebaseUrl) {
-        var roomsRef = new Firebase(firebaseUrl + 'rooms');
+app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootScope) {
+    return function (roomType, roomName, username, currentRoomName) {
+        var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
         roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
+        if(currentRoomName === roomName)
+            $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
     };
-});
+}]);
 
 app.factory('processMessage', ['handleCommand', function(handleCommand) {
     return function (username, message, messages, onlineRef, helpMessage, $location) {
@@ -696,8 +689,9 @@ app.filter('publicRoomFilter', function() {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
             var room = rooms[i];
-            if ((room.hidden && room.hidden[ploneUserid] && room.lastMessaged > room.hidden[ploneUserid]) || !room.hidden)
-                result.push(room); //if either it is hidden and there is a message newer than the time of hiding or it was not hidden
+            var roomHidden = room.hidden && room.hidden.hasOwnProperty(ploneUserid) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[ploneUserid]);
+            if (! roomHidden)
+                result.push(room);
         }
         return result;
     };
@@ -710,8 +704,9 @@ app.filter('privateRoomFilter', function() {
             var room = rooms[i];
             var members = room.name.split('!~!');
             var inPrivateRoom = members[0] === ploneUserid || members[1] === ploneUserid; //if this user is a member of the conversation
-            if (inPrivateRoom && ((room.hidden && room.hidden[ploneUserid] && room.lastMessaged > room.hidden[ploneUserid]) || !room.hidden))
-                result.push(room); //if either it is hidden and there is a message newer than the time of hiding or it was not hidden
+            var roomHidden = room.hidden && room.hidden.hasOwnProperty(ploneUserid) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[ploneUserid]);
+            if (inPrivateRoom && ! roomHidden)
+                result.push(room);
         }
         return result;
     };
