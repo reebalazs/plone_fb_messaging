@@ -263,10 +263,10 @@ app.controller('ActivityStreamController',
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     '$routeParams', '$location', '$cookieStore', '$document',
-    'authService', 'handleCommand', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $routeParams, $location, $cookieStore, $document,
-        authService, handleCommand, createPrivateRoom, hideRoom, processMessage, $rootScope) {
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -316,16 +316,9 @@ app.controller('PublicMessagingController',
             $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
         });
 
-        // TODO: make this into a factory
-        $scope.createPublicRoom = function () {
-            $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
-        };
-
-        $scope.createPrivateRoom = function (privateChatUser) {
-            var newURL = createPrivateRoom($scope.username, privateChatUser);
-            $location.url(newURL);
-        };
-
+        $scope.createPublicRoom = createPublicRoom;
+        $scope.createPrivateRoom = createPrivateRoom;
+        
         $scope.hideRoom = function (roomType, roomName) {
             hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
             $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
@@ -352,10 +345,10 @@ app.controller('PublicMessagingController',
 app.controller('PrivateMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
     '$routeParams', '$location', '$cookieStore', '$document',
-    'authService', 'handleCommand', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
         $routeParams, $location, $cookieStore, $document,
-        authService, handleCommand, createPrivateRoom, hideRoom, processMessage, $rootScope) {
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -408,16 +401,9 @@ app.controller('PrivateMessagingController',
             $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
         });
 
-        // TODO: make this into a factory
-        $scope.createPublicRoom = function () {
-            $location.url('/messaging/public/' + $scope.newRoomName); //This has the (intended?) side effect of reopening created rooms (including hidden ones)
-        };
-
-        $scope.createPrivateRoom = function (privateChatUser) {
-            var newURL = createPrivateRoom($scope.username, privateChatUser);
-            $location.url(newURL);
-        };
-
+        $scope.createPublicRoom = createPublicRoom;
+        $scope.createPrivateRoom = createPrivateRoom;
+        
         $scope.hideRoom = function (roomType, roomName) {
             hideRoom(roomType, roomName, $scope.username, $rootScope.firebaseUrl);
             $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
@@ -648,14 +634,20 @@ app.factory('handleCommand', function() {
     };
 });
 
-app.factory('createPrivateRoom', function() {
+app.factory('createPublicRoom', ['$location', function ($location) {
+    return function (newRoomName) {
+        $location.url('/messaging/public/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
+    }
+}]);
+
+app.factory('createPrivateRoom', ['$location', function ($location) {
     return function (username, privateChatUser) {
         if(privateChatUser === username)
-            throw new Error('Cannot private chat with yourself'); //Should not be easily possible after preventing in HTML
+            throw new Error('Cannot private chat with yourself');
         var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
-        return '/messaging/private/' + newRoomName; //This has the intended side effect of reopening created rooms (including hidden ones)
+        $location.url('/messaging/private/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
     }
-});
+}]);
 
 app.factory('hideRoom', function() {
     return function (roomType, roomName, username, firebaseUrl) {
