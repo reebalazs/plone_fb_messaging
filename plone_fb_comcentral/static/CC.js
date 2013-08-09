@@ -294,11 +294,6 @@ app.controller('PublicMessagingController',
         //    updateUsername($scope, $cookieStore, angularFireCollection);
         //};
 
-        //$scope.startPrivateChat = function (evt) {
-        //    throw new Error('Private chat disabled now.');
-        // c   //commandHandler($scope, $location, '/query ' + $(evt.target).data('username'));
-        //};
-
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
         $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
         $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
@@ -746,6 +741,13 @@ app.filter('millisToReadableDate', function() {
     return function(date) {
         return new Date(date).toString();
     };
+});
+
+app.filter('prettifyRoomName', function() {
+    return function(roomName) {
+        var users = roomName.split('!~!');
+        return users[0] + ' & ' + users[1];
+    }
 });
 
 app.filter('timeFromNow', function () {

@@ -13,7 +13,7 @@
   <h2>Private</h2>
     <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span>
-      <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name}}</a>
+      <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name | prettifyRoomName}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name)" value="Hide">
     </div>
 </div>
@@ -30,7 +30,8 @@
     <div class="users">
       <strong>Online Members <span ng-bind="numMembers"></span>:</strong>
         <div class="user" ng-cloak ng-repeat="member in members">
-          <a href="" ng-click="createPrivateRoom(member)">{{member}}</a> <!-- TODO: Disable link for self -->
+          <a href="" ng-click="createPrivateRoom(member)" ng-show="member != username">{{member}}</a>
+          <span ng-show="member == username">{{member}}</span>
         </div>
     </div>
   </div>
