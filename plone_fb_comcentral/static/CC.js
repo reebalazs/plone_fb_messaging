@@ -261,12 +261,10 @@ app.controller('ActivityStreamController',
 ]);
 
 app.controller('PublicMessagingController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document',
-    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document,
-        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, $rootScope) {
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -339,12 +337,10 @@ app.controller('PublicMessagingController',
 ]);
 
 app.controller('PrivateMessagingController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document',
-    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document,
-        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, $rootScope) {
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
