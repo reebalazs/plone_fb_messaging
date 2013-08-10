@@ -703,16 +703,10 @@ app.filter('activityFilter', function() {
         var result = [];
         for (var i = 0; i < activities.length; i++) {
             var activity = activities[i];
-            if (! filtered || activity.time > lastSeen)
+            if (! filtered || (activity.time > lastSeen && activity.expiration > Date.now()))
                 result.push(activity);
         }
         return result;
-    };
-});
-
-app.filter('millisToReadableDate', function() {
-    return function(date) {
-        return new Date(date).toString();
     };
 });
 

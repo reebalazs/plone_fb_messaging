@@ -13,7 +13,7 @@
   <form ng-submit="addActivity()" id="activityForm" name="activityForm">
   <div class="form_control">
     <label for="uid">Plone Object UID: </label>
-    <input type="text" id="uid" ng-model="uid" ng-trim="false" value='' required>
+    <input type="text" id="uid" ng-model="uid" ng-trim="false" value='' required autofocus>
   </div>
   
   <div class="form_control">
@@ -29,6 +29,14 @@
   <div class="form_control">
     <label for="userID">User ID: </label>
     <input type="text" id="userID" ng-model="userID" required>
+  </div>
+
+  <div class="form_control">
+    <label>Expiration Date (from now): </label>
+    <input class="date" type="number" id="minutes" ng-model="minutes" title="Minutes" placeholder="Minutes">
+    <input class="date" type="number" id="hours" ng-model="hours" title="Hours" placeholder="Hours">
+    <input class="date" type="number" id="days" ng-model="days" title="Days" placeholder="Days">
+    <input class="date" type="number" id="months" ng-model="months" title="Months" placeholder="Months">
   </div>
   
   <div class="form_control">
