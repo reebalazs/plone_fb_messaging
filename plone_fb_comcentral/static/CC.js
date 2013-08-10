@@ -398,13 +398,18 @@ app.directive('autoScroll', function ($timeout) {
 });
 
 // editing messages
-// TODO: do not allow linebreaks
-// TODO: fix (not working)
 app.directive('contenteditable', function () {
     return {
         restrict: 'A',
         require: '?ngModel',
         link: function( $scope, element, attrs, ngModel) {
+
+            $(element).on('keydown', function(e) {
+                if(e.which == 13) {
+                    $(this).blur(); //let directive handle the rest
+                    return false; //prevent enter from being added to message content
+                }
+            });
 
             ngModel.$render = function () {
                 element.html(ngModel.$viewValue.content || '');
@@ -412,8 +417,12 @@ app.directive('contenteditable', function () {
 
             element.bind('blur', function () {
                 var message = ngModel.$modelValue;
-                message.content = $.trim(element.html());
-                $scope.messages.update(message);
+                message.content = $.trim(element.text());
+                ngModel.$setViewValue(message.content);
+                if(message.content === '')
+                    $scope.messages.remove(message);
+                else 
+                    $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
             });
 
         }
