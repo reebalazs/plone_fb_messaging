@@ -171,7 +171,7 @@ app.controller('ViewBroadcastsController',
         $scope.showAll = 'false';
         $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
         $scope.filteredBroadcasts = {};
-        $scope.visibleBroadcasts = $scope.filteredBroadcasts; //TODO: auto-scroll is not functioning again
+        $scope.visibleBroadcasts = $scope.filteredBroadcasts;
         $scope.numBroadcasts = ' (' + 0 + ')';
 
         var promise = $scope.getBroadcastsSeenTS();
@@ -437,7 +437,13 @@ app.directive('autoScroll', function ($timeout) {
         // scroll once in the end. This is most important when firebase
         // loads a long list of items.
         var minimalLength;
-        $scope.$watch(attrs.autoScroll + '.length', function(newLength, oldLength) {
+        $scope.$watch(function() {
+            var scrollableElem = $scope[attrs.autoScroll];
+            if(scrollableElem instanceof Object)
+                return Object.keys(scrollableElem).length
+            else
+                return scrollableElem.length;
+        }, function(newLength, oldLength) {
             if (newLength == oldLength) {
                 // triggers with 0, 0 initially. Let's skip it.
                 return;
