@@ -172,7 +172,6 @@ app.controller('ViewBroadcastsController',
         $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
         $scope.filteredBroadcasts = {};
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
-        $scope.numBroadcasts = ' (' + 0 + ')';
 
         var promise = $scope.getBroadcastsSeenTS();
         promise.then(function (broadcastsSeenTS) {
@@ -181,23 +180,13 @@ app.controller('ViewBroadcastsController',
                 var newBroadcast = dataSnapshot.val();
                 var expired = Date.now() > newBroadcast.expiration;
                 var seen = $scope.broadcastsSeenTS !== null && newBroadcast.time < $scope.broadcastsSeenTS;
-                if (! expired && ! seen) {
+                if (! expired && ! seen)
                     $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
-                    if($scope.showAll === 'false')
-                        $scope.numBroadcasts = ' (' + Object.keys($scope.filteredBroadcasts).length + ')';
-                }
             });
         });
 
         $scope.toggleShow = function () {
-            if($scope.showAll === 'true') {
-                $scope.visibleBroadcasts = $scope.unfilteredBroadcasts;
-                $scope.numBroadcasts = ' (' + Object.keys($scope.unfilteredBroadcasts).length + ')';
-            }
-            else {
-                $scope.visibleBroadcasts = $scope.filteredBroadcasts;
-                $scope.numBroadcasts = ' (' + Object.keys($scope.filteredBroadcasts).length + ')';
-            }
+            $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
         }
 
         $scope.markSeen = function () {
@@ -762,6 +751,12 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
+    };
+});
+
+app.filter('objectLength', function () {
+    return function (obj) {
+        return Object.keys(obj).length;
     };
 });
 
