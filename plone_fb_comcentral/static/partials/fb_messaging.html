@@ -1,20 +1,20 @@
 <div class="roomList">
   <h1>Rooms</h1>
   <h2>Public</h2>
-    <div ng-cloak ng-repeat="room in publicRooms | roomFilter:ploneUserid">
+    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:ploneUserid">
       <span ng-show="currentRoomName == room.name">* </span> 
       <a class="room" href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name)" value="Hide">
+      <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
     </div>
     <p>
       <input class="fb-newroom-input" type="text" ng-model="newRoomName">
-      <input class="fb-newroom-submit" type="submit" ng-click="createPublicRoom()" value="Create">
+      <input class="fb-newroom-submit" type="submit" ng-click="createPublicRoom(newRoomName)" value="Create">
     </p>
   <h2>Private</h2>
-    <div ng-cloak ng-repeat="room in privateRooms | roomFilter:ploneUserid">
-      <span ng-show="currentRoomName == room.name">* </span> 
-      <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name}}</a>
-      <input type="submit" ng-click="hideRoom(room.type, room.name)" value="Hide">
+    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
+      <span ng-show="currentRoomName == room.name">* </span>
+      <a class="room" href="#*/messaging/private/{{room.name}}">{{room.name | prettifyRoomName}}</a>
+      <input type="submit" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
     </div>
 </div>
 
@@ -30,7 +30,8 @@
     <div class="users">
       <strong>Online Members <span ng-bind="numMembers"></span>:</strong>
         <div class="user" ng-cloak ng-repeat="member in members">
-          {{member}}
+          <a href="" ng-click="createPrivateRoom(username, member)" ng-show="member != username">{{member}}</a>
+          <span ng-show="member == username">{{member}}</span>
         </div>
     </div>
   </div>
@@ -40,15 +41,14 @@
       <div ng-switch-when="public" 
            class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <div class="chat-sender">{{message.sender}}</div>
-        <div class="chat-content" ng-model="message"
-          ng-attr-contenteditable="{{message.sender == username}}">{{message.content}}</div>
+        <div class="chat-content" ng-model="message" contenteditable="{{message.sender == username}}" onkeydown="handleMessageEdit(event);">{{message.content}}</div>
       </div>
       <div ng-switch-when="server" class="server chat-line-foreign"> <!-- Styling for this needed -->
         <div class="chat-content" ng-model="message" ng-bind-html-unsafe="message.content"></div>
       </div>
       <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
-        <div class="chat-content" ng-model="message" 
-          ng-attr-contenteditable="{{message.sender == username}}"><em>{{message.sender}}</em> {{message.content}}</div>
+        <div class="chat-content" ng-model="message" contenteditable="{{message.sender == username}}" onkeydown="handleMessageEdit(event)"><em>{{message.sender}}</em> {{message.content}}</div> 
+        <!--TODO: only message should be editable -->
       </div>
     </div>
   </div>
