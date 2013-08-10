@@ -166,15 +166,34 @@ app.controller('ViewBroadcastsController',
             return deferred.promise;
         };
 
-        $scope.broadcasts = [];
+        var broadcastsUrl = $rootScope.firebaseUrl + 'broadcasts';
+        var broadcastsRef = new Firebase(broadcastsUrl);
+        $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
+        $scope.filteredBroadcasts = {};
+        $scope.visibleBroadcasts = $scope.filteredBroadcasts; //TODO: auto-scroll is not functioning again
+
         var promise = $scope.getBroadcastsSeenTS();
         promise.then(function (broadcastsSeenTS) {
             $scope.broadcastsSeenTS = broadcastsSeenTS;
-            $scope.broadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
+            broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+                var newBroadcast = dataSnapshot.val();
+                var expired = Date.now() > newBroadcast.expiration;
+                var seen = $scope.broadcastsSeenTS !== null && newBroadcast.time < $scope.broadcastsSeenTS;
+                if (! expired && ! seen) {
+                    $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
+                }
+            });
         });
+
+        $scope.toggleShow = function () {
+            $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
+        }
 
         $scope.markSeen = function () {
             profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
+            $scope.filteredBroadcasts = {};
+            $scope.visibleBroadcasts = $scope.filteredBroadcasts;
+            $scope.toggleShow();
         };
 }]);
 
@@ -654,21 +673,6 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
         }
     };
 }]);
-
-app.filter('broadcastFilter', function() {
-    return function (broadcasts, broadcastsSeenTS, showAll) {
-        if (showAll === 'true') return broadcasts;
-        else {
-            var result = [];
-            for (var i = 0; i < broadcasts.length; i++) {
-                var broadcast = broadcasts[i];
-                if (broadcast.time > broadcastsSeenTS)
-                    result.push(broadcast);
-            }
-            return result;
-        }
-    };
-});
 
 app.filter('publicRoomFilter', function() {
     return function (rooms, ploneUserid) {
