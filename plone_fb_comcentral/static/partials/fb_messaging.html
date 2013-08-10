@@ -46,8 +46,8 @@
         <div class="chat-content" ng-model="message" ng-bind-html-unsafe="message.content"></div>
       </div>
       <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
-        <div class="chat-content" ng-model="message" contenteditable="{{message.sender == username}}"><em>{{message.sender}}</em> {{message.content}}</div> 
-        <!--TODO: only message should be editable -->
+        <div class="chat-sender">{{message.sender}}</div>
+        <div class="chat-content" ng-model="message" contenteditable="{{message.sender == username}}"> {{message.content}}</div> 
       </div>
     </div>
   </div>

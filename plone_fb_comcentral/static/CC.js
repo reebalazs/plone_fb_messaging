@@ -260,9 +260,9 @@ app.controller('ActivityStreamController',
 
 app.controller('PublicMessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q',
-    '$routeParams', '$location', '$cookieStore', '$document', 'authService', 'handleCommand', '$rootScope',
+    '$routeParams', '$location', '$cookieStore', 'authService', 'handleCommand', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q,
-        $routeParams, $location, $cookieStore, $document, authService, handleCommand, $rootScope) {
+        $routeParams, $location, $cookieStore, authService, handleCommand, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
