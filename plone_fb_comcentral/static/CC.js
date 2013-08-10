@@ -349,25 +349,8 @@ app.controller('PublicMessagingController',
         }, function (newValue, oldValue) {
             if(newValue !== oldValue) inRoomRef.remove(); //Remove user from members if they are no longer on the same page
         });
-
-        /* not working... angular.element($document).ready(function () {
-            $(document).on('[contenteditable="true"]', 'keydown', function(e) {
-                console.log('hi');
-                if(e.which == 13) {
-                    $(this).blur(); //let directive handle the rest
-                    return false; //prevent enter from being added to message content
-                }
-            });
-        }); */
     }
 ]);
-
-function handleMessageEdit(e) {
-    if(e.which == 13) {
-        $(e.srcElement).blur(); //let contenteditable directive handle the rest
-        return false; //prevent line break from being added to message content
-    }
-}
 
 //TODO: Does not work with a filter
 app.directive('autoScroll', function ($timeout) {
@@ -420,6 +403,13 @@ app.directive('contenteditable', function () {
         restrict: 'A',
         require: '?ngModel',
         link: function( $scope, element, attrs, ngModel) {
+
+            $(element).on('keydown', function(e) {
+                if(e.which == 13) {
+                    $(this).blur(); //let directive handle the rest
+                    return false; //prevent enter from being added to message content
+                }
+            });
 
             ngModel.$render = function () {
                 element.html(ngModel.$viewValue.content || '');
