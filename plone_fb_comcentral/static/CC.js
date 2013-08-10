@@ -168,9 +168,11 @@ app.controller('ViewBroadcastsController',
 
         var broadcastsUrl = $rootScope.firebaseUrl + 'broadcasts';
         var broadcastsRef = new Firebase(broadcastsUrl);
+        $scope.showAll = 'false';
         $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
         $scope.filteredBroadcasts = {};
         $scope.visibleBroadcasts = $scope.filteredBroadcasts; //TODO: auto-scroll is not functioning again
+        $scope.numBroadcasts = ' (' + 0 + ')';
 
         var promise = $scope.getBroadcastsSeenTS();
         promise.then(function (broadcastsSeenTS) {
@@ -181,12 +183,21 @@ app.controller('ViewBroadcastsController',
                 var seen = $scope.broadcastsSeenTS !== null && newBroadcast.time < $scope.broadcastsSeenTS;
                 if (! expired && ! seen) {
                     $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
+                    if($scope.showAll === 'false')
+                        $scope.numBroadcasts = ' (' + Object.keys($scope.filteredBroadcasts).length + ')';
                 }
             });
         });
 
         $scope.toggleShow = function () {
-            $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
+            if($scope.showAll === 'true') {
+                $scope.visibleBroadcasts = $scope.unfilteredBroadcasts;
+                $scope.numBroadcasts = ' (' + Object.keys($scope.unfilteredBroadcasts).length + ')';
+            }
+            else {
+                $scope.visibleBroadcasts = $scope.filteredBroadcasts;
+                $scope.numBroadcasts = ' (' + Object.keys($scope.filteredBroadcasts).length + ')';
+            }
         }
 
         $scope.markSeen = function () {
