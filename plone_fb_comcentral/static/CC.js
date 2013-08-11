@@ -75,7 +75,12 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         // constants for testing.
         $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
         $rootScope.authToken = '';
-        $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
+        var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
+        $rootScope.ploneUserid = 'TestUser' + rand;
+        $rootScope.ploneFullName = 'Test User ' + rand;
+    } else if (! $rootScope.ploneFullName) {
+        // if empty full name, substitute with username
+        $rootScope.ploneFullName = $rootScope.ploneUserid;
     }
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
@@ -90,12 +95,14 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
                 throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
             } else {
                 authQ.resolve();
-                console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
+                console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
+                    $rootScope.ploneFullName + ') accepted by the server.');
             }
         });
     } else {
         authQ.resolve();
-        console.log('No authentication token. Continuing in static mode.');
+        console.log('No authentication token. Continuing in static mode, acting as user "' +
+            $rootScope.ploneUserid + '" (' + $rootScope.ploneFullName + ')');
     }
 
     // presence handling

@@ -1,7 +1,9 @@
 <div id="fb-overlay" class="overlay overlay-ajax" 
   tal:define="auth_token python: view.auth_token;"
   tal:attributes="ng-init string:firebaseUrl = '${view/config/firebase_url}';; authToken = '${auth_token}';;
-                  ploneUserid='${view/auth_data/ploneUserid}';;" >
+                  ploneUserid='${view/auth_data/ploneUserid}';;
+                  ploneFullName='${view/auth_data/ploneFullName}';;
+                  " >
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
     <h1 class="fb-cc-title"><a href="#*/">Com Central</a></h1>
