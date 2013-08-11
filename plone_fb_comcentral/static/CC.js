@@ -275,9 +275,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'onlineUserFilter',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage) {
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, onlineUserFilter) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -312,10 +312,16 @@ app.controller('MessagingController',
 
         var roomType = $routeParams.roomType;
         var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms').child(roomType + 'Rooms').child($scope.currentRoomName);
-        var promise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         currentRoomRef.child('name').set($scope.currentRoomName);
         currentRoomRef.child('type').set(roomType);
         currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
+
+        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        var usersPromise = angularFire(onlineRef, $scope, 'users', {});
+        $scope.$watch('users', function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
+            $scope.onlineUsers = onlineUserFilter($scope.users);
+        });
+
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
 
         if (roomType === 'public') {
@@ -331,7 +337,7 @@ app.controller('MessagingController',
             });
         }
 
-        var inRoomRef = currentRoomRef.child('members').push(username);
+        var inRoomRef = currentRoomRef.child('members').child(username).push(1);
         inRoomRef.onDisconnect().remove();
         currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
             currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
@@ -614,6 +620,18 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
         }
     };
 }]);
+
+app.factory('onlineUserFilter', function () {
+    return function (users) {
+        var result = {};
+        for (var username in users) {
+            var user = users[username];
+            if(user.online)
+                result[username] = user;
+        }
+        return result;
+    };
+});
 
 app.filter('publicRoomFilter', function() {
     return function (rooms, ploneUserid) {
