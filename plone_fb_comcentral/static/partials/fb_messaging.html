@@ -28,7 +28,7 @@
     </div>
 
     <div class="users">
-      <strong>Online Members <span ng-bind="numMembers"></span>:</strong>
+      <strong>Online Members <span ng-cloak>({{members | objectLength}})</span>:</strong>
         <div class="user" ng-cloak ng-repeat="member in members">
           <a href="" ng-click="createPrivateRoom(username, member)" ng-show="member != username">{{member}}</a>
           <span ng-show="member == username">{{member}}</span>

@@ -311,7 +311,7 @@ app.controller('MessagingController',
         $scope.currentRoomName = $routeParams.roomName;
 
         var roomType = $routeParams.roomType;
-        var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms').child(roomType + 'Rooms');
+        var currentRoomRef = new Firebase($rootScope.firebaseUrl + 'rooms').child(roomType + 'Rooms').child($scope.currentRoomName);
         var promise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         currentRoomRef.child('name').set($scope.currentRoomName);
         currentRoomRef.child('type').set(roomType);
@@ -335,9 +335,6 @@ app.controller('MessagingController',
         inRoomRef.onDisconnect().remove();
         currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
             currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
-        });
-        currentRoomRef.child('members').on('value', function(dataSnapshot) {
-            $scope.numMembers = ' (' + (dataSnapshot.val() ? Object.keys(dataSnapshot.val()).length : 0) + ')';
         });
 
         $scope.createPublicRoom = createPublicRoom;
@@ -694,7 +691,7 @@ app.filter('messageFilter', function () {
 
 app.filter('objectLength', function () {
     return function (obj) {
-        return Object.keys(obj).length;
+        if(obj !== undefined) return Object.keys(obj).length;
     };
 });
 
