@@ -717,12 +717,6 @@ app.filter('prettifyRoomName', function() {
     }
 });
 
-app.filter('timeFromNow', function () {
-    return function (date) {
-        return (date - Date.now())/1000 + ' seconds'; //This can be easily improved to increase verbosity
-    };
-});
-
 app.filter('messageFilter', function () {
     return function (messages, ploneUserid) {
         var result = [];

@@ -172,6 +172,7 @@ input.fb-message-input {
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
+    width: 550px;
     overflow-y: auto;
     padding-bottom: 20px;
 }
@@ -200,8 +201,21 @@ input.fb-message-input {
 
 }
 
+.description {
+    width: 450px;
+    word-wrap: break-word;
+}
+
 .users {
     margin-top: 1em;
+}
+
+summary div {
+    margin-left: 10px;
+}
+
+.details { 
+    margin-left: 20px; 
 }
 
 /* CSS for Broadcasts */
