@@ -4,19 +4,45 @@
 
 <p></p>
 <div class="activities" id="activitiesDiv" auto-scroll="activities">
-<div class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:filtered:lastSeen">
-  <div><strong>Event Type:</strong> {{activity.eventType}}</div>
-  <div>
-    <strong>UID:</strong> {{activity.uid}}
-    <strong>url:</strong> <a href="{{activity.url}}">{{activity.url}}</a>
-  </div>
-  <div><strong>Message:</strong> {{activity.message}}</div>
-  <div class="description" ng-if="activity.description">
-    <strong>Description:</strong> {{activity.description}}
-  </div>
-  <div><strong>User ID:</strong> {{activity.userID}}</div>
-  <div><strong>Timestamp:</strong> {{activity.ts | millisToReadableDate}}</div>
-</div>
-</div>
+    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:filtered:lastSeen">
+      <summary>
+        <strong>Message:</strong> {{activity.message}}
+        <div>
+          <div><strong>User ID:</strong> {{activity.userID}}</div>
+          <div><strong>Change Time:</strong> {{activity.time | date:'medium'}}</div>
+        </div>
+      </summary>
+      <div class="details">
+        <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
+        <div class="changes" id="changesDiv">
+          <div ng-cloak ng-repeat="change in activity.changes">
+            <span ng-switch="$first && Object.keys(activity.changes).length == 1">
+              <details ng-switch-when="true" class="change" open>
+                <summary>
+                  <strong>Change Message:</strong> {{change.message}}
+                </summary>
+                <div class="details">
+                  <div><strong>Object UID:</strong> {{change.uid}}</div>
+                  <div><strong>Event Type:</strong> {{change.eventType}}</div>
+                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
+                </div>
+              </details>
 
-<button ng-click="markSeen()">Mark All as Read</button>
+              <details ng-switch-default class="change">
+                <summary>
+                  <strong>Change Message:</strong> {{change.message}}
+                </summary>
+                <div class="details">
+                  <div><strong>Object UID:</strong> {{change.uid}}</div>
+                  <div><strong>Event Type:</strong> {{change.eventType}}</div>
+                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
+                </div>
+              </details>
+            </span>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+  
+  <button ng-click="markSeen()">Mark All as Read</button>
