@@ -125,7 +125,6 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 app.controller('CommandCentralController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService', '$rootScope',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, authService, $rootScope) {
-        })
 }]);
 
 app.controller('MenuController',
