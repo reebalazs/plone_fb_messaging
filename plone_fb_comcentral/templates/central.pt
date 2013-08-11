@@ -50,7 +50,7 @@
         $overlay.overlay().close();
         // since we are now auto-open, make sure that next reload
         // will get us into a closed state.
-        window.location.hash = '!';
+        window.location.hash = '*';
         return false;
     });
 
