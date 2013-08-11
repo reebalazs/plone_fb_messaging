@@ -275,9 +275,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'onlineUserFilter',
+    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, onlineUserFilter) {
+        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -318,9 +318,9 @@ app.controller('MessagingController',
 
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
-        $scope.$watch('users', function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
-            $scope.onlineUsers = onlineUserFilter($scope.users);
-        });
+        $scope.$watch('[users, members]' , function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
+            $scope.onlineUsers = userFilter($scope.users, $scope.members);
+        }, true);
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
 
@@ -621,12 +621,13 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
     };
 }]);
 
-app.factory('onlineUserFilter', function () {
-    return function (users) {
+app.factory('userFilter', function () {
+    return function (users, members) {
         var result = {};
         for (var username in users) {
             var user = users[username];
-            if(user.online)
+            user.inRoom = members.hasOwnProperty(username);
+            if (user.online)
                 result[username] = user;
         }
         return result;

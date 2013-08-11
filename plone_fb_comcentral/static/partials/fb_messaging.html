@@ -28,14 +28,9 @@
     </div>
 
     <div class="users">
-      <strong>Room Members <span ng-cloak>({{members | objectLength}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(memberid, member) in members">
-          <a href="" ng-click="createPrivateRoom(username, memberid)" ng-show="memberid != username">{{memberid}}</a>
-          <span ng-show="memberid == username">{{memberid}}</span>
-        </div>
-      <p></p>
       <strong>Online Users <span ng-cloak>({{onlineUsers | objectLength}})</span>:</strong>
         <div class="user" ng-cloak ng-repeat="(userid, user) in onlineUsers">
+          <span ng-show="user.inRoom"><strong>in Room: </strong></span> <!-- TODO: Style this nicely -->
           <a href="" ng-click="createPrivateRoom(username, userid)" ng-show="userid != username">{{userid}}</a>
           <span ng-show="userid == username">{{userid}}</span>
         </div>
