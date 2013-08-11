@@ -63,7 +63,10 @@ jQuery(function($) {
 
         //scroll to element now.
         wlh = window.location.hash;
-        if (wlh) {
+        // angular's hashtags don't conform Plone's idea about what a hashtag can be,
+        // which breaks the replace.
+        var isAngular = targetPane && targetPane.indexOf('/') != -1;
+        if (wlh&& ! isAngular) {
             target = $(wlh);
             target = target.length && target
                 || $('[name="' + wlh.slice(1) +'"]');
