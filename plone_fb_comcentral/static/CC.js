@@ -65,7 +65,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         $rootScope.staticRoot = staticRoot;
     });
 
-    $provide.service('authService', function($rootScope) {
+    $provide.service('authService', function($rootScope, angularFire, $q) {
         // Configure parameters. In Plone these are provided from the template by ng-init.
          if (! $rootScope.firebaseUrl) {
             // We are in the static html. Let's provide
@@ -75,18 +75,13 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
         }
 
-        // Parse the url to find its root
-        // A neat trick: we use the DOM to parse our url.
-        var parser = document.createElement('a');
-        parser.href = $rootScope.firebaseUrl;
-        $rootScope.rootUrl = parser.protocol + '//' + parser.hostname + '/';
-
         console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
+        var firebase = new Firebase($rootScope.firebaseUrl);
+        $rootScope.fireBase = firebase;
 
         // Authenticate me.
         if ($rootScope.authToken) {
-            var dataRef = new Firebase($rootScope.firebaseUrl);
-            dataRef.auth($rootScope.authToken, function(error, result) {
+            firebase.auth($rootScope.authToken, function(error, result) {
                 if (error) {
                     throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
                 } else {
@@ -97,27 +92,46 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
             console.log('No authentication token. Continuing in static mode.');
         }
 
-        var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-        var connectedRef = new Firebase($rootScope.rootUrl + '.info/connected');
+        // presence handling
         var username = $rootScope.ploneUserid;
-        connectedRef.on('value', function (snap) {
+        var onlineRef = firebase.child('presence');
+        var infoRef = firebase.root().child('.info');
+        infoRef.child('connected').on('value', function (snap) {
             if(snap.val() === true) {
                 // We're connected or reconnected.
                 // Set up our presence state and
                 // tell the server to set a timestamp when we leave.
                 var userRef = onlineRef.child(username);
-                var connRef = userRef.child('online').push(1);
                 userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-                userRef.child('online').onDisconnect().remove();
                 userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+                var connRef = userRef.child('online').push(1);
+                connRef.onDisconnect().remove();
             }
         });
+
+        var serverTimeOffsetQ = $q.defer();
+        infoRef.child('serverTimeOffset').on('value', function (snap) {
+            $rootScope.serverTimeOffset = snap.val();
+            serverTimeOffsetQ.resolve();
+        });
+
+        // profile handling
+        var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
+        var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
+
+        // loadedPromise will satisfy when both serverTimeOffset and userProfile are read.
+        $rootScope.loadedPromise = $q.all([
+            serverTimeOffsetQ.promise,
+            userProfilePromise
+        ]);
+
     });
 }]);
 
 app.controller('CommandCentralController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q, authService) {
+    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService', '$rootScope',
+    function ($scope, $timeout, angularFire, angularFireCollection, $q, authService, $rootScope) {
+        })
 }]);
 
 app.controller('MenuController',
@@ -218,7 +232,6 @@ app.controller('SimulateActivityController',
 
         var fbMessagingHereUrl = window.fbMessagingHereUrl || '';
         $scope.save = function () {
-            console.log('save');
             $http({
                 method: 'GET',
                 url: fbMessagingHereUrl + '/fb_comcentral_simulate_activity',
