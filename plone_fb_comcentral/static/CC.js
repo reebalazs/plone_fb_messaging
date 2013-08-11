@@ -221,11 +221,22 @@ app.controller('ViewBroadcastsController',
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
+
+        // Moved to broadcast Controller because it may be useful here in future
+        /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
+          However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
+          Comment out the setInterval call to disable this functionality */
+        //setInterval(refresh, 10000);
+        //function refresh() {
+        //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
+        //        if(!$scope.$$phase) $scope.$apply();
+        //    });
+        //}
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
 app.controller('SimulateActivityController',
-    ['$scope', '$rootScope', '$http', 'getGlobals',
+    ['$scope', '$rootScope', '$http', 'getGlobals', // remove this nonexistent dependency?
     function ($scope, $rootScope, $http, getGlobals) {
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -257,50 +268,27 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFireCollection', '$rootScope',
-    function ($scope, angularFireCollection, $rootScope) {
+    ['$scope', 'angularFireCollection', 'AuthService', '$rootScope',
+    function ($scope, angularFireCollection, AuthService, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
         }
 
-        $scope.filtered = false;
-
-        //$scope.getLastSeen = function () {
-        //    var deferred = $q.defer();
-        //    onlineRef.child($rootScope.ploneUserid).child('lastSeen').on('value', function (dataSnapshot) {
-        //        deferred.resolve(dataSnapshot.val());
-        //        if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
-        //    });
-        //    return deferred.promise;
-        //};
-
-        $scope.activities = [];
-        //var promise = $scope.getLastSeen();
-        //promise.then(function (lastSeen) {
-            //$scope.lastSeen = lastSeen;
+        AuthService.promise.then(function () {
+            $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
             $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activities');
-        //});
-        //
-
+        });
+        
         $scope.markSeen = function () {
-            //userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+            $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
+            $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
         };
 
         //$scope.updateUsername = function () {
         //    updateUsername($scope, $cookieStore);
         //};
-
-        /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
-          However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
-          Comment out the setInterval call to disable this functionality */
-        //setInterval(refresh, 10000);
-        //function refresh() {
-        //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
-        //        if(!$scope.$$phase) $scope.$apply();
-        //    });
-        //}
     }
 ]);
 
@@ -694,11 +682,11 @@ app.filter('privateRoomFilter', function() {
 });
 
 app.filter('activityFilter', function() {
-    return function (activities, filtered, lastSeen) {
+    return function (activities, lastSeen) {
         var result = [];
         for (var i = 0; i < activities.length; i++) {
             var activity = activities[i];
-            if (! filtered || activity.time > lastSeen)
+            if (lastSeen === undefined || activity.time > lastSeen)
                 result.push(activity);
         }
         return result;

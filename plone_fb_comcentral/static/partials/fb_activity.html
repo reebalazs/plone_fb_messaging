@@ -4,7 +4,7 @@
 
 <p></p>
 <div class="activities" id="activitiesDiv" auto-scroll="activities">
-    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:filtered:lastSeen">
+    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:lastSeen">
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
