@@ -17,125 +17,137 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
       // as Plone's TOC uses already '!
       .hashPrefix('*');
 
+    // this is needed to inject AuthService in here
+    function authResolve(AuthService) {
+        return AuthService.promise;
+    }
+
     $routeProvider
 
         .when('/', {templateUrl: staticRoot + 'partials/fb_comcentral.html',
-            controller: 'CommandCentralController'
+            controller: 'CommandCentralController',
+            resolve: {auth: authResolve}
         })
 
         .when('/activity', {
             templateUrl: staticRoot + 'partials/fb_activity.html',
             controller: 'ActivityStreamController',
+            resolve: {auth: authResolve},
             activetab: 'activityStream'
         })
 
         .when('/messaging/:roomType/:roomName', {
             templateUrl: staticRoot + 'partials/fb_messaging.html',
             controller: 'MessagingController',
+            resolve: {auth: authResolve},
             activetab: 'messaging'
         })
 
         .when('/simulate_activity', {
             templateUrl: staticRoot + 'partials/fb_simulate_activity.html',
             controller: 'SimulateActivityController',
+            resolve: {auth: authResolve},
             activetab: 'simulateActivity'
         })
 
         .when('/create_broadcast', {
             templateUrl: staticRoot + 'partials/fb_create_broadcast.html',
             controller: 'CreateBroadcastController',
+            resolve: {auth: authResolve},
             activetab: 'createBroadcast'
         })
 
         .when('/broadcast', {
             templateUrl: staticRoot + 'partials/fb_broadcasts.html',
             controller: 'ViewBroadcastsController',
+            resolve: {auth: authResolve},
             activetab: 'broadcasts'
         })
 
         .otherwise({redirectTo: '/'});
 
-    $provide.service('getGlobals', function($rootScope) {
-        $rootScope.staticRoot = staticRoot;
-    });
-
-    $provide.service('authService', function($rootScope, angularFire, $q) {
-        // Configure parameters. In Plone these are provided from the template by ng-init.
-         if (! $rootScope.firebaseUrl) {
-            // We are in the static html. Let's provide
-            // constants for testing.
-            $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
-            $rootScope.authToken = '';
-            $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
-        }
-
-        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
-        var firebase = new Firebase($rootScope.firebaseUrl);
-        $rootScope.fireBase = firebase;
-
-        // Authenticate me.
-        if ($rootScope.authToken) {
-            firebase.auth($rootScope.authToken, function(error, result) {
-                if (error) {
-                    throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
-                } else {
-                    console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
-                }
-            });
-        } else {
-            console.log('No authentication token. Continuing in static mode.');
-        }
-
-        // presence handling
-        var username = $rootScope.ploneUserid;
-        var onlineRef = firebase.child('presence');
-        var infoRef = firebase.root().child('.info');
-        infoRef.child('connected').on('value', function (snap) {
-            if(snap.val() === true) {
-                // We're connected or reconnected.
-                // Set up our presence state and
-                // tell the server to set a timestamp when we leave.
-                var userRef = onlineRef.child(username);
-                userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-                userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-                var connRef = userRef.child('online').push(1);
-                connRef.onDisconnect().remove();
-            }
-        });
-
-        var serverTimeOffsetQ = $q.defer();
-        infoRef.child('serverTimeOffset').on('value', function (snap) {
-            $rootScope.serverTimeOffset = snap.val();
-            serverTimeOffsetQ.resolve();
-        });
-
-        // profile handling
-        var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
-        var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
-
-        // loadedPromise will satisfy when both serverTimeOffset and userProfile are read.
-        $rootScope.loadedPromise = $q.all([
-            serverTimeOffsetQ.promise,
-            userProfilePromise
-        ]);
-
-    });
 }]);
 
+app.service('AuthService', function($rootScope, angularFire, $q) {
+    // Configure parameters. In Plone these are provided from the template by ng-init.
+     if (! $rootScope.firebaseUrl) {
+        // We are in the static html. Let's provide
+        // constants for testing.
+        $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
+        $rootScope.authToken = '';
+        $rootScope.ploneUserid = 'TestUser' + Math.floor(Math.random()*101); // Vary userid to make testing easier
+    }
+
+    console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
+    var firebase = new Firebase($rootScope.firebaseUrl);
+    $rootScope.fireBase = firebase;
+
+    // Authenticate me.
+    var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
+    if ($rootScope.authToken) {
+        firebase.auth($rootScope.authToken, function(error, result) {
+            if (error) {
+                throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
+            } else {
+                authQ.resolve();
+                console.log('Authentication as "' + $rootScope.ploneUserid + '" accepted by the server.');
+            }
+        });
+    } else {
+        authQ.resolve();
+        console.log('No authentication token. Continuing in static mode.');
+    }
+
+    // presence handling
+    var username = $rootScope.ploneUserid;
+    var onlineRef = firebase.child('presence');
+    var infoRef = firebase.root().child('.info');
+    infoRef.child('connected').on('value', function (snap) {
+        if(snap.val() === true) {
+            // We're connected or reconnected.
+            // Set up our presence state and
+            // tell the server to set a timestamp when we leave.
+            var userRef = onlineRef.child(username);
+            userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+            userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+            var connRef = userRef.child('online').push(1);
+            connRef.onDisconnect().remove();
+        }
+    });
+
+    var serverTimeOffsetQ = $q.defer();
+    infoRef.child('serverTimeOffset').on('value', function (snap) {
+        $rootScope.serverTimeOffset = snap.val();
+        serverTimeOffsetQ.resolve();
+    });
+
+    // profile handling
+    var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
+    var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
+
+    // promise will satisfy when both serverTimeOffset and userProfile are read.
+    this.promise = $q.all([
+        authQ.promise,              // XXX not sure if needed, and if not then whether it causes trouble
+        serverTimeOffsetQ.promise,
+        userProfilePromise
+    ]);
+
+});
+
 app.controller('CommandCentralController',
-    ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', 'authService', '$rootScope',
-    function ($scope, $timeout, angularFire, angularFireCollection, $q, authService, $rootScope) {
+    ['$scope', '$rootScope',
+    function ($scope, $rootScope) {
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route', 'authService',
-    function ($scope, $route, authService) {
+    ['$scope', '$route',
+    function ($scope, $route) {
         $scope.$route = $route;
 }]);
 
 app.controller('CreateBroadcastController',
-    ['$scope', '$rootScope', 'angularFireCollection', 'authService',
-    function ($scope, $rootScope, angularFireCollection, authService) {
+    ['$scope', '$rootScope', 'angularFireCollection',
+    function ($scope, $rootScope, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -154,8 +166,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection', 'authService',
-    function ($scope, $rootScope, $q, $filter, angularFireCollection, authService) {
+    ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection',
+    function ($scope, $rootScope, $q, $filter, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -238,8 +250,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFireCollection', 'authService', '$rootScope',
-    function ($scope, angularFireCollection, authService, $rootScope) {
+    ['$scope', 'angularFireCollection', '$rootScope',
+    function ($scope, angularFireCollection, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -287,9 +299,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'authService', 'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter',
+    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        authService, handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter) {
+        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
