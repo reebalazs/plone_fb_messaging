@@ -703,7 +703,7 @@ app.filter('activityFilter', function() {
         var result = [];
         for (var i = 0; i < activities.length; i++) {
             var activity = activities[i];
-            if (! filtered || (activity.time > lastSeen && activity.expiration > Date.now()))
+            if (! filtered || activity.time > lastSeen)
                 result.push(activity);
         }
         return result;
