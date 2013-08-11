@@ -705,23 +705,11 @@ app.filter('activityFilter', function() {
     };
 });
 
-app.filter('millisToReadableDate', function() {
-    return function(date) {
-        return new Date(date).toString();
-    };
-});
-
 app.filter('prettifyRoomName', function() {
     return function(roomName) {
         var users = roomName.split('!~!');
         return users[0] + ' & ' + users[1];
     }
-});
-
-app.filter('timeFromNow', function () {
-    return function (date) {
-        return (date - Date.now())/1000 + ' seconds'; //This can be easily improved to increase verbosity
-    };
 });
 
 app.filter('messageFilter', function () {
