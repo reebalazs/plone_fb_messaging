@@ -399,13 +399,7 @@ app.directive('autoScroll', function ($timeout) {
         // scroll once in the end. This is most important when firebase
         // loads a long list of items.
         var minimalLength;
-        $scope.$watch(function() {
-            var scrollableElem = $scope[attrs.autoScroll];
-            if(scrollableElem instanceof Object)
-                return Object.keys(scrollableElem).length;
-            else
-                return scrollableElem.length;
-        }, function(newLength, oldLength) {
+        $scope.$watch(attrs.autoScroll + '.length', function(newLength, oldLength) {
             if (newLength == oldLength) {
                 // triggers with 0, 0 initially. Let's skip it.
                 return;
@@ -654,12 +648,16 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 
 app.factory('userFilter', function () {
     return function (users, members) {
-        var result = {};
+        var result = [];
         for (var username in users) {
             var user = users[username];
-            user.inRoom = members.hasOwnProperty(username);
-            if (user.online)
-                result[username] = user;
+            if (user.online) {
+                var resultUser = {};
+                resultUser.userid = username;
+                resultUser[username] = user;
+                resultUser[username].inRoom = members.hasOwnProperty(username);
+                result.push(resultUser);
+            }
         }
         return result;
     };
@@ -712,17 +710,6 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
-    };
-});
-
-app.filter('streamLength', function () {
-    return function (stream) {
-        if(stream !== undefined) {
-            if(stream.constructor === Object)
-                return Object.keys(stream).length;
-            else if(stream.constructor === Array)
-                return stream.length;
-        }
     };
 });
 
