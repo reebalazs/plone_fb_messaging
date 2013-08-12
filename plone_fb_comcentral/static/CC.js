@@ -388,6 +388,15 @@ app.controller('MessagingController',
                 if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer on the same page
             }
         });
+
+        $scope.usersOrderingPredicate = function (user) {
+            if (user.userid == $scope.username)
+                return 0; // first in ordering (yourself)
+            else if(user[user.userid].inRoom)
+                return 1; // second group in ordering (online and in room)
+            else
+                return 2; // rest of ordering (online and not in room)
+        }
     }
 ]);
 
