@@ -366,7 +366,7 @@ app.controller('MessagingController',
             $scope.heading = 'Private Chat with ' + privateChatUser;
 
             var checkOnline = onlineRef.child(privateChatUser).on('value', function (dataSnapshot) {
-                $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
+                $scope.info = 'User is <span class="user-status-marker">' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</span>';
             });
         }
 
@@ -468,7 +468,7 @@ app.directive('contenteditable', function () {
 });
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
-    return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
+    return function (msg, messages, ploneUserid, onlineRef, helpMessage) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
         var username = ploneUserid;
@@ -552,7 +552,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         if (dataSnapshot.hasChild('lastActive')) {
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
+                                     is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -563,7 +564,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         else if (dataSnapshot.hasChild('logout')) { // TODO: 'logout' does not exist, restructure this using the online markers
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
+                                     is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -585,7 +587,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<strong>current time</strong>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
+                        content: '<span class="server-message-type">current time</span>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
                         private: true,
                         type: 'server',
                         time: Firebase.ServerValue.TIMESTAMP
@@ -627,9 +629,9 @@ app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootSc
 }]);
 
 app.factory('processMessage', ['handleCommand', function(handleCommand) {
-    return function (username, message, messages, onlineRef, helpMessage, $location) {
+    return function (username, message, messages, onlineRef, helpMessage) {
         if (message.indexOf('/') === 0) {
-            handleCommand(message, messages, username, onlineRef, helpMessage, $location);
+            handleCommand(message, messages, username, onlineRef, helpMessage);
             /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
             is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
         }

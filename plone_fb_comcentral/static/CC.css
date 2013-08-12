@@ -169,6 +169,26 @@ input.fb-message-input {
     margin-top: 0px;
 }
 
+.server-message-type {
+    font-weight: bold;
+}
+
+.user-status-marker {
+    font-weight: bold;
+}
+
+.user-reference {
+    font-style: italic;
+}
+
+.room.active {
+    font-weight: bold;
+}
+
+.user .in-room {
+    font-weight: bold;
+}
+
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
