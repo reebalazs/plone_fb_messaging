@@ -3,8 +3,8 @@
 </div>
 
 <p></p>
-<div class="activities" id="activitiesDiv" auto-scroll="activities">
-    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:lastSeen">
+<div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
+    <details class="activity" ng-cloak ng-repeat="activity in visibleActivities">
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
@@ -45,4 +45,5 @@
     </details>
   </div>
   
+  Show All: <input type="checkbox" ng-model="showAll" ng-click="toggleShow()" ng-true-value="true" ng-false-value="false"><br/>
   <button ng-click="markSeen()">Mark All as Read</button>

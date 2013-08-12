@@ -276,14 +276,32 @@ app.controller('ActivityStreamController',
             window.showFbOverlay();
         }
 
+        $scope.showAll = 'false';
+        $scope.filteredActivities = {};
+        $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
+        $scope.visibleActivities = $scope.filteredActivities;
+
         AuthService.promise.then(function () {
             $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
-            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activities');
+
+            var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+            activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+                var newActivity = dataSnapshot.val();
+                if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
+                    $scope.filteredActivities[dataSnapshot.ref().name()] = newActivity;
+            });
         });
+
+        $scope.toggleShow = function () {
+            $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
+        }
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
             $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
+            $scope.filteredActivities = {};
+            $scope.visibleActivities = $scope.filteredActivities;
+            $scope.toggleShow();
         };
 
         //$scope.updateUsername = function () {
@@ -676,18 +694,6 @@ app.filter('privateRoomFilter', function() {
             var roomHidden = room.hidden && room.hidden.hasOwnProperty(ploneUserid) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[ploneUserid]);
             if (inPrivateRoom && ! roomHidden)
                 result.push(room);
-        }
-        return result;
-    };
-});
-
-app.filter('activityFilter', function() {
-    return function (activities, lastSeen) {
-        var result = [];
-        for (var i = 0; i < activities.length; i++) {
-            var activity = activities[i];
-            if (lastSeen === undefined || activity.time > lastSeen)
-                result.push(activity);
         }
         return result;
     };
