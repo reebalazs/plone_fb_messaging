@@ -167,7 +167,7 @@ app.controller('CreateBroadcastController',
                 message: $scope.broadcast.message,
                 time: Firebase.ServerValue.TIMESTAMP,
                 user: $rootScope.ploneUserid,
-                expiration: Date.now() + $scope.broadcast.expiration * 60000
+                expiration: Date.now() + $rootScope.serverTimeOffset + $scope.broadcast.expiration * 60000
             });
         };
 }]);
@@ -192,7 +192,7 @@ app.controller('ViewBroadcastsController',
             var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
             broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
                 var newBroadcast = dataSnapshot.val();
-                var expired = Date.now() > newBroadcast.expiration;
+                var expired = Date.now() + $rootScope.serverTimeOffset > newBroadcast.expiration;
                 var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
                 if (! expired && ! seen)
                     $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
