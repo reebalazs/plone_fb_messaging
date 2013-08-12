@@ -174,57 +174,42 @@ app.controller('CreateBroadcastController',
                 message: $scope.broadcast.message,
                 time: Firebase.ServerValue.TIMESTAMP,
                 user: $rootScope.ploneUserid,
-                expiration: Date.now() + $scope.broadcast.expiration * 60000
+                expiration: new Date().valueOf() + $rootScope.serverTimeOffset + $scope.broadcast.expiration * 60000
             });
         };
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFireCollection',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
         }
 
-        var profileRef = new Firebase($rootScope.firebaseUrl + 'profile');
-        $scope.getBroadcastsSeenTS = function () {
-            var deferred = $q.defer();
-            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').on('value', function (dataSnapshot) {
-                deferred.resolve(dataSnapshot.val());
-                if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
-                $scope.broadcastsSeenTS = dataSnapshot.val();
-            });
-            return deferred.promise;
-        };
-
-        var broadcastsUrl = $rootScope.firebaseUrl + 'broadcasts';
-        var broadcastsRef = new Firebase(broadcastsUrl);
         $scope.showAll = 'false';
-        $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
-        $scope.filteredBroadcasts = {};
+        $scope.filteredBroadcasts = [];
+        $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
+        $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
 
-        var promise = $scope.getBroadcastsSeenTS();
-        promise.then(function (broadcastsSeenTS) {
-            $scope.broadcastsSeenTS = broadcastsSeenTS;
-            broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-                var newBroadcast = dataSnapshot.val();
-                var expired = Date.now() > newBroadcast.expiration;
-                var seen = $scope.broadcastsSeenTS !== null && newBroadcast.time < $scope.broadcastsSeenTS;
-                if (! expired && ! seen)
-                    $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
-            });
+        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
+        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newBroadcast = dataSnapshot.val();
+            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
+            if (! expired && ! seen)
+                $scope.filteredBroadcasts.push(newBroadcast);
         });
 
         $scope.toggleShow = function () {
             $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
-        }
+        };
 
         $scope.markSeen = function () {
-            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
-            $scope.filteredBroadcasts = {};
+            $rootScope.userProfile.broadcastsSeenTS = Firebase.ServerValue.TIMESTAMP;
+            $scope.filteredBroadcasts = [];
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
@@ -598,7 +583,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<strong>current time</strong>: ' + (Date.now() + $rootScope.serverTimeOffset),
+                        content: '<strong>current time</strong>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
                         private: true,
                         type: 'server',
                         time: Firebase.ServerValue.TIMESTAMP
