@@ -354,7 +354,15 @@ app.controller('MessagingController',
         }
         else if (roomType === 'private') {
             var users = $scope.currentRoomName.split('!~!');
-            var privateChatUser = users[0] === username ? users[1] : users[0]; // TODO: Kick out user if he/she doesn't belong
+            var privateChatUser;
+            if (users[0] === username)
+                privateChatUser = users[1];
+            else if (users[1] == username)
+                privateChatUser = users[0];
+            else {
+                $location.url('/messaging/public/main');
+                throw new Error('Not a member of private chat: ' + $scope.currentRoomName); // Of course, this offers no security
+            }
             $scope.heading = 'Private Chat with ' + privateChatUser;
 
             var checkOnline = onlineRef.child(privateChatUser).on('value', function (dataSnapshot) {
