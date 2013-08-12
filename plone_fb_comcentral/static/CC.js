@@ -185,18 +185,15 @@ app.controller('ViewBroadcastsController',
         $scope.filteredBroadcasts = {};
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
+        $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
 
-        AuthService.promise.then(function () {
-            $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
-
-            var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-            broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-                var newBroadcast = dataSnapshot.val();
-                var expired = Date.now() + $rootScope.serverTimeOffset > newBroadcast.expiration;
-                var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
-                if (! expired && ! seen)
-                    $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
-            });
+        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
+        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newBroadcast = dataSnapshot.val();
+            var expired = Date.now() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
+            if (! expired && ! seen)
+                $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
         });
 
         $scope.toggleShow = function () {
