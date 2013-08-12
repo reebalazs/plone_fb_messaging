@@ -236,8 +236,8 @@ app.controller('ViewBroadcastsController',
 
 // XXX this is only needed for the simulation and will go away in the final product.
 app.controller('SimulateActivityController',
-    ['$scope', '$rootScope', '$http', 'getGlobals', // remove this nonexistent dependency?
-    function ($scope, $rootScope, $http, getGlobals) {
+    ['$scope', '$rootScope', '$http',
+    function ($scope, $rootScope, $http) {
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
@@ -280,16 +280,13 @@ app.controller('ActivityStreamController',
         $scope.filteredActivities = {};
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
+        $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
 
-        AuthService.promise.then(function () {
-            $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
-
-            var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-            activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-                var newActivity = dataSnapshot.val();
-                if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
-                    $scope.filteredActivities[dataSnapshot.ref().name()] = newActivity;
-            });
+        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newActivity = dataSnapshot.val();
+            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
+                $scope.filteredActivities[dataSnapshot.ref().name()] = newActivity;
         });
 
         $scope.toggleShow = function () {
