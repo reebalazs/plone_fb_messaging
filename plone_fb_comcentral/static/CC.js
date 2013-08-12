@@ -173,39 +173,27 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFireCollection',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
         }
 
-        var profileRef = new Firebase($rootScope.firebaseUrl + 'profile');
-        $scope.getBroadcastsSeenTS = function () {
-            var deferred = $q.defer();
-            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').on('value', function (dataSnapshot) {
-                deferred.resolve(dataSnapshot.val());
-                if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
-                $scope.broadcastsSeenTS = dataSnapshot.val();
-            });
-            return deferred.promise;
-        };
-
-        var broadcastsUrl = $rootScope.firebaseUrl + 'broadcasts';
-        var broadcastsRef = new Firebase(broadcastsUrl);
         $scope.showAll = 'false';
-        $scope.unfilteredBroadcasts = angularFireCollection(broadcastsUrl);
         $scope.filteredBroadcasts = {};
+        $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
 
-        var promise = $scope.getBroadcastsSeenTS();
-        promise.then(function (broadcastsSeenTS) {
-            $scope.broadcastsSeenTS = broadcastsSeenTS;
+        AuthService.promise.then(function () {
+            $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
+
+            var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
             broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
                 var newBroadcast = dataSnapshot.val();
                 var expired = Date.now() > newBroadcast.expiration;
-                var seen = $scope.broadcastsSeenTS !== null && newBroadcast.time < $scope.broadcastsSeenTS;
+                var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
                 if (! expired && ! seen)
                     $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
             });
@@ -213,10 +201,10 @@ app.controller('ViewBroadcastsController',
 
         $scope.toggleShow = function () {
             $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
-        }
+        };
 
         $scope.markSeen = function () {
-            profileRef.child($rootScope.ploneUserid).child('broadcastsSeenTS').set(Firebase.ServerValue.TIMESTAMP);
+            $rootScope.userProfile.broadcastsSeenTS = Firebase.ServerValue.TIMESTAMP;
             $scope.filteredBroadcasts = {};
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
