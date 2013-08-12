@@ -182,7 +182,7 @@ app.controller('ViewBroadcastsController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredBroadcasts = {};
+        $scope.filteredBroadcasts = [];
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
         $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
@@ -193,7 +193,7 @@ app.controller('ViewBroadcastsController',
             var expired = Date.now() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
             if (! expired && ! seen)
-                $scope.filteredBroadcasts[dataSnapshot.ref().name()] = newBroadcast;
+                $scope.filteredBroadcasts.push(newBroadcast);
         });
 
         $scope.toggleShow = function () {
@@ -202,7 +202,7 @@ app.controller('ViewBroadcastsController',
 
         $scope.markSeen = function () {
             $rootScope.userProfile.broadcastsSeenTS = Firebase.ServerValue.TIMESTAMP;
-            $scope.filteredBroadcasts = {};
+            $scope.filteredBroadcasts = [];
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
