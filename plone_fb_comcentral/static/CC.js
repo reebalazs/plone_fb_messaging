@@ -471,7 +471,7 @@ app.directive('contenteditable', function () {
     };
 });
 
-app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) {
+app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
@@ -496,7 +496,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         private: true,
                         type: 'private',
                         recipient: target,
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     $scope.messages.add({
                         sender: ploneUserid,
@@ -505,7 +505,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         private: true,
                         privateChat: privateChat,
                         type: 'server',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     $scope.helpClass = 'info';
                     $scope.help = 'Message sent to ' + target;
@@ -540,7 +540,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         content: action,
                         private: false,
                         type: 'action',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     helpMessage.helpClass = 'hidden';
                 }
@@ -552,25 +552,25 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                 }
                 else {
                     target = msg.substr(delim + 1);
-                    onlineRef.child(target).once('value', function(dataSnapshot) {
+                    onlineRef.child(target).once('value', function(dataSnapshot) { // TODO: Restructure using AuthService promises
                         if (dataSnapshot.hasChild('lastActive')) {
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
                                 private: true,
                                 type: 'server',
-                                date: Date.now()
+                                time: Firebase.ServerValue.TIMESTAMP
                             });
                             helpMessage.helpClass = 'info';
                             helpMessage.help = 'Whois query successful';
                         }
-                        else if (dataSnapshot.hasChild('logout')) {
+                        else if (dataSnapshot.hasChild('logout')) { // TODO: 'logout' does not exist, restructure this using the online markers
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
                                 private: true,
                                 type: 'server',
-                                date: Date.now()
+                                time: Firebase.ServerValue.TIMESTAMP
                             });
                             helpMessage.helpClass = 'info';
                             helpMessage.help = 'Whois query successful';
@@ -583,17 +583,16 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                 break;
             case 'time':
                 if (msg.search('/time$') !== 0) {
-                    //helpClass = 'derpaderp';
                     helpMessage.helpClass = 'error';
                     helpMessage.help = 'Bad syntax - /time: ' + msg;
                 }
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<strong>current time</strong>: ' + Date.now(),
+                        content: '<strong>current time</strong>: ' + (Date.now() + $rootScope.serverTimeOffset),
                         private: true,
                         type: 'server',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     helpMessage.helpClass = 'hidden';
                 }
@@ -644,7 +643,7 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
                 content: message,
                 private: false,
                 type: 'public',
-                date: Date.now()
+                time: Firebase.ServerValue.TIMESTAMP
             });
             helpMessage.helpClass = 'hidden';
         }
