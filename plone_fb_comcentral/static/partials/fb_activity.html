@@ -1,10 +1,10 @@
-<h2>Activity Stream</h2>
+<h2>Activity Stream <span ng-clock>({{visibleActivities | streamLength}})</h2>
 <div>
 </div>
 
 <p></p>
-<div class="activities" id="activitiesDiv" auto-scroll="activities">
-    <details class="activity" ng-cloak ng-repeat="activity in activities | activityFilter:filtered:lastSeen">
+<div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
+    <details class="activity" ng-cloak ng-repeat="activity in visibleActivities">
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
@@ -45,4 +45,5 @@
     </details>
   </div>
   
+  Show All: <input type="checkbox" ng-model="showAll" ng-click="toggleShow()" ng-true-value="true" ng-false-value="false"><br/>
   <button ng-click="markSeen()">Mark All as Read</button>
