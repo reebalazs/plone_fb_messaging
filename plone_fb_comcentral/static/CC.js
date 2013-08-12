@@ -167,7 +167,7 @@ app.controller('CreateBroadcastController',
                 message: $scope.broadcast.message,
                 time: Firebase.ServerValue.TIMESTAMP,
                 user: $rootScope.ploneUserid,
-                expiration: Date.now() + $rootScope.serverTimeOffset + $scope.broadcast.expiration * 60000
+                expiration: new Date().valueOf() + $rootScope.serverTimeOffset + $scope.broadcast.expiration * 60000
             });
         };
 }]);
@@ -190,7 +190,7 @@ app.controller('ViewBroadcastsController',
         var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
         broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
             var newBroadcast = dataSnapshot.val();
-            var expired = Date.now() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
             if (! expired && ! seen)
                 $scope.filteredBroadcasts.push(newBroadcast);
@@ -456,7 +456,7 @@ app.directive('contenteditable', function () {
     };
 });
 
-app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) {
+app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
@@ -481,7 +481,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         private: true,
                         type: 'private',
                         recipient: target,
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     $scope.messages.add({
                         sender: ploneUserid,
@@ -490,7 +490,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         private: true,
                         privateChat: privateChat,
                         type: 'server',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     $scope.helpClass = 'info';
                     $scope.help = 'Message sent to ' + target;
@@ -525,7 +525,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                         content: action,
                         private: false,
                         type: 'action',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     helpMessage.helpClass = 'hidden';
                 }
@@ -544,7 +544,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                                 content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
                                 private: true,
                                 type: 'server',
-                                date: Date.now()
+                                time: Firebase.ServerValue.TIMESTAMP
                             });
                             helpMessage.helpClass = 'info';
                             helpMessage.help = 'Whois query successful';
@@ -555,7 +555,7 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                                 content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
                                 private: true,
                                 type: 'server',
-                                date: Date.now()
+                                time: Firebase.ServerValue.TIMESTAMP
                             });
                             helpMessage.helpClass = 'info';
                             helpMessage.help = 'Whois query successful';
@@ -575,10 +575,10 @@ app.factory('handleCommand', ['createPrivateRoom', function (createPrivateRoom) 
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<strong>current time</strong>: ' + Date.now(),
+                        content: '<strong>current time</strong>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
                         private: true,
                         type: 'server',
-                        date: Date.now()
+                        time: Firebase.ServerValue.TIMESTAMP
                     });
                     helpMessage.helpClass = 'hidden';
                 }
@@ -629,7 +629,7 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
                 content: message,
                 private: false,
                 type: 'public',
-                date: Date.now()
+                time: Firebase.ServerValue.TIMESTAMP
             });
             helpMessage.helpClass = 'hidden';
         }
