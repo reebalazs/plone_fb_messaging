@@ -399,13 +399,7 @@ app.directive('autoScroll', function ($timeout) {
         // scroll once in the end. This is most important when firebase
         // loads a long list of items.
         var minimalLength;
-        $scope.$watch(function() {
-            var scrollableElem = $scope[attrs.autoScroll];
-            if(scrollableElem instanceof Object)
-                return Object.keys(scrollableElem).length;
-            else
-                return scrollableElem.length;
-        }, function(newLength, oldLength) {
+        $scope.$watch(attrs.autoScroll + '.length', function(newLength, oldLength) {
             if (newLength == oldLength) {
                 // triggers with 0, 0 initially. Let's skip it.
                 return;
