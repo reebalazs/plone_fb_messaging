@@ -389,7 +389,6 @@ app.controller('MessagingController',
     }
 ]);
 
-//TODO: Does not work with a filter
 app.directive('autoScroll', function ($timeout) {
     return function ($scope, $el, attrs) {
         var timer = false;
@@ -401,7 +400,7 @@ app.directive('autoScroll', function ($timeout) {
         $scope.$watch(function() {
             var scrollableElem = $scope[attrs.autoScroll];
             if(scrollableElem instanceof Object)
-                return Object.keys(scrollableElem).length
+                return Object.keys(scrollableElem).length;
             else
                 return scrollableElem.length;
         }, function(newLength, oldLength) {
