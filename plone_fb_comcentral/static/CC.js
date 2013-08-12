@@ -721,9 +721,14 @@ app.filter('messageFilter', function () {
     };
 });
 
-app.filter('objectLength', function () {
-    return function (obj) {
-        if(obj !== undefined) return Object.keys(obj).length;
+app.filter('streamLength', function () {
+    return function (stream) {
+        if(stream !== undefined) {
+            if(stream.constructor === Object)
+                return Object.keys(stream).length;
+            else if(stream.constructor === Array)
+                return stream.length;
+        }
     };
 });
 
