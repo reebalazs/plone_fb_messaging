@@ -648,12 +648,16 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 
 app.factory('userFilter', function () {
     return function (users, members) {
-        var result = {};
+        var result = [];
         for (var username in users) {
             var user = users[username];
-            user.inRoom = members.hasOwnProperty(username);
-            if (user.online)
-                result[username] = user;
+            if (user.online) {
+                var resultUser = {};
+                resultUser.userid = username;
+                resultUser[username] = user;
+                resultUser[username].inRoom = members.hasOwnProperty(username);
+                result.push(resultUser);
+            }
         }
         return result;
     };
@@ -706,12 +710,6 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
-    };
-});
-
-app.filter('objectLength', function () {
-    return function (obj) {
-        if (obj !== undefined) return Object.keys(obj).length;
     };
 });
 
