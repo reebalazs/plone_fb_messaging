@@ -77,10 +77,10 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         $rootScope.authToken = '';
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
-        $rootScope.ploneFullName = 'Test User ' + rand;
-    } else if (! $rootScope.ploneFullName) {
+        $rootScope.fullName = 'Test User ' + rand;
+    } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
-        $rootScope.ploneFullName = $rootScope.ploneUserid;
+        $rootScope.fullName = $rootScope.ploneUserid;
     }
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
@@ -96,13 +96,13 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
             } else {
                 authQ.resolve();
                 console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
-                    $rootScope.ploneFullName + ') accepted by the server.');
+                    $rootScope.fullName + ') accepted by the server.');
             }
         });
     } else {
         authQ.resolve();
         console.log('No authentication token. Continuing in static mode, acting as user "' +
-            $rootScope.ploneUserid + '" (' + $rootScope.ploneFullName + ')');
+            $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
     }
 
     // presence handling
@@ -131,6 +131,13 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
     // profile handling
     var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
     var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
+
+    userProfilePromise.then(function () {
+        // store the fullname into the profile
+        // this makes sure that every user's fullname is
+        // stored or updated on login
+        $rootScope.userProfile.fullName = $rootScope.fullName;
+    });
 
     // promise will satisfy when both serverTimeOffset and userProfile are read.
     this.promise = $q.all([
