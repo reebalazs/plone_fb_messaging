@@ -298,7 +298,6 @@ app.controller('ActivityStreamController',
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
-            $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
             $scope.filteredActivities = {};
             $scope.visibleActivities = $scope.filteredActivities;
             $scope.toggleShow();
