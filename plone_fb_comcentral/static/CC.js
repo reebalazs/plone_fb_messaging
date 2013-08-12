@@ -277,7 +277,7 @@ app.controller('ActivityStreamController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredActivities = {};
+        $scope.filteredActivities = [];
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
         $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
@@ -286,7 +286,7 @@ app.controller('ActivityStreamController',
         activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
             var newActivity = dataSnapshot.val();
             if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
-                $scope.filteredActivities[dataSnapshot.ref().name()] = newActivity;
+                $scope.filteredActivities.push(newActivity);
         });
 
         $scope.toggleShow = function () {
@@ -295,7 +295,7 @@ app.controller('ActivityStreamController',
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
-            $scope.filteredActivities = {};
+            $scope.filteredActivities = [];
             $scope.visibleActivities = $scope.filteredActivities;
             $scope.toggleShow();
         };
