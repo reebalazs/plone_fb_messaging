@@ -77,10 +77,10 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         $rootScope.authToken = '';
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
-        $rootScope.ploneFullName = 'Test User ' + rand;
-    } else if (! $rootScope.ploneFullName) {
+        $rootScope.fullName = 'Test User ' + rand;
+    } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
-        $rootScope.ploneFullName = $rootScope.ploneUserid;
+        $rootScope.fullName = $rootScope.ploneUserid;
     }
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
@@ -96,13 +96,13 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
             } else {
                 authQ.resolve();
                 console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
-                    $rootScope.ploneFullName + ') accepted by the server.');
+                    $rootScope.fullName + ') accepted by the server.');
             }
         });
     } else {
         authQ.resolve();
         console.log('No authentication token. Continuing in static mode, acting as user "' +
-            $rootScope.ploneUserid + '" (' + $rootScope.ploneFullName + ')');
+            $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
     }
 
     // presence handling
@@ -131,6 +131,13 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
     // profile handling
     var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
     var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
+
+    userProfilePromise.then(function () {
+        // store the fullname into the profile
+        // this makes sure that every user's fullname is
+        // stored or updated on login
+        $rootScope.userProfile.fullName = $rootScope.fullName;
+    });
 
     // promise will satisfy when both serverTimeOffset and userProfile are read.
     this.promise = $q.all([
@@ -206,12 +213,23 @@ app.controller('ViewBroadcastsController',
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
+
+        // Moved to broadcast Controller because it may be useful here in future
+        /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
+          However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
+          Comment out the setInterval call to disable this functionality */
+        //setInterval(refresh, 10000);
+        //function refresh() {
+        //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
+        //        if(!$scope.$$phase) $scope.$apply();
+        //    });
+        //}
 }]);
 
 // XXX this is only needed for the simulation and will go away in the final product.
 app.controller('SimulateActivityController',
-    ['$scope', '$rootScope', '$http', 'getGlobals',
-    function ($scope, $rootScope, $http, getGlobals) {
+    ['$scope', '$rootScope', '$http',
+    function ($scope, $rootScope, $http) {
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
@@ -242,50 +260,41 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFireCollection', '$rootScope',
-    function ($scope, angularFireCollection, $rootScope) {
+    ['$scope', 'angularFireCollection', 'AuthService', '$rootScope',
+    function ($scope, angularFireCollection, AuthService, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
             window.showFbOverlay();
         }
 
-        $scope.filtered = false;
+        $scope.showAll = 'false';
+        $scope.filteredActivities = [];
+        $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
+        $scope.visibleActivities = $scope.filteredActivities;
+        $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
 
-        //$scope.getLastSeen = function () {
-        //    var deferred = $q.defer();
-        //    onlineRef.child($rootScope.ploneUserid).child('lastSeen').on('value', function (dataSnapshot) {
-        //        deferred.resolve(dataSnapshot.val());
-        //        if (!$scope.$$phase) $scope.$apply();  //needed for the resolve to be processed
-        //    });
-        //    return deferred.promise;
-        //};
+        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newActivity = dataSnapshot.val();
+            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
+                $scope.filteredActivities.push(newActivity);
+        });
 
-        $scope.activities = [];
-        //var promise = $scope.getLastSeen();
-        //promise.then(function (lastSeen) {
-            //$scope.lastSeen = lastSeen;
-            $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activities');
-        //});
-        //
-
+        $scope.toggleShow = function () {
+            $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
+        }
+        
         $scope.markSeen = function () {
-            //userRef.child('lastSeen').set(Firebase.ServerValue.TIMESTAMP);
+            $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
+            $scope.filteredActivities = [];
+            $scope.visibleActivities = $scope.filteredActivities;
+            $scope.toggleShow();
         };
 
         //$scope.updateUsername = function () {
         //    updateUsername($scope, $cookieStore);
         //};
-
-        /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
-          However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
-          Comment out the setInterval call to disable this functionality */
-        //setInterval(refresh, 10000);
-        //function refresh() {
-        //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
-        //        if(!$scope.$$phase) $scope.$apply();
-        //    });
-        //}
     }
 ]);
 
@@ -537,7 +546,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 }
                 else {
                     target = msg.substr(delim + 1);
-                    onlineRef.child(target).once('value', function(dataSnapshot) {
+                    onlineRef.child(target).once('value', function(dataSnapshot) { // TODO: Restructure using AuthService promises
                         if (dataSnapshot.hasChild('lastActive')) {
                             messages.add({
                                 sender: ploneUserid,
@@ -549,7 +558,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                             helpMessage.helpClass = 'info';
                             helpMessage.help = 'Whois query successful';
                         }
-                        else if (dataSnapshot.hasChild('logout')) {
+                        else if (dataSnapshot.hasChild('logout')) { // TODO: 'logout' does not exist, restructure this using the online markers
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
@@ -568,7 +577,6 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 break;
             case 'time':
                 if (msg.search('/time$') !== 0) {
-                    //helpClass = 'derpaderp';
                     helpMessage.helpClass = 'error';
                     helpMessage.help = 'Bad syntax - /time: ' + msg;
                 }
@@ -677,18 +685,6 @@ app.filter('privateRoomFilter', function() {
     };
 });
 
-app.filter('activityFilter', function() {
-    return function (activities, filtered, lastSeen) {
-        var result = [];
-        for (var i = 0; i < activities.length; i++) {
-            var activity = activities[i];
-            if (! filtered || activity.time > lastSeen)
-                result.push(activity);
-        }
-        return result;
-    };
-});
-
 app.filter('prettifyRoomName', function() {
     return function(roomName) {
         var users = roomName.split('!~!');
@@ -711,9 +707,14 @@ app.filter('messageFilter', function () {
     };
 });
 
-app.filter('objectLength', function () {
-    return function (obj) {
-        if(obj !== undefined) return Object.keys(obj).length;
+app.filter('streamLength', function () {
+    return function (stream) {
+        if(stream !== undefined) {
+            if(stream.constructor === Object)
+                return Object.keys(stream).length;
+            else if(stream.constructor === Array)
+                return stream.length;
+        }
     };
 });
 
