@@ -108,6 +108,8 @@ input.fb-message-input {
     -moz-border-radius:5px;
     border-radius: 5px;
     max-width: 95%;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .chat-line-own {
