@@ -79,7 +79,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
         $rootScope.staticRoot = '../static/'
-        $rootScope.portraitRoot = './PORTRAITS_FIXME';   // TODO XXX set this to the static portrait root
+        $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
     } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
         $rootScope.fullName = $rootScope.ploneUserid;
