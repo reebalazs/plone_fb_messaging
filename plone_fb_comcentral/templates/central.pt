@@ -2,7 +2,7 @@
   tal:define="auth_token python: view.auth_token;"
   tal:attributes="ng-init string:firebaseUrl = '${view/config/firebase_url}';; authToken = '${auth_token}';;
                   ploneUserid='${view/auth_data/ploneUserid}';;
-                  ploneFullName='${view/auth_data/ploneFullName}';;
+                  fullName='${view/auth_data/ploneFullName}';;
                   " >
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
