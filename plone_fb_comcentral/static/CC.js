@@ -78,6 +78,8 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
+        $rootScope.staticRoot = '../static/'
+        $rootScope.portraitRoot = './PORTRAITS_FIXME';   // TODO XXX set this to the static portrait root
     } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
         $rootScope.fullName = $rootScope.ploneUserid;
@@ -85,6 +87,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
 
     var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
     $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
+    //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
     var firebase = new Firebase($rootScope.firebaseUrl);
