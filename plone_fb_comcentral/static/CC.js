@@ -376,9 +376,11 @@ app.controller('MessagingController',
 
         var inRoomRef = currentRoomRef.child('members').child(username).push(1);
         inRoomRef.onDisconnect().remove();
+        
+        /* This is useful so that in the future we can possibly highlight/distinguish rooms which have messages the user has not yet seen
         currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
             currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
-        });
+        }); */
 
         $scope.createPublicRoom = createPublicRoom;
         $scope.createPrivateRoom = createPrivateRoom;
