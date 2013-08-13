@@ -15,6 +15,7 @@ class FirebaseViewlet(base.ViewletBase):
         self.auth_token = auth_info['auth_token']
         self.auth_data = auth_info['auth_data']
         self.config = auth_info['config']
+        self.static = auth_info['static']
         #print "Firebase messaging AUTH_INFO", auth_info
 
         # Is the product installed?

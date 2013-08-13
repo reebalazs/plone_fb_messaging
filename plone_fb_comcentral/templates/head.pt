@@ -6,5 +6,5 @@
     <meta name="fb-comcentral-url"
         tal:attributes="content view/config/firebase_url">
     <meta name="fb-comcentral-static"
-        tal:attributes="content string:${context/@@plone_portal_state/portal_url}/++resource++fb_comcentral/">
+        tal:attributes="content view/static/staticRoot">
 </tal:head>
