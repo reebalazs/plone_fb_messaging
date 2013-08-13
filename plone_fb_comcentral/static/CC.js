@@ -129,14 +129,12 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
 
     // profile handling
     var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
+    // store the fullname into the profile
+    // this makes sure that every user's fullname is
+    // stored or updated on login
+    profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
+            // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
     var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
-
-    userProfilePromise.then(function () {
-        // store the fullname into the profile
-        // this makes sure that every user's fullname is
-        // stored or updated on login
-        $rootScope.userProfile.fullName = $rootScope.fullName; // this is not being stored if userProfile is {}
-    });
 
     // promise will satisfy when both serverTimeOffset and userProfile are read.
     this.promise = $q.all([
