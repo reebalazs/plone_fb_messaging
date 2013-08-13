@@ -100,23 +100,39 @@ input.fb-message-input {
     color: #333 !important;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.33);
     -webkit-font-smoothing: antialiased;
+    padding-top: .5em;
 }
 
 .chat-content {
     -webkit-border-radius: 5px;
     -moz-border-radius:5px;
     border-radius: 5px;
-    margin-bottom: 0.75em;
 }
 
 .chat-line-own {
     clear: both;
     text-align: right;
+    vertical-align: middle;
 }
 
 .chat-line-own .chat-sender {
     display: inline-block;
     float: right;
+    padding-top: .25em;
+}
+
+.user-potrait {
+    width: 35px;
+    padding-top: .5em;
+    vertical-align: middle;
+}
+
+.chat-line-own .user-potrait {
+    float: right;
+}
+
+.chat-line-foreign .user-potrait {
+    float: left;
 }
 
 .chat-line-own .chat-content {
