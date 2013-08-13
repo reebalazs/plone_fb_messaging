@@ -8,7 +8,13 @@
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
-          <div><strong>User ID:</strong> <a href="" ng-click="createPrivateRoom(username, activity.userID)">{{activity.userID}} ({{activity.userID | getFullName:userProfiles}})</a></div>
+          <div>
+            <strong>User ID:</strong> 
+            <a href="" ng-click="createPrivateRoom(username, activity.userID)">
+              {{activity.userID}} 
+              <span ng-show="userProfiles[activity.userID].fullName">({{activity.userID | getFullName:userProfiles}})</span>
+            </a>
+          </div>
           <div><strong>Change Time:</strong> {{activity.time | date:'medium'}}</div>
         </div>
       </summary>
