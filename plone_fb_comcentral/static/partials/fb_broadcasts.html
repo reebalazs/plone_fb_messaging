@@ -3,7 +3,10 @@
 <div class="broadcasts" id="broadcastsDiv" auto-scroll="visibleBroadcasts">
   <div class="broadcast" ng-cloak ng-repeat="broadcast in visibleBroadcasts">
     <div><strong>Message:</strong> {{broadcast.message}}</div>
-    <div><strong>User:</strong> {{broadcast.user}}</div>
+    <div>
+      <strong>User:</strong> {{broadcast.user}}
+      <span ng-show="userProfiles[broadcast.user].fullName">({{broadcast.user | getFullName:userProfiles}})</span>
+    </div>
     <div><strong>Timestamp:</strong> {{broadcast.time | date:'medium'}}</div>
     <div><strong>Expiration:</strong> {{broadcast.expiration | date:'medium'}}</div>
   </div>

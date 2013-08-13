@@ -180,8 +180,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -213,6 +213,9 @@ app.controller('ViewBroadcastsController',
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
+
+        $scope.username = $rootScope.ploneUserid;
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
 
         // Moved to broadcast Controller because it may be useful here in future
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
