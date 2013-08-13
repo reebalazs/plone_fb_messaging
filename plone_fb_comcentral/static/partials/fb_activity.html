@@ -8,34 +8,28 @@
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
-          <div><strong>User ID:</strong> {{activity.userID}}</div>
+          <div>
+            <strong>User ID:</strong> 
+            <a href="" ng-click="createPrivateRoom(username, activity.userID)">
+              {{activity.userID}} 
+              <span ng-show="userProfiles[activity.userID].fullName">({{activity.userID | getFullName:userProfiles}})</span>
+            </a>
+          </div>
           <div><strong>Change Time:</strong> {{activity.time | date:'medium'}}</div>
         </div>
       </summary>
       <div class="details">
-        <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
+        <div class="description" ng-show="activity.description"><strong>Description:</strong> {{activity.description}}</div>
         <div class="changes" id="changesDiv">
           <div ng-cloak ng-repeat="change in activity.changes">
-            <span ng-switch="$first && Object.keys(activity.changes).length == 1">
-              <details ng-switch-when="true" class="change" open>
+              <details class="change" {{activity.numChanges == 1 && 'open' || ''}}>
                 <summary>
                   <strong>Change Message:</strong> {{change.message}}
                 </summary>
                 <div class="details">
                   <div><strong>Object UID:</strong> {{change.uid}}</div>
                   <div><strong>Event Type:</strong> {{change.eventType}}</div>
-                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
-                </div>
-              </details>
-
-              <details ng-switch-default class="change">
-                <summary>
-                  <strong>Change Message:</strong> {{change.message}}
-                </summary>
-                <div class="details">
-                  <div><strong>Object UID:</strong> {{change.uid}}</div>
-                  <div><strong>Event Type:</strong> {{change.eventType}}</div>
-                  <div class="description" ng-if="change.description"><strong>Change Description:</strong> {{change.description}}</div>
+                  <div class="description" ng-show="change.description"><strong>Change Description:</strong> {{change.description}}</div>
                 </div>
               </details>
             </span>

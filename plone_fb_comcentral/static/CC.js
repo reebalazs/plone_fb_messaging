@@ -183,8 +183,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -216,6 +216,9 @@ app.controller('ViewBroadcastsController',
             $scope.visibleBroadcasts = $scope.filteredBroadcasts;
             $scope.toggleShow();
         };
+
+        $scope.username = $rootScope.ploneUserid;
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
 
         // Moved to broadcast Controller because it may be useful here in future
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
@@ -263,8 +266,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFireCollection', 'AuthService', '$rootScope',
-    function ($scope, angularFireCollection, AuthService, $rootScope) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -294,6 +297,10 @@ app.controller('ActivityStreamController',
             $scope.visibleActivities = $scope.filteredActivities;
             $scope.toggleShow();
         };
+
+        $scope.username = $rootScope.ploneUserid;
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
+        $scope.createPrivateRoom = createPrivateRoom;
 
         //$scope.updateUsername = function () {
         //    updateUsername($scope, $cookieStore);
