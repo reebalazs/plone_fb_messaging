@@ -23,8 +23,10 @@
 
   <div class="whoispresent">
     <div>
-      <label for="username">Your name: </label>
-      <span class="myusername">{{username}}</span>
+      Your name:
+      <span class="myusername">
+        {{username}} <span ng-show="userProfiles[username].fullName">({{username | getFullName:userProfiles}})</span>
+      </span>
     </div>
 
     <div class="users">
