@@ -409,7 +409,12 @@ app.controller('MessagingController',
                 return 1; // second group in ordering (online and in room)
             else
                 return 2; // rest of ordering (online and not in room)
-        }
+        };
+
+        $scope.showMoreMessages = function () {
+            $scope.moreMessagesShown = $el.scrollHeight;
+            $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
+        };
     }
 ]);
 
@@ -441,7 +446,11 @@ app.directive('autoScroll', function ($timeout) {
             timer = $timeout(function() {
                 if (newLength - minimalLength > 5) {
                     // big increase and initial load: jump to end
-                    $el[0].scrollTop = $el[0].scrollHeight;
+                    if(!$scope.moreMessagesShown)
+                        $el[0].scrollTop = $el[0].scrollHeight;
+                    else
+                        $el[0].scrollTop = $el[0].scrollHeight - $scope.moreMessagesShown;
+                    $scope.moreMessagesShown = false;
                 } else {
                     // small increase: scroll to end
                     $el

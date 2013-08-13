@@ -43,6 +43,7 @@
   </div>
 
   <div class="messages" id="messagesDiv" auto-scroll="messages">
+    <div class="more-messages"><button ng-click="showMoreMessages()" ng-show="messages.length >= 50">Show more messages</button></div>
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:username">
       <div ng-switch-when="public" class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <img class="user-portrait" ng-src="{{portraitRoot + message.sender}}" onerror="this.src='{{defaultPortraitURL}}';">

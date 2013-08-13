@@ -218,6 +218,10 @@ div.overlay textarea.fb-message-input {
     font-weight: bold;
 }
 
+.more-messages {
+    text-align: center;
+}
+
 /* CSS for Activity Stream */
 .activities {
     height: 280px;
