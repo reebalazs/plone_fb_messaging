@@ -65,11 +65,11 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         })
 
         .otherwise({redirectTo: '/'});
-
 }]);
 
 app.service('AuthService', function($rootScope, angularFire, $q) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
+
      if (! $rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
@@ -78,10 +78,16 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
+        $rootScope.staticRoot = '../static/'
+        $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
     } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
         $rootScope.fullName = $rootScope.ploneUserid;
     }
+
+    var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
+    $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
+    //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
     var firebase = new Firebase($rootScope.firebaseUrl);
@@ -130,14 +136,12 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
 
     // profile handling
     var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
+    // store the fullname into the profile
+    // this makes sure that every user's fullname is
+    // stored or updated on login
+    profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
+            // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
     var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
-
-    userProfilePromise.then(function () {
-        // store the fullname into the profile
-        // this makes sure that every user's fullname is
-        // stored or updated on login
-        $rootScope.userProfile.fullName = $rootScope.fullName;
-    });
 
     // promise will satisfy when both serverTimeOffset and userProfile are read.
     this.promise = $q.all([
@@ -145,7 +149,6 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         serverTimeOffsetQ.promise,
         userProfilePromise
     ]);
-
 });
 
 app.controller('CommandCentralController',
@@ -343,7 +346,8 @@ app.controller('MessagingController',
 
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
-        $scope.$watch('[users, members]' , function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
+        $scope.$watch('[users, members]' , function () {
             $scope.onlineUsers = userFilter($scope.users, $scope.members);
         }, true);
 
@@ -366,7 +370,7 @@ app.controller('MessagingController',
             $scope.heading = 'Private Chat with ' + privateChatUser;
 
             var checkOnline = onlineRef.child(privateChatUser).on('value', function (dataSnapshot) {
-                $scope.info = 'User is <strong>' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</strong>';
+                $scope.info = 'User is <span class="user-status-marker">' + (dataSnapshot.hasChild('online') ? 'online' : 'offline') + '</span>';
             });
         }
 
@@ -380,6 +384,9 @@ app.controller('MessagingController',
         $scope.createPrivateRoom = createPrivateRoom;
         $scope.hideRoom = hideRoom;
 
+        $scope.portraitRoot = $rootScope.portraitRoot;
+        $scope.defaultPortraitURL = $rootScope.defaultPortrait;
+
         $scope.$watch(function () {
             return $location.path();
         }, function (newValue, oldValue) {
@@ -388,6 +395,15 @@ app.controller('MessagingController',
                 if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer on the same page
             }
         });
+
+        $scope.usersOrderingPredicate = function (user) {
+            if (user.userid == $scope.username)
+                return 0; // first in ordering (yourself)
+            else if (user[user.userid].inRoom)
+                return 1; // second group in ordering (online and in room)
+            else
+                return 2; // rest of ordering (online and not in room)
+        }
     }
 ]);
 
@@ -468,7 +484,7 @@ app.directive('contenteditable', function () {
 });
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
-    return function (msg, messages, ploneUserid, onlineRef, helpMessage, $location) {
+    return function (msg, messages, ploneUserid, onlineRef, helpMessage) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
         var username = ploneUserid;
@@ -552,7 +568,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         if (dataSnapshot.hasChild('lastActive')) {
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<strong>whois</strong>: <em>' + target + '</em> is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
+                                     is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -563,7 +580,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         else if (dataSnapshot.hasChild('logout')) { // TODO: 'logout' does not exist, restructure this using the online markers
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<strong>whois</strong>: <em>' + target + '</em> is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
+                                     is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -585,7 +603,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<strong>current time</strong>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
+                        content: '<span class="server-message-type">current time</span>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
                         private: true,
                         type: 'server',
                         time: Firebase.ServerValue.TIMESTAMP
@@ -627,9 +645,9 @@ app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootSc
 }]);
 
 app.factory('processMessage', ['handleCommand', function(handleCommand) {
-    return function (username, message, messages, onlineRef, helpMessage, $location) {
+    return function (username, message, messages, onlineRef, helpMessage) {
         if (message.indexOf('/') === 0) {
-            handleCommand(message, messages, username, onlineRef, helpMessage, $location);
+            handleCommand(message, messages, username, onlineRef, helpMessage);
             /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
             is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
         }
@@ -710,6 +728,16 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
+    };
+});
+
+app.filter('getFullName', function () {
+    return function (sender, userProfiles) {
+        if(userProfiles !== undefined) {
+            if(userProfiles[sender] && userProfiles[sender].fullName)
+                return userProfiles[sender].fullName;
+        }
+        return sender;
     };
 });
 

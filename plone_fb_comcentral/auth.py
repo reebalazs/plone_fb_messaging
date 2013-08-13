@@ -71,10 +71,19 @@ def get_auth_info(context, request, admin=False):
         # allow it either. Return a void token.
         token = ''
 
+    # Some info that is not auth related
+    portal_state = getMultiAdapter((context, request), name="plone_portal_state")
+    portal_url = portal_state.portal_url()
+    static = {
+        'staticRoot':  portal_url + '/++resource++fb_comcentral/',
+        'portraitRoot':  portal_url + '/portal_memberdata/portraits/',
+    }
+
     return dict(
         auth_token=token,
         auth_data=custom_data,
         config=config,
+        static=static,
     )
 
 
