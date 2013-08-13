@@ -9,7 +9,8 @@ app.controller('AddActivityController', ['$scope', '$timeout', 'angularFire', 'a
             var newActivity = {
                 message: $scope.message, 
                 userID: $scope.userID, 
-                time: Firebase.ServerValue.TIMESTAMP, 
+                time: Firebase.ServerValue.TIMESTAMP,
+                numChanges: $scope.numItems
             };
             if($scope.description) newActivity.description = $scope.description;
 
