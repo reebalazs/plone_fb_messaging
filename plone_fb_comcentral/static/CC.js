@@ -69,6 +69,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
 app.service('AuthService', function($rootScope, angularFire, $q) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
+
      if (! $rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
@@ -81,6 +82,9 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         // if empty full name, substitute with username
         $rootScope.fullName = $rootScope.ploneUserid;
     }
+
+    var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
+    $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
 
     console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
     var firebase = new Firebase($rootScope.firebaseUrl);
