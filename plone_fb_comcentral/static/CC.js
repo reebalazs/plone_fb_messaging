@@ -733,7 +733,7 @@ app.filter('getFullName', function () {
 
 app.filter('getUserPotrait', function () {
     return function (username) {
-        return '../static/defaultPotrait.png'; // TODO: generate actual URL and use HEAD request to check if picture exists?
+        return '../static/defaultPortrait.png'; // TODO: generate actual URL and use HEAD request to check if picture exists?
         // defaultUser potrait from http://openclipart.org/detail/177854/person-icon-by-thekua-177854
     };
 });
