@@ -12,6 +12,10 @@
         compression="none"
         expression="context/@@fb_comcentral_allowed_userid"
         />
+    <javascript id="++resource++fb_comcentral/dist/angular-elastic.min.js"
+        compression="none"
+        expression="context/@@fb_comcentral_allowed_userid"
+        />
     <javascript id="++resource++fb_comcentral/dist/bower_components/angularFire/angularFire.js"
         expression="context/@@fb_comcentral_allowed_userid"
         />

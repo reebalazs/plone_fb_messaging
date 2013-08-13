@@ -61,8 +61,10 @@
   </div>
   
   <form ng-submit="processMessage()">
-    <input id="fb-messages-input" class="fb-message-input" type="text" ng-model="message" ng-trim="false" ng-click="helpClass = helpClass.split(' ')[0] + ' hidden'" placeholder="Message..." required>
-    <input type="submit" id="submit" value="Send">
+    <textarea id="fb-message-input" msd-elastic rows="1"
+     class="fb-message-input" ng-model="message" ng-enter="processMessage()"
+          placeholder="Enter your message..."></textarea>
+    <button >Send</button>
     <div class="helpMessage" ng-class="helpMessage.helpClass" ng-bind="helpMessage.help"></div>
   </form>
   <div ng-bind-html-unsafe="info"></div>

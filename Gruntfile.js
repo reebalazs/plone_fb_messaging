@@ -13,6 +13,7 @@ module.exports = function(grunt) {
             collect.bower('jquery').path('jquery.js'),
             collect.bower('angular').path('angular.js'),
             collect.bower('angular-cookies').path('angular-cookies.js'),
+            collect.bower('angular-elastic').path('elastic.js'),
             collect.bower('angularFire').path('angularFire.js')
           ]
         }
@@ -26,6 +27,9 @@ module.exports = function(grunt) {
           ],
           'plone_fb_comcentral/static/dist/angular-cookies.min.js': [
             collect.bower('angular-cookies').path('angular-cookies.js')
+          ],
+          'plone_fb_comcentral/static/dist/angular-elastic.min.js': [
+              collect.bower('angular-elastic').path('elastic.js')
           ],
           'plone_fb_comcentral/static/dist/jquery.min.js': [
             collect.bower('jquery').path('jquery.js')
@@ -43,6 +47,7 @@ module.exports = function(grunt) {
           collect.bower('jquery').path('jquery.js'),
           collect.bower('angular').path('angular.js'),
           collect.bower('angular-cookies').path('angular-cookies.js'),
+          collect.bower('angular-elastic').path('elastic.js'),
           collect.bower('angularFire').path('angularFire.js')
         ],
         tasks: ['copy:default', 'uglify:default']

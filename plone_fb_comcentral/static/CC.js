@@ -1,4 +1,4 @@
-var app = angular.module('commandCentral', ['firebase', 'ngCookies']);
+var app = angular.module('commandCentral', ['firebase', 'ngCookies', 'monospaced.elastic']);
 
 app.config(['$routeProvider', '$locationProvider', '$provide',
     function ($routeProvider, $locationProvider, $provide) {
@@ -319,8 +319,8 @@ app.controller('MessagingController',
             window.showFbOverlay();
         }
 
-        // focus to messagesDiv
-        $('#fb-messages-input')[0].focus();
+        // focus to messages input
+        $('#fb-message-input')[0].focus();
 
         //setUsername($scope, $cookieStore);
 
@@ -749,6 +749,19 @@ app.filter('getFullName', function () {
                 return userProfiles[sender].fullName;
         }
         return sender;
+    };
+});
+
+app.directive('ngEnter', function() {
+    return function(scope, element, attrs) {
+        element.bind("keydown", function(event) {
+            if(event.which === 13) {
+                scope.$apply(function(){
+                    scope.$eval(attrs.ngEnter);
+                });
+                return false;
+            }
+        });
     };
 });
 

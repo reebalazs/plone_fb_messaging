@@ -90,6 +90,10 @@ h1.fb-cc-title {
 input.fb-message-input {
     width: 400px;
 }
+div.overlay textarea.fb-message-input {
+    width: 400px;
+}
+
 
 .chat-sender, .chat-content {
     padding: 0.5em;

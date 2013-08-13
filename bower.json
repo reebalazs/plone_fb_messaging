@@ -5,6 +5,7 @@
         "jquery": "*",
         "angular": "*",
         "angular-cookies": "*",
-        "angularFire": "https://github.com/firebase/angularFire.git"
+        "angularFire": "https://github.com/firebase/angularFire.git",
+        "angular-elastic": "*"
     }
 }
