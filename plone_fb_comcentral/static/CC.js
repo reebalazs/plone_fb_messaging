@@ -260,8 +260,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFireCollection', 'AuthService', '$rootScope',
-    function ($scope, angularFireCollection, AuthService, $rootScope) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -291,6 +291,10 @@ app.controller('ActivityStreamController',
             $scope.visibleActivities = $scope.filteredActivities;
             $scope.toggleShow();
         };
+
+        $scope.username = $rootScope.ploneUserid;
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
+        $scope.createPrivateRoom = createPrivateRoom;
 
         //$scope.updateUsername = function () {
         //    updateUsername($scope, $cookieStore);
@@ -710,6 +714,16 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
+    };
+});
+
+app.filter('getFullName', function () {
+    return function (sender, userProfiles) {
+        if(userProfiles !== undefined) {
+            if(userProfiles[sender] && userProfiles[sender].fullName)
+                return userProfiles[sender].fullName;
+        }
+        return sender;
     };
 });
 

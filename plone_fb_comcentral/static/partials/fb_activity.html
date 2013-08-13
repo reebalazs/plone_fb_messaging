@@ -8,7 +8,7 @@
       <summary>
         <strong>Message:</strong> {{activity.message}}
         <div>
-          <div><strong>User ID:</strong> {{activity.userID}}</div>
+          <div><strong>User ID:</strong> <a href="" ng-click="createPrivateRoom(username, activity.userID)">{{activity.userID}} ({{activity.userID | getFullName:userProfiles}})</a></div>
           <div><strong>Change Time:</strong> {{activity.time | date:'medium'}}</div>
         </div>
       </summary>
@@ -16,7 +16,7 @@
         <div class="description" ng-if="activity.description"><strong>Description:</strong> {{activity.description}}</div>
         <div class="changes" id="changesDiv">
           <div ng-cloak ng-repeat="change in activity.changes">
-            <span ng-switch="$first && Object.keys(activity.changes).length == 1">
+            <span ng-switch="$first && Object.keys(activity.changes).length == 1"> <!-- TODO: refactor this Object.keys() -->
               <details ng-switch-when="true" class="change" open>
                 <summary>
                   <strong>Change Message:</strong> {{change.message}}
