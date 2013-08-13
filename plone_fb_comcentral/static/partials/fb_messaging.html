@@ -47,7 +47,8 @@
       <div ng-switch-when="public" class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <img class="user-portrait" ng-src="{{portraitRoot + message.sender}}" onerror="this.src='{{defaultPortraitURL}}';">
         <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
-        <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" contenteditable="{{message.sender == username}}">{{message.content}}</div>
+        <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
+          contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
       <div ng-switch-when="server" class="server chat-line-foreign"> <!-- Styling for this needed -->
         <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" ng-bind-html-unsafe="message.content"></div>
@@ -55,7 +56,8 @@
       <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
         <img class="user-portrait" ng-src="{{portraitRoot + message.sender}}" onerror="this.src='{{defaultPortraitURL}}';">
         <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
-        <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" contenteditable="{{message.sender == username}}"> {{message.content}}</div>
+        <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
+          contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
     </div>
   </div>

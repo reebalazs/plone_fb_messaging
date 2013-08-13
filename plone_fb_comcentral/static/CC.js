@@ -332,7 +332,8 @@ app.controller('MessagingController',
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
         $scope.processMessage = function () {
-            processMessage(username, $scope.message, $scope.messages, onlineRef, $scope.helpMessage, $location);
+            var message = $('<div/>').text($scope.message).html(); // escape html inities to prevent script injection, etc.
+            processMessage(username, message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
 
@@ -482,7 +483,7 @@ app.directive('contenteditable', function () {
 
             element.bind('blur', function () {
                 var message = ngModel.$modelValue;
-                message.content = $.trim(element.text());
+                message.content = $('<div/>').text($.trim(element.text())).html(); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
                 if(message.content === '')
                     $scope.messages.remove(message);
