@@ -397,16 +397,10 @@ app.controller('MessagingController',
         $scope.portraitRoot = $rootScope.portraitRoot;
         $scope.defaultPortraitURL = $rootScope.defaultPortrait;
 
-        // XXX TODO move this to a locationChange handler
-        // 
-        //$scope.$watch(function () {
-        //    return $location.path();
-        //}, function (newValue, oldValue) {
-        //    if(newValue !== oldValue) {
-        //        inRoomRef.remove(); //Remove user from members if they are no longer on the same page
-        //        if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer on the same page
-        //    }
-        //});
+        $scope.$on('$routeChangeStart', function (event, next, current) {
+            inRoomRef.remove(); //Remove user from members since they are no longer in the same room
+            if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
+        });
 
         $scope.usersOrderingPredicate = function (user) {
             if (user.userid == $scope.username)
