@@ -118,12 +118,12 @@ input.fb-message-input {
 .chat-line-own .chat-sender {
     display: inline-block;
     float: right;
-    padding-top: .25em;
+    padding-top: .5em;
 }
 
 .user-potrait {
     width: 35px;
-    padding-top: .5em;
+    padding-top: .25em;
     vertical-align: middle;
 }
 
