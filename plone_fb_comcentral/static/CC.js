@@ -384,6 +384,9 @@ app.controller('MessagingController',
         $scope.createPrivateRoom = createPrivateRoom;
         $scope.hideRoom = hideRoom;
 
+        $scope.portraitRoot = $rootScope.portraitRoot;
+        $scope.defaultPortraitURL = $rootScope.defaultPortrait;
+
         $scope.$watch(function () {
             return $location.path();
         }, function (newValue, oldValue) {
@@ -735,13 +738,6 @@ app.filter('getFullName', function () {
                 return userProfiles[sender].fullName;
         }
         return sender;
-    };
-});
-
-app.filter('getUserPotrait', function () {
-    return function (username) {
-        return '../static/defaultPortrait.png'; // TODO: generate actual URL and use HEAD request to check if picture exists?
-        // defaultUser potrait from http://openclipart.org/detail/177854/person-icon-by-thekua-177854
     };
 });
 
