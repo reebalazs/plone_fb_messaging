@@ -358,7 +358,7 @@ app.controller('MessagingController',
             $scope.onlineUsers = userFilter($scope.users, $scope.members);
         }, true);
 
-        $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
+        $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(50));
 
         if (roomType === 'public') {
             $scope.heading = 'Public Chat: ' + $scope.currentRoomName;
