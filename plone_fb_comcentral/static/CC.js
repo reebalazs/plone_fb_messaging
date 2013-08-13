@@ -65,7 +65,6 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         })
 
         .otherwise({redirectTo: '/'});
-
 }]);
 
 app.service('AuthService', function($rootScope, angularFire, $q) {
@@ -136,7 +135,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         // store the fullname into the profile
         // this makes sure that every user's fullname is
         // stored or updated on login
-        $rootScope.userProfile.fullName = $rootScope.fullName;
+        $rootScope.userProfile.fullName = $rootScope.fullName; // this is not being stored if userProfile is {}
     });
 
     // promise will satisfy when both serverTimeOffset and userProfile are read.
@@ -145,7 +144,6 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         serverTimeOffsetQ.promise,
         userProfilePromise
     ]);
-
 });
 
 app.controller('CommandCentralController',
@@ -343,8 +341,9 @@ app.controller('MessagingController',
 
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
-        $scope.$watch('[users, members]' , function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
-            $scope.onlineUsers = userFilter($scope.users, $scope.members);
+        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
+        $scope.$watch('[users, members, userProfiles]' , function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
+            $scope.onlineUsers = userFilter($scope.users, $scope.members, $scope.userProfiles);
         }, true);
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
@@ -392,7 +391,7 @@ app.controller('MessagingController',
         $scope.usersOrderingPredicate = function (user) {
             if (user.userid == $scope.username)
                 return 0; // first in ordering (yourself)
-            else if(user[user.userid].inRoom)
+            else if (user[user.userid].inRoom)
                 return 1; // second group in ordering (online and in room)
             else
                 return 2; // rest of ordering (online and not in room)
@@ -658,7 +657,7 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 }]);
 
 app.factory('userFilter', function () {
-    return function (users, members) {
+    return function (users, members, userProfiles) {
         var result = [];
         for (var username in users) {
             var user = users[username];
@@ -667,6 +666,7 @@ app.factory('userFilter', function () {
                 resultUser.userid = username;
                 resultUser[username] = user;
                 resultUser[username].inRoom = members.hasOwnProperty(username);
+                resultUser[username].fullName = userProfiles[username].fullName;
                 result.push(resultUser);
             }
         }
@@ -721,6 +721,15 @@ app.filter('messageFilter', function () {
                 result.push(message);
         }
         return result;
+    };
+});
+
+app.filter('getFullName', function () {
+    return function (sender, users) {
+        for(var i = 0; i < users.length; i++) // this is unavoidable because onlineUsers is no longer an object
+            if(users[i].userid === sender && users[i][sender].fullName !== undefined)
+                return users[i][sender].fullName;
+        return sender;
     };
 });
 

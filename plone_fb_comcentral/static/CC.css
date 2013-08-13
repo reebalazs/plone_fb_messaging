@@ -71,14 +71,20 @@ h1.fb-cc-title {
 .roomList {
     float: left;
     border-right: 3px solid;
-    width: 18%;
+    width: 20%;
     height: 380px;
 }
 
 .fb-messages-chat {
     margin: 0;
     float: right;
-    width: 79%;
+    width: 78%;
+}
+
+.whoispresent {
+    float: right;
+    width: 180px;
+    margin-left: 0.5em;
 }
 
 input.fb-message-input {
@@ -212,13 +218,6 @@ input.fb-message-input {
     width: 330px;
     white-space: nowrap;
     overflow:hidden;
-}
-
-.whoispresent {
-    float: right;
-    width: 150px;
-    margin-left: 0.5em;
-
 }
 
 .description {
