@@ -342,8 +342,8 @@ app.controller('MessagingController',
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-        $scope.$watch('[users, members, userProfiles]' , function () { // not the most efficient, could be done with usersPromise.then but will not trigger again (no updates)
-            $scope.onlineUsers = userFilter($scope.users, $scope.members, $scope.userProfiles);
+        $scope.$watch('[users, members]' , function () {
+            $scope.onlineUsers = userFilter($scope.users, $scope.members);
         }, true);
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(500));
@@ -657,7 +657,7 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 }]);
 
 app.factory('userFilter', function () {
-    return function (users, members, userProfiles) {
+    return function (users, members) {
         var result = [];
         for (var username in users) {
             var user = users[username];
@@ -666,7 +666,6 @@ app.factory('userFilter', function () {
                 resultUser.userid = username;
                 resultUser[username] = user;
                 resultUser[username].inRoom = members.hasOwnProperty(username);
-                resultUser[username].fullName = userProfiles[username].fullName;
                 result.push(resultUser);
             }
         }
@@ -725,10 +724,11 @@ app.filter('messageFilter', function () {
 });
 
 app.filter('getFullName', function () {
-    return function (sender, users) {
-        for(var i = 0; i < users.length; i++) // this is unavoidable because onlineUsers is no longer an object
-            if(users[i].userid === sender && users[i][sender].fullName !== undefined)
-                return users[i][sender].fullName;
+    return function (sender, userProfiles) {
+        if(userProfiles !== undefined) {
+            if(userProfiles[sender] && userProfiles[sender].fullName)
+                return userProfiles[sender].fullName;
+        }
         return sender;
     };
 });
