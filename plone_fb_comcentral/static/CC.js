@@ -157,9 +157,10 @@ app.controller('CommandCentralController',
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route',
-    function ($scope, $route) {
+    ['$scope', '$route', 'TabInfo',
+    function ($scope, $route, TabInfo) {
         $scope.$route = $route;
+        $scope.TabInfo = TabInfo;
 }]);
 
 app.controller('CreateBroadcastController',
@@ -183,8 +184,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'TabInfo',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, TabInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -204,6 +205,7 @@ app.controller('ViewBroadcastsController',
             var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
             if (! expired && ! seen)
                 $scope.filteredBroadcasts.push(newBroadcast);
+            TabInfo.setnumBroadcasts($scope.filteredBroadcasts.length);
         });
 
         $scope.toggleShow = function () {
@@ -266,8 +268,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope',
-    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'TabInfo',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, TabInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -285,6 +287,7 @@ app.controller('ActivityStreamController',
             var newActivity = dataSnapshot.val();
             if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
                 $scope.filteredActivities.push(newActivity);
+            TabInfo.setnumActivites($scope.filteredActivities.length);
         });
 
         $scope.toggleShow = function () {
@@ -491,6 +494,16 @@ app.directive('contenteditable', function () {
             });
 
         }
+    };
+});
+
+app.factory('TabInfo', function() {
+    var numBroadcasts, numActivites;
+    return {
+        numBroadcasts: function () { return numBroadcasts; },
+        numActivites: function () { return numActivites; },
+        setnumActivites: function (num) { numActivites = num; },
+        setnumBroadcasts: function (num) { numBroadcasts = num; }
     };
 });
 

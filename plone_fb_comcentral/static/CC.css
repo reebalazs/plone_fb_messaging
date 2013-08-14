@@ -19,6 +19,7 @@ a.nav:link, a.nav:visited {
     padding: 6px;
     text-decoration: none;
     text-transform: uppercase;
+    margin: 5px;
 }
 
 a.nav:hover, a.nav.active,
