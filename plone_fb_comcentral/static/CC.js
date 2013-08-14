@@ -797,37 +797,6 @@ app.directive('ngEnter', function() {
     //        $scope.username = username;
 //}
 
-// XXX This looks like something to go in an event handler.
-//function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
-    // var privateChatUser = $scope.privateChatUser;
-    // var privateChat = $scope.privateChat;
-    // if (targetRoom === 'public') {
-    //     if( privateChat && !modified)
-    //         userRef.child('rooms').child(privateChatUser).set({
-    //             username: privateChatUser,
-    //             seen: Date.now()
-    //         }); //if we're leaving private to go to public, we've seen the private message
-    // }
-    // else {
-    //     if (privateChat && !modified && privateChatUser) {
-    //             userRef.child('rooms').child(privateChatUser).set({
-    //                 username: privateChatUser,
-    //                 seen: Date.now()
-    //             }); //if we're leaving private to go to private, we've seen the private message
-    //     }
-
-    //     // XXX This should also be done differently.
-    //     var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-    //     var userRef = onlineRef.child(username);
-
-    //     userRef.child('rooms').child(targetRoom).set({
-    //         username: targetRoom,
-    //         seen: Date.now(),
-    //         remove: 0
-    //     }); //create the new room if one doesn't exist, otherwise it's simply updated
-    // }
-//}
-
 //function updateUsername($scope, $cookieStore, angularFireCollection) {
     //return;
 
