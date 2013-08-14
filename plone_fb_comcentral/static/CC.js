@@ -310,9 +310,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter',
+    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'parseBBCode',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter) {
+        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, parseBBCode) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -332,7 +332,8 @@ app.controller('MessagingController',
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
         $scope.processMessage = function () {
-            processMessage(username, $scope.message, $scope.messages, onlineRef, $scope.helpMessage, $location);
+            var message = parseBBCode($('<div/>').text($scope.message).html()); // escape html inities to prevent script injection, etc.
+            processMessage(username, message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
 
@@ -351,12 +352,11 @@ app.controller('MessagingController',
         currentRoomRef.child('type').set(roomType);
         currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
 
-        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-        $scope.$watch('[users, members]' , function () {
-            $scope.onlineUsers = userFilter($scope.users, $scope.members);
-        }, true);
+        $scope.usersType = 'online';
+        $scope.userCounts = {};
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(50));
 
@@ -396,25 +396,15 @@ app.controller('MessagingController',
         $scope.portraitRoot = $rootScope.portraitRoot;
         $scope.defaultPortraitURL = $rootScope.defaultPortrait;
 
-        // XXX TODO move this to a locationChange handler
-        // 
-        //$scope.$watch(function () {
-        //    return $location.path();
-        //}, function (newValue, oldValue) {
-        //    if(newValue !== oldValue) {
-        //        inRoomRef.remove(); //Remove user from members if they are no longer on the same page
-        //        if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer on the same page
-        //    }
-        //});
+        $scope.$on('$routeChangeStart', function (event, next, current) {
+            inRoomRef.remove(); //Remove user from members since they are no longer in the same room
+            if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
+        });
 
-        $scope.usersOrderingPredicate = function (user) {
-            if (user.userid == $scope.username)
-                return 0; // first in ordering (yourself)
-            else if (user[user.userid].inRoom)
-                return 1; // second group in ordering (online and in room)
-            else
-                return 2; // rest of ordering (online and not in room)
-        }
+        $scope.showMoreMessages = function () {
+            $scope.moreMessagesShown = $el.scrollHeight;
+            $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
+        };
     }
 ]);
 
@@ -446,7 +436,11 @@ app.directive('autoScroll', function ($timeout) {
             timer = $timeout(function() {
                 if (newLength - minimalLength > 5) {
                     // big increase and initial load: jump to end
-                    $el[0].scrollTop = $el[0].scrollHeight;
+                    if(!$scope.moreMessagesShown)
+                        $el[0].scrollTop = $el[0].scrollHeight;
+                    else
+                        $el[0].scrollTop = $el[0].scrollHeight - $scope.moreMessagesShown;
+                    $scope.moreMessagesShown = false;
                 } else {
                     // small increase: scroll to end
                     $el
@@ -463,7 +457,7 @@ app.directive('autoScroll', function ($timeout) {
 });
 
 // editing messages
-app.directive('contenteditable', function () {
+app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
     return {
         restrict: 'A',
         require: '?ngModel',
@@ -482,7 +476,7 @@ app.directive('contenteditable', function () {
 
             element.bind('blur', function () {
                 var message = ngModel.$modelValue;
-                message.content = $.trim(element.text());
+                message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
                 if(message.content === '')
                     $scope.messages.remove(message);
@@ -492,7 +486,7 @@ app.directive('contenteditable', function () {
 
         }
     };
-});
+}]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage) {
@@ -675,20 +669,42 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
     };
 }]);
 
-app.factory('userFilter', function () {
-    return function (users, members) {
-        var result = [];
+app.factory('parseBBCode', function () {
+    return function (message) {
+        if (message.indexOf('[') !== -1) {
+            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>')
+            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>')
+            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>')
+            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>')
+            message = message.replace(new RegExp('\\[url]([\\s\\S]+?)\\[/url]', 'ig'), '<a href="$1">$1</a>');
+            message = message.replace(new RegExp('\\[url=(.+)]([\\s\\S]+?)\\[/url]'), '<a href="$1">$2</a>');
+        }
+        return message;
+    };
+});
+
+app.filter('userFilter', function () {
+    return function (users, userCounts) {
+        var result = {};
+        var counter = 0;
         for (var username in users) {
-            var user = users[username];
-            if (user.online) {
-                var resultUser = {};
-                resultUser.userid = username;
-                resultUser[username] = user;
-                resultUser[username].inRoom = members.hasOwnProperty(username);
-                result.push(resultUser);
+            if(users[username].online) {
+                result[username] = users[username];
+                counter++;
             }
         }
+        userCounts.onlineUsers = counter; // This is a simple and efficient method to avoid Object.keys()
         return result;
+    };
+});
+
+app.filter('roomMemberFilter', function () {
+    return function (users, userCounts) {
+        var counter = 0;
+        for (var username in users)
+            counter++;
+        userCounts.roomMembers = counter; // This is a simple and efficient method to avoid Object.keys()
+        return users;
     };
 });
 
@@ -779,37 +795,6 @@ app.directive('ngEnter', function() {
     //    }
     //    else if (username.search(usernameRegexp) === 0)
     //        $scope.username = username;
-//}
-
-// XXX This looks like something to go in an event handler.
-//function onRoomSwitch($scope, targetRoom, modified, $rootscope) {
-    // var privateChatUser = $scope.privateChatUser;
-    // var privateChat = $scope.privateChat;
-    // if (targetRoom === 'public') {
-    //     if( privateChat && !modified)
-    //         userRef.child('rooms').child(privateChatUser).set({
-    //             username: privateChatUser,
-    //             seen: Date.now()
-    //         }); //if we're leaving private to go to public, we've seen the private message
-    // }
-    // else {
-    //     if (privateChat && !modified && privateChatUser) {
-    //             userRef.child('rooms').child(privateChatUser).set({
-    //                 username: privateChatUser,
-    //                 seen: Date.now()
-    //             }); //if we're leaving private to go to private, we've seen the private message
-    //     }
-
-    //     // XXX This should also be done differently.
-    //     var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
-    //     var userRef = onlineRef.child(username);
-
-    //     userRef.child('rooms').child(targetRoom).set({
-    //         username: targetRoom,
-    //         seen: Date.now(),
-    //         remove: 0
-    //     }); //create the new room if one doesn't exist, otherwise it's simply updated
-    // }
 //}
 
 //function updateUsername($scope, $cookieStore, angularFireCollection) {
