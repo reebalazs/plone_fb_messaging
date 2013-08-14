@@ -29,17 +29,37 @@
       </div>
     </div>
 
-    <div class="users">
-      <strong>Online Users <span ng-cloak>({{onlineUsers.length}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="user in onlineUsers | orderBy:usersOrderingPredicate">
-          <a href="" class="user" ng-class="{true:'in-room', false:''}[user[user.userid].inRoom]" ng-click="createPrivateRoom(username, user.userid)" ng-show="user.userid != username">
-            {{user.userid}} <span ng-show="userProfiles[user.userid].fullName">({{user.userid | getFullName:userProfiles}})</span>
+    <div class="users" ng-switch on="usersType">
+      <div ng-switch-when="room">
+        <strong>Room Members <span ng-cloak>({{userCounts.roomMembers}})</span>:</strong>
+        <div class="user" ng-cloak ng-repeat="(userid, user) in roomMembers | roomMemberFilter:userCounts">
+          <a href="" class="user" ng-click="createPrivateRoom(username, userid)" ng-show="userid != username">
+            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
           </a>
-          <span ng-class="{true:'in-room', false:''}[user[user.userid].inRoom]" ng-show="user.userid == username">
-            {{user.userid}} <span ng-show="userProfiles[user.userid].fullName">({{user.userid | getFullName:userProfiles}})</span>
+          <span ng-show="userid == username">
+            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
           </span>
         </div>
+      </div>
+
+      <div ng-switch-when="online">
+        <strong>Online Users <span ng-cloak>({{userCounts.onlineUsers}})</span>:</strong>
+        <div class="user" ng-cloak ng-repeat="(userid, user) in users | userFilter:userCounts">
+          <a href="" class="user" ng-click="createPrivateRoom(username, userid)" ng-show="userid != username">
+            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+          </a>
+          <span ng-show="userid == username">
+            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+          </span>
+        </div>
+      </div>
     </div>
+
+    <div class="user-controls">
+      <div>Show:</div> 
+      <div><input type="radio" name="user-controls" ng-model="usersType" value="online" checked> Online Users</div>
+      <div><input type="radio" name="user-controls" ng-model="usersType" value="room"> Room Members</div>
+    </div> 
   </div>
 
   <div class="messages" id="messagesDiv" auto-scroll="messages">

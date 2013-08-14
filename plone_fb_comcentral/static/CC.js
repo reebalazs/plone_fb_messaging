@@ -310,9 +310,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter', 'parseBBCode',
+    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'parseBBCode',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter, parseBBCode) {
+        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, parseBBCode) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -352,12 +352,11 @@ app.controller('MessagingController',
         currentRoomRef.child('type').set(roomType);
         currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
 
-        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
+        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-        $scope.$watch('[users, members]' , function () {
-            $scope.onlineUsers = userFilter($scope.users, $scope.members);
-        }, true);
+        $scope.usersType = 'online';
+        $scope.userCounts = {};
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(50));
 
@@ -401,15 +400,6 @@ app.controller('MessagingController',
             inRoomRef.remove(); //Remove user from members since they are no longer in the same room
             if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
         });
-
-        $scope.usersOrderingPredicate = function (user) {
-            if (user.userid == $scope.username)
-                return 0; // first in ordering (yourself)
-            else if (user[user.userid].inRoom)
-                return 1; // second group in ordering (online and in room)
-            else
-                return 2; // rest of ordering (online and not in room)
-        };
 
         $scope.showMoreMessages = function () {
             $scope.moreMessagesShown = $el.scrollHeight;
@@ -693,20 +683,28 @@ app.factory('parseBBCode', function () {
     };
 });
 
-app.factory('userFilter', function () {
-    return function (users, members) {
-        var result = [];
+app.filter('userFilter', function () {
+    return function (users, userCounts) {
+        var result = {};
+        var counter = 0;
         for (var username in users) {
-            var user = users[username];
-            if (user.online) {
-                var resultUser = {};
-                resultUser.userid = username;
-                resultUser[username] = user;
-                resultUser[username].inRoom = members.hasOwnProperty(username);
-                result.push(resultUser);
+            if(users[username].online) {
+                result[username] = users[username];
+                counter++;
             }
         }
+        userCounts.onlineUsers = counter; // This is a simple and efficient method to avoid Object.keys()
         return result;
+    };
+});
+
+app.filter('roomMemberFilter', function () {
+    return function (users, userCounts) {
+        var counter = 0;
+        for (var username in users)
+            counter++;
+        userCounts.roomMembers = counter; // This is a simple and efficient method to avoid Object.keys()
+        return users;
     };
 });
 
