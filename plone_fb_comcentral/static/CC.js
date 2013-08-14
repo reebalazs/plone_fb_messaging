@@ -310,9 +310,9 @@ app.controller('ActivityStreamController',
 
 app.controller('MessagingController',
     ['$scope', '$timeout', 'angularFire', 'angularFireCollection', '$q', '$routeParams', '$location', '$cookieStore', '$rootScope',
-    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter',
+    'handleCommand', 'createPublicRoom', 'createPrivateRoom', 'hideRoom', 'processMessage', 'userFilter', 'parseBBCode',
     function ($scope, $timeout, angularFire, angularFireCollection, $q, $routeParams, $location, $cookieStore, $rootScope,
-        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter) {
+        handleCommand, createPublicRoom, createPrivateRoom, hideRoom, processMessage, userFilter, parseBBCode) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -332,7 +332,7 @@ app.controller('MessagingController',
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
         $scope.processMessage = function () {
-            var message = $('<div/>').text($scope.message).html(); // escape html inities to prevent script injection, etc.
+            var message = parseBBCode($('<div/>').text($scope.message).html()); // escape html inities to prevent script injection, etc.
             processMessage(username, message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
@@ -467,7 +467,7 @@ app.directive('autoScroll', function ($timeout) {
 });
 
 // editing messages
-app.directive('contenteditable', function () {
+app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
     return {
         restrict: 'A',
         require: '?ngModel',
@@ -486,7 +486,7 @@ app.directive('contenteditable', function () {
 
             element.bind('blur', function () {
                 var message = ngModel.$modelValue;
-                message.content = $('<div/>').text($.trim(element.text())).html(); // escape html inities to prevent script injection, etc.
+                message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
                 if(message.content === '')
                     $scope.messages.remove(message);
@@ -496,7 +496,7 @@ app.directive('contenteditable', function () {
 
         }
     };
-});
+}]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage) {
@@ -678,6 +678,20 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
         }
     };
 }]);
+
+app.factory('parseBBCode', function () {
+    return function (message) {
+        if (message.indexOf('[') !== -1) {
+            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>')
+            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>')
+            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>')
+            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>')
+            message = message.replace(new RegExp('\\[url]([\\s\\S]+?)\\[/url]', 'ig'), '<a href="$1">$1</a>');
+            message = message.replace(new RegExp('\\[url=(.+)]([\\s\\S]+?)\\[/url]'), '<a href="$1">$2</a>');
+        }
+        return message;
+    };
+});
 
 app.factory('userFilter', function () {
     return function (users, members) {
