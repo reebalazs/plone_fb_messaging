@@ -157,10 +157,24 @@ app.controller('CommandCentralController',
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route', 'TabInfo',
-    function ($scope, $route, TabInfo) {
+    ['$scope', '$route', 'AuthService', 'StreamInfo',
+    function ($scope, $route, AuthService, StreamInfo) {
         $scope.$route = $route;
-        $scope.TabInfo = TabInfo;
+        $scope.streamCounts = {numActivites: 0, numBroadcasts: 0};
+
+        AuthService.promise.then(function () {
+            $scope.StreamInfo = StreamInfo;
+
+            $scope.$watch(function () {
+                return StreamInfo.streamCounts;
+            }, function () {
+                $scope.streamCounts = StreamInfo.streamCounts;
+                setTimeout(function () { 
+                    // there should be a better way to do this but I'll leave it for the moment because it works
+                    $scope.$apply();
+                }, 1000);
+            }, true);
+        });
 }]);
 
 app.controller('CreateBroadcastController',
@@ -184,8 +198,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'TabInfo',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, TabInfo) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'StreamInfo',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, StreamInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -193,20 +207,9 @@ app.controller('ViewBroadcastsController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredBroadcasts = [];
+        $scope.filteredBroadcasts = StreamInfo.filteredBroadcasts;
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
-        $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
-
-        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newBroadcast = dataSnapshot.val();
-            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
-            var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
-            if (! expired && ! seen)
-                $scope.filteredBroadcasts.push(newBroadcast);
-            TabInfo.setnumBroadcasts($scope.filteredBroadcasts.length);
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
@@ -268,8 +271,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'TabInfo',
-    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, TabInfo) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'StreamInfo',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, StreamInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -277,18 +280,9 @@ app.controller('ActivityStreamController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredActivities = [];
+        $scope.filteredActivities = StreamInfo.filteredActivities;
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
-        $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
-
-        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newActivity = dataSnapshot.val();
-            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
-                $scope.filteredActivities.push(newActivity);
-            TabInfo.setnumActivites($scope.filteredActivities.length);
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
@@ -357,7 +351,7 @@ app.controller('MessagingController',
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'members', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-        $scope.$watch('[users, members]' , function () {
+        $scope.$watch('[users, members]', function () {
             $scope.onlineUsers = userFilter($scope.users, $scope.members);
         }, true);
 
@@ -497,15 +491,38 @@ app.directive('contenteditable', function () {
     };
 });
 
-app.factory('TabInfo', function() {
-    var numBroadcasts, numActivites;
-    return {
-        numBroadcasts: function () { return numBroadcasts; },
-        numActivites: function () { return numActivites; },
-        setnumActivites: function (num) { numActivites = num; },
-        setnumBroadcasts: function (num) { numBroadcasts = num; }
-    };
-});
+app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
+    this.streamCounts = {};
+    this.filteredActivities = [];
+    this.filteredBroadcasts = [];
+    var streamCounts = this.streamCounts;
+    var filteredActivities = this.filteredActivities;
+    var filteredBroadcasts = this.filteredBroadcasts;
+
+    AuthService.promise.then(function () {
+        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
+        var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
+        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newBroadcast = dataSnapshot.val();
+            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
+            if (! expired && ! seen)
+                filteredBroadcasts.push(newBroadcast);
+            streamCounts.numBroadcasts = filteredBroadcasts.length;
+        });
+
+        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+        var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
+        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newActivity = dataSnapshot.val();
+            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
+                filteredActivities.push(newActivity);
+            streamCounts.numActivites = filteredActivities.length;
+        });
+    });
+
+    return this;
+}]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, onlineRef, helpMessage) {

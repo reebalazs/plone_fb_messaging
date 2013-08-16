@@ -15,13 +15,13 @@
     <li>
       <a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#*/activity">
         Activity Stream
-        <span ng-show="TabInfo.numActivites()">({{TabInfo.numActivites()}})</span>
+        <span ng-cloak ng-show="streamCounts.numActivites">({{streamCounts.numActivites}})</span>
       </a>
     </li>
     <li>
       <a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#*/broadcast">
         Broadcast Stream
-        <span ng-show="TabInfo.numBroadcasts()">({{TabInfo.numBroadcasts()}})</span>
+        <span ng-cloak ng-show="streamCounts.numBroadcasts">({{streamCounts.numBroadcasts}})</span>
       </a>
     </li>
     <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#*/messaging/public/main">Messaging</a></li>
