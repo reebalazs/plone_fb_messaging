@@ -402,7 +402,7 @@ app.controller('MessagingController',
         });
 
         $scope.showMoreMessages = function () {
-            $scope.moreMessagesShown = $el.scrollHeight;
+            $scope.moreMessagesShown = $('#messagesDiv')[0].scrollHeight;
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
         };
     }
