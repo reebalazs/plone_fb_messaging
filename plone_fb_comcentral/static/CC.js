@@ -393,17 +393,27 @@ app.controller('MessagingController',
         $scope.createPrivateRoom = createPrivateRoom;
         $scope.hideRoom = hideRoom;
 
-        $scope.portraitRoot = $rootScope.portraitRoot;
-        $scope.defaultPortraitURL = $rootScope.defaultPortrait;
-
         $scope.$on('$routeChangeStart', function (event, next, current) {
             inRoomRef.remove(); //Remove user from members since they are no longer in the same room
             if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
         });
 
         $scope.showMoreMessages = function () {
-            $scope.moreMessagesShown = $el.scrollHeight;
+            $scope.moreMessagesShown = $("#messagesDiv")[0].scrollHeight;
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
+        };
+
+        $scope.portraits = {};
+        $scope.getPortraitURL = function (userid) {
+            if(! $scope.portraits.hasOwnProperty(userid)) {
+                $.ajax($rootScope.portraitRoot + userid).always(function (data) {
+                    if(data.status === 200)
+                        $scope.portraits[userid] = $rootScope.portraitRoot + userid;
+                    else
+                        $scope.portraits[userid] = $rootScope.defaultPortrait;
+                    $scope.$apply();
+                });
+            }
         };
     }
 ]);
