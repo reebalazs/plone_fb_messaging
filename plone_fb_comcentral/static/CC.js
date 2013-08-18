@@ -408,6 +408,7 @@ app.controller('MessagingController',
             currentRoomRef.child('seen').child(username).set(Firebase.ServerValue.TIMESTAMP);
         };
         $scope.markRoomSeen();
+        currentRoomRef.child('seen').child(username).onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
     }
 ]);
 

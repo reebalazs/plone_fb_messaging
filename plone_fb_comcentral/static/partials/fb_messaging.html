@@ -5,7 +5,6 @@
       <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
         room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
-        {{room.seen[ploneUserid]}} {{room.lastMessaged}}
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
     </div>
     <p>
