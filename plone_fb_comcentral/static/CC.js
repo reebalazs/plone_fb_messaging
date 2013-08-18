@@ -332,6 +332,8 @@ app.controller('MessagingController',
         $scope.helpMessage = {helpClass: 'hidden', help: ''};
 
         $scope.processMessage = function () {
+            $scope.markRoomSeen();
+            currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
             var message = parseBBCode($('<div/>').text($scope.message).html()); // escape html inities to prevent script injection, etc.
             processMessage(username, message, $scope.messages, onlineRef, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
@@ -383,11 +385,6 @@ app.controller('MessagingController',
 
         var inRoomRef = currentRoomRef.child('members').child(username).push(1);
         inRoomRef.onDisconnect().remove();
-        
-        /* This is useful so that in the future we can possibly highlight/distinguish rooms which have messages the user has not yet seen
-        currentRoomRef.child('messages').on('child_added', function(dataSnapshot) { //Listen for child_modified as well when editable chat messages revived
-            currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
-        }); */
 
         $scope.createPublicRoom = createPublicRoom;
         $scope.createPrivateRoom = createPrivateRoom;
@@ -397,6 +394,7 @@ app.controller('MessagingController',
         $scope.defaultPortraitURL = $rootScope.defaultPortrait;
 
         $scope.$on('$routeChangeStart', function (event, next, current) {
+            $scope.markRoomSeen(); //Hopefully the user has seen everything in this room if he/she is leaving
             inRoomRef.remove(); //Remove user from members since they are no longer in the same room
             if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
         });
@@ -405,6 +403,11 @@ app.controller('MessagingController',
             $scope.moreMessagesShown = $el.scrollHeight;
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
         };
+
+        $scope.markRoomSeen = function () {
+            currentRoomRef.child('seen').child(username).set(Firebase.ServerValue.TIMESTAMP);
+        };
+        $scope.markRoomSeen();
     }
 ]);
 
