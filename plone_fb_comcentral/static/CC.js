@@ -609,7 +609,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 else {
                     messages.add({
                         sender: ploneUserid,
-                        content: '<span class="server-message-type">current time</span>: ' + (new Date().valueOf() + $rootScope.serverTimeOffset),
+                        content: '<span class="server-message-type">current time</span>: ' 
+                            + new Date((new Date().valueOf() + $rootScope.serverTimeOffset)).toString(),
                         private: true,
                         type: 'server',
                         time: Firebase.ServerValue.TIMESTAMP
