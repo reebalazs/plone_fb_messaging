@@ -674,7 +674,7 @@ app.factory('processMessage', ['handleCommand', function (handleCommand) {
         if (message.indexOf('/') === 0) {
             handleCommand(message, messages, username, onlineRef, helpMessage);
         }
-        else {
+        else if (message.length > 0) {
             messages.add({
                 sender: username,
                 content: message,
