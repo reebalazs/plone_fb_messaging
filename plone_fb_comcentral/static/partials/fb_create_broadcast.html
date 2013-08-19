@@ -1,16 +1,15 @@
-  <h1>Create Broadcast</h1>
+<h1>Create Broadcast</h1>
 
-  <form class="fb_create_broadcast">
-    <div class="form_control message">
-      <label for="message">Broadcast Message: </label>
-      <textarea name="message" ng-model="broadcast.message" required></textarea>
-    </div>
-    
-    <div class="form_control">
-      <label for="expiration">Expiration Time in Minutes (from now): </label>
-      <input type="number" name="expiration" ng-model="broadcast.expiration" ng-init="broadcast.expiration = 10" required>
-    </div>
+<form class="fb_create_broadcast">
+  <div class="form_control message">
+    <label for="message">Broadcast Message: </label>
+    <textarea name="message" ng-model="broadcast.message" required></textarea>
+  </div>
+  
+  <div class="form_control">
+    <label for="expiration">Expiration Time in Minutes (from now): </label>
+    <input type="number" name="expiration" ng-model="broadcast.expiration" ng-init="broadcast.expiration = 10" required>
+  </div>
 
-    <input type="submit" name="submit" value="Submit Broadcast" ng-click="sendBroadcast()">
-
-  </form>
+  <input type="submit" name="submit" value="Submit Broadcast" ng-click="sendBroadcast()">
+</form>

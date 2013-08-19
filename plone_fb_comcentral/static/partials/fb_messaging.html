@@ -1,5 +1,6 @@
 <div class="roomList">
   <h1>Rooms</h1>
+  
   <h2>Public</h2>
     <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:ploneUserid">
       <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
@@ -11,6 +12,7 @@
       <input class="fb-newroom-input" type="text" ng-model="newRoomName">
       <input class="fb-newroom-submit" type="submit" ng-click="createPublicRoom(newRoomName)" value="Create">
     </p>
+
   <h2>Private</h2>
     <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
       <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
@@ -89,7 +91,7 @@
     <textarea id="fb-message-input" msd-elastic rows="1"
      class="fb-message-input" ng-model="message" ng-enter="processMessage()"
           placeholder="Enter your message..."></textarea>
-    <button >Send</button>
+    <button>Send</button>
     <div class="helpMessage" ng-class="helpMessage.helpClass" ng-bind="helpMessage.help"></div>
   </form>
   <div ng-bind-html-unsafe="info"></div>

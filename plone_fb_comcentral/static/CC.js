@@ -13,12 +13,12 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
 
     $locationProvider
       .html5Mode(false)
-      // need to use '*'' as a prefix to distinguish from Plone,
-      // as Plone's TOC uses already '!
+      // need to use '*' as a prefix to distinguish from Plone,
+      // as Plone's TOC uses already '!'
       .hashPrefix('*');
 
     // this is needed to inject AuthService in here
-    function authResolve(AuthService) {
+    function authResolve (AuthService) {
         return AuthService.promise;
     }
 
@@ -67,10 +67,10 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', function($rootScope, angularFire, $q) {
+app.service('AuthService', function ($rootScope, angularFire, $q) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
-     if (! $rootScope.firebaseUrl) {
+     if (!$rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
         $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
@@ -78,9 +78,10 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
-        $rootScope.staticRoot = '../static/'
+        $rootScope.staticRoot = '../static/';
         $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
-    } else if (! $rootScope.fullName) {
+    }
+    else if (!$rootScope.fullName) {
         // if empty full name, substitute with username
         $rootScope.fullName = $rootScope.ploneUserid;
     }
@@ -96,16 +97,18 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
     // Authenticate me.
     var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
     if ($rootScope.authToken) {
-        firebase.auth($rootScope.authToken, function(error, result) {
+        firebase.auth($rootScope.authToken, function (error, result) {
             if (error) {
                 throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
-            } else {
+            }
+            else {
                 authQ.resolve();
                 console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
                     $rootScope.fullName + ') accepted by the server.');
             }
         });
-    } else {
+    }
+    else {
         authQ.resolve();
         console.log('No authentication token. Continuing in static mode, acting as user "' +
             $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
@@ -116,7 +119,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
     var onlineRef = firebase.child('presence');
     var infoRef = firebase.root().child('.info');
     infoRef.child('connected').on('value', function (snap) {
-        if(snap.val() === true) {
+        if (snap.val() === true) {
             // We're connected or reconnected.
             // Set up our presence state and
             // tell the server to set a timestamp when we leave.
@@ -198,12 +201,13 @@ app.controller('ViewBroadcastsController',
         $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
 
         var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+        broadcastsRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
             var newBroadcast = dataSnapshot.val();
             var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
-            if (! expired && ! seen)
+            if (!expired && !seen) {
                 $scope.filteredBroadcasts.push(newBroadcast);
+            }
         });
 
         $scope.toggleShow = function () {
@@ -220,14 +224,13 @@ app.controller('ViewBroadcastsController',
         $scope.username = $rootScope.ploneUserid;
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
 
-        // Moved to broadcast Controller because it may be useful here in future
         /*This will ensure that if an event expires while displayed on the activity stream page, it will dissapear.
           However, this will result in recurring JS calls which may be undesirable and a flicker at every iteration.
           Comment out the setInterval call to disable this functionality */
         //setInterval(refresh, 10000);
-        //function refresh() {
+        //function refresh () {
         //    $scope.activities = angularFireCollection($rootScope.firebaseUrl + 'activity', function () {
-        //        if(!$scope.$$phase) $scope.$apply();
+        //        if (!$scope.$$phase) $scope.$apply();
         //    });
         //}
 }]);
@@ -281,15 +284,16 @@ app.controller('ActivityStreamController',
         $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
 
         var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+        activitiesRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
             var newActivity = dataSnapshot.val();
-            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
+            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen) {
                 $scope.filteredActivities.push(newActivity);
+            }
         });
 
         $scope.toggleShow = function () {
             $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
-        }
+        };
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
@@ -368,10 +372,12 @@ app.controller('MessagingController',
         else if (roomType === 'private') {
             var users = $scope.currentRoomName.split('!~!');
             var privateChatUser;
-            if (users[0] === username)
+            if (users[0] === username) {
                 privateChatUser = users[1];
-            else if (users[1] == username)
+            }
+            else if (users[1] === username) {
                 privateChatUser = users[0];
+            }
             else {
                 $location.url('/messaging/public/main');
                 throw new Error('Not a member of private chat: ' + $scope.currentRoomName); // Of course, this offers no security
@@ -396,7 +402,9 @@ app.controller('MessagingController',
         $scope.$on('$routeChangeStart', function (event, next, current) {
             $scope.markRoomSeen(); //Hopefully the user has seen everything in this room if he/she is leaving
             inRoomRef.remove(); //Remove user from members since they are no longer in the same room
-            if(roomType === 'private') onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
+            if (roomType === 'private') {
+                onlineRef.off('value', checkOnline); //Stop watching since we are no longer in the same room
+            }
         });
 
         $scope.showMoreMessages = function () {
@@ -420,8 +428,8 @@ app.directive('autoScroll', function ($timeout) {
         // scroll once in the end. This is most important when firebase
         // loads a long list of items.
         var minimalLength;
-        $scope.$watch(attrs.autoScroll + '.length', function(newLength, oldLength) {
-            if (newLength == oldLength) {
+        $scope.$watch(attrs.autoScroll + '.length', function (newLength, oldLength) {
+            if (newLength === oldLength) {
                 // triggers with 0, 0 initially. Let's skip it.
                 return;
             }
@@ -433,19 +441,23 @@ app.directive('autoScroll', function ($timeout) {
             if (timer) {
                 $timeout.cancel(timer);
                 minimalLength = Math.min(minimalLength, oldLength);
-            } else {
+            }
+            else {
                 // the new batch of length changes start now
                 minimalLength = oldLength;
             }
-            timer = $timeout(function() {
+            timer = $timeout(function () {
                 if (newLength - minimalLength > 5) {
                     // big increase and initial load: jump to end
-                    if(!$scope.moreMessagesShown)
-                        $el[0].scrollTop = $el[0].scrollHeight;
-                    else
+                    if ($scope.moreMessagesShown) {
                         $el[0].scrollTop = $el[0].scrollHeight - $scope.moreMessagesShown;
-                    $scope.moreMessagesShown = false;
-                } else {
+                        $scope.moreMessagesShown = false;
+                    }
+                    else {
+                        $el[0].scrollTop = $el[0].scrollHeight;
+                    }
+                }
+                else {
                     // small increase: scroll to end
                     $el
                         .stop(false, false)
@@ -465,10 +477,10 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
     return {
         restrict: 'A',
         require: '?ngModel',
-        link: function( $scope, element, attrs, ngModel) {
+        link: function ($scope, element, attrs, ngModel) {
 
-            $(element).on('keydown', function(e) {
-                if(e.which == 13) {
+            $(element).on('keydown', function (e) {
+                if (e.which === 13) {
                     $(this).blur(); //let directive handle the rest
                     return false; //prevent enter from being added to message content
                 }
@@ -482,12 +494,13 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
                 var message = ngModel.$modelValue;
                 message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
-                if(message.content === '')
+                if (message.content === '') {
                     $scope.messages.remove(message);
-                else 
+                }
+                else {
                     $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
+                }
             });
-
         }
     };
 }]);
@@ -502,7 +515,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
 
         switch (command) {
             /* case 'msg':
-                if(msg.search('/msg\\s' + usernameRegexpSource + '\\s.+') !== 0) {
+                if (msg.search('/msg\\s' + usernameRegexpSource + '\\s.+') !== 0) {
                     $scope.helpClass = 'error';
                     $scope.help = 'Bad syntax - /msg {target username} {message}';
                 }
@@ -536,7 +549,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 if (msg.search('/query\\s' + usernameRegexpSource + '$') !== 0) {
                     helpMessage.helpClass = 'error';
                     helpMessage.help = 'Bad syntax - /query {target username}: ' + msg;
-                } else {
+                }
+                else {
                     target = msg.substr(delim + 1);
                     if (target !== ploneUserid) {
                         helpMessage.helpClass = 'info';
@@ -574,7 +588,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 else {
                     target = msg.substr(delim + 1);
                     if (users[target] && users[target].lastActive) {
-                        if (users[target].online)
+                        if (users[target].online) {
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
@@ -583,7 +597,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
                             });
-                        else
+                        }
+                        else {
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
@@ -592,6 +607,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
                             });
+                        }
                         helpMessage.helpClass = 'info';
                         helpMessage.help = 'Whois query successful';
                     }
@@ -630,33 +646,33 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
 app.factory('createPublicRoom', ['$location', function ($location) {
     return function (newRoomName) {
         $location.url('/messaging/public/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
-    }
+    };
 }]);
 
 app.factory('createPrivateRoom', ['$location', function ($location) {
     return function (username, privateChatUser) {
-        if(privateChatUser === username)
+        if (privateChatUser === username) {
             throw new Error('Cannot private chat with yourself');
+        }
         var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
         $location.url('/messaging/private/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
-    }
+    };
 }]);
 
 app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootScope) {
     return function (roomType, roomName, username, currentRoomName) {
         var roomsRef = new Firebase($rootScope.firebaseUrl + 'rooms');
         roomsRef.child(roomType + 'Rooms').child(roomName).child('hidden').child(username).set(Firebase.ServerValue.TIMESTAMP);
-        if(currentRoomName === roomName)
+        if (currentRoomName === roomName) {
             $location.url('/messaging/public/main'); //Since current room is hidden, redirect to main (which cannot be hidden)
+        }
     };
 }]);
 
-app.factory('processMessage', ['handleCommand', function(handleCommand) {
+app.factory('processMessage', ['handleCommand', function (handleCommand) {
     return function (username, message, messages, onlineRef, helpMessage) {
         if (message.indexOf('/') === 0) {
             handleCommand(message, messages, username, onlineRef, helpMessage);
-            /*TODO: Fix helpMessage display - changes to $scope.helpMessage are not always detected but wrapping in $scope.$apply 
-            is not possible due to firebase callbacks and passing $scope.$apply into handleCommand results in an error */
         }
         else {
             messages.add({
@@ -674,10 +690,10 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 app.factory('parseBBCode', function () {
     return function (message) {
         if (message.indexOf('[') !== -1) {
-            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>')
-            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>')
-            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>')
-            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>')
+            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>');
+            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>');
+            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>');
+            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>');
             message = message.replace(new RegExp('\\[url]([\\s\\S]+?)\\[/url]', 'ig'), '<a href="$1">$1</a>');
             message = message.replace(new RegExp('\\[url=(.+)]([\\s\\S]+?)\\[/url]'), '<a href="$1">$2</a>');
         }
@@ -690,7 +706,7 @@ app.filter('userFilter', function () {
         var result = {};
         var counter = 0;
         for (var username in users) {
-            if(users[username].online) {
+            if (users[username].online) {
                 result[username] = users[username];
                 counter++;
             }
@@ -710,20 +726,21 @@ app.filter('roomMemberFilter', function () {
     };
 });
 
-app.filter('publicRoomFilter', function() {
+app.filter('publicRoomFilter', function () {
     return function (rooms, ploneUserid) {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
             var room = rooms[i];
             var roomHidden = room.hidden && room.hidden.hasOwnProperty(ploneUserid) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[ploneUserid]);
-            if (! roomHidden)
+            if (!roomHidden) {
                 result.push(room);
+            }
         }
         return result;
     };
 });
 
-app.filter('privateRoomFilter', function() {
+app.filter('privateRoomFilter', function () {
     return function (rooms, ploneUserid) {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
@@ -731,18 +748,19 @@ app.filter('privateRoomFilter', function() {
             var members = room.name.split('!~!');
             var inPrivateRoom = members[0] === ploneUserid || members[1] === ploneUserid; //if this user is a member of the conversation
             var roomHidden = room.hidden && room.hidden.hasOwnProperty(ploneUserid) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[ploneUserid]);
-            if (inPrivateRoom && ! roomHidden)
+            if (inPrivateRoom && !roomHidden) {
                 result.push(room);
+            }
         }
         return result;
     };
 });
 
-app.filter('prettifyRoomName', function() {
-    return function(roomName) {
+app.filter('prettifyRoomName', function () {
+    return function (roomName) {
         var users = roomName.split('!~!');
         return users[0] + ' & ' + users[1];
-    }
+    };
 });
 
 app.filter('messageFilter', function () {
@@ -751,10 +769,12 @@ app.filter('messageFilter', function () {
         var message;
         for(var i = 0; i < messages.length; i++) {
             message = messages[i];
-            if(message.private && message.sender === ploneUserid)
+            if (message.private && message.sender === ploneUserid) {
                 result.push(message);
-            else if(! message.private)
+            }
+            else if (!message.private) {
                 result.push(message);
+            }
         }
         return result;
     };
@@ -762,19 +782,20 @@ app.filter('messageFilter', function () {
 
 app.filter('getFullName', function () {
     return function (sender, userProfiles) {
-        if(userProfiles !== undefined) {
-            if(userProfiles[sender] && userProfiles[sender].fullName)
+        if (userProfiles !== undefined) {
+            if (userProfiles[sender] && userProfiles[sender].fullName) {
                 return userProfiles[sender].fullName;
+            }
         }
         return sender;
     };
 });
 
-app.directive('ngEnter', function() {
-    return function(scope, element, attrs) {
-        element.bind("keydown", function(event) {
-            if(event.which === 13) {
-                scope.$apply(function(){
+app.directive('ngEnter', function () {
+    return function (scope, element, attrs) {
+        element.bind("keydown", function (event) {
+            if (event.which === 13) {
+                scope.$apply(function () {
                     scope.$eval(attrs.ngEnter);
                 });
                 return false;
