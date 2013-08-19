@@ -335,7 +335,7 @@ app.controller('MessagingController',
             $scope.markRoomSeen();
             currentRoomRef.child('lastMessaged').set(Firebase.ServerValue.TIMESTAMP);
             var message = parseBBCode($('<div/>').text($scope.message).html()); // escape html inities to prevent script injection, etc.
-            processMessage(username, message, $scope.messages, onlineRef, $scope.helpMessage, $location);
+            processMessage(username, message, $scope.messages, $scope.users, $scope.helpMessage, $location);
             $scope.message = ''; //clear message input
         };
 
@@ -400,7 +400,7 @@ app.controller('MessagingController',
         });
 
         $scope.showMoreMessages = function () {
-            $scope.moreMessagesShown = $el.scrollHeight;
+            $scope.moreMessagesShown = $('#messagesDiv').scrollHeight;
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
         };
 
@@ -493,7 +493,7 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
 }]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
-    return function (msg, messages, ploneUserid, onlineRef, helpMessage) {
+    return function (msg, messages, ploneUserid, users, helpMessage) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
         var username = ploneUserid;
@@ -573,35 +573,32 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 }
                 else {
                     target = msg.substr(delim + 1);
-                    onlineRef.child(target).once('value', function(dataSnapshot) { // TODO: Restructure using AuthService promises
-                        if (dataSnapshot.hasChild('lastActive')) {
+                    if (users[target] && users[target].lastActive) {
+                        if (users[target].online)
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
-                                     is online and was last active ' + new Date(dataSnapshot.child('lastActive').val()).toString(),
+                                     is online and was last active ' + new Date(users[target].lastActive).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
                             });
-                            helpMessage.helpClass = 'info';
-                            helpMessage.help = 'Whois query successful';
-                        }
-                        else if (dataSnapshot.hasChild('logout')) { // TODO: 'logout' does not exist, restructure this using the online markers
+                        else
                             messages.add({
                                 sender: ploneUserid,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
-                                     is offline and was last seen ' + new Date(dataSnapshot.child('logout').val()).toString(),
+                                     is offline and was last seen ' + new Date(users[target].lastActive).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
                             });
-                            helpMessage.helpClass = 'info';
-                            helpMessage.help = 'Whois query successful';
-                        } else {
-                            helpMessage.helpClass = 'error';
-                            helpMessage.help = 'Whois query unsuccessful: ' + msg;
-                        }
-                    });
+                        helpMessage.helpClass = 'info';
+                        helpMessage.help = 'Whois query successful';
+                    }
+                    else {
+                        helpMessage.helpClass = 'error';
+                        helpMessage.help = 'Whois query unsuccessful: ' + msg;
+                    }
                 }
                 break;
             case 'time':
