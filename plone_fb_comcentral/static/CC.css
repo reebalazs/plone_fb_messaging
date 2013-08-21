@@ -33,7 +33,8 @@ div.overlay a.nav:hover, div.overlay a.nav:active {
 
 h1.fb-cc-title {
     text-align: center;
-    background-color: #f0fff0;
+    background-color: transparent;
+    color: #cccccc;
     font-size: 1.4em;
     margin-bottom: 0.5em;
 }
