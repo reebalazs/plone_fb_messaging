@@ -78,7 +78,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
-        $rootScope.staticRoot = '../static/'
+        $rootScope.staticRoot = '../static/';
         $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
     } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
@@ -157,9 +157,24 @@ app.controller('CommandCentralController',
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route',
-    function ($scope, $route) {
+    ['$scope', '$route', 'AuthService', 'StreamInfo',
+    function ($scope, $route, AuthService, StreamInfo) {
         $scope.$route = $route;
+        $scope.streamCounts = {numActivites: 0, numBroadcasts: 0};
+
+        AuthService.promise.then(function () {
+            $scope.StreamInfo = StreamInfo;
+
+            $scope.$watch(function () {
+                return StreamInfo.streamCounts;
+            }, function () {
+                $scope.streamCounts = StreamInfo.streamCounts;
+                setTimeout(function () { 
+                    // there should be a better way to do this but I'll leave it for the moment because it works
+                    $scope.$apply();
+                }, 1000);
+            }, true);
+        });
 }]);
 
 app.controller('CreateBroadcastController',
@@ -183,8 +198,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'StreamInfo',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, StreamInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -192,19 +207,9 @@ app.controller('ViewBroadcastsController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredBroadcasts = [];
+        $scope.filteredBroadcasts = StreamInfo.filteredBroadcasts;
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
-        $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
-
-        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newBroadcast = dataSnapshot.val();
-            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
-            var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
-            if (! expired && ! seen)
-                $scope.filteredBroadcasts.push(newBroadcast);
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
@@ -266,8 +271,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope',
-    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'StreamInfo',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, StreamInfo) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -275,21 +280,13 @@ app.controller('ActivityStreamController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredActivities = [];
+        $scope.filteredActivities = StreamInfo.filteredActivities;
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
-        $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
-
-        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newActivity = dataSnapshot.val();
-            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen)
-                $scope.filteredActivities.push(newActivity);
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
-        }
+        };
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
@@ -355,8 +352,10 @@ app.controller('MessagingController',
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-        $scope.usersType = 'online';
-        $scope.userCounts = {};
+
+        $scope.$watch('[users, members]', function () {
+            $scope.onlineUsers = userFilter($scope.users, $scope.members);
+        }, true);
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(50));
 
@@ -478,14 +477,48 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
                 var message = ngModel.$modelValue;
                 message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
-                if(message.content === '')
+                if(message.content === '') {
                     $scope.messages.remove(message);
-                else 
+                } else { 
                     $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
+                }
             });
 
         }
     };
+}]);
+
+app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
+    this.streamCounts = {};
+    this.filteredActivities = [];
+    this.filteredBroadcasts = [];
+    var streamCounts = this.streamCounts;
+    var filteredActivities = this.filteredActivities;
+    var filteredBroadcasts = this.filteredBroadcasts;
+
+    AuthService.promise.then(function () {
+        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
+        var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
+        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newBroadcast = dataSnapshot.val();
+            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
+            if (! expired && ! seen)
+                filteredBroadcasts.push(newBroadcast);
+            streamCounts.numBroadcasts = filteredBroadcasts.length;
+        });
+
+        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+        var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
+        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newActivity = dataSnapshot.val();
+            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
+                filteredActivities.push(newActivity);
+            streamCounts.numActivites = filteredActivities.length;
+        });
+    });
+
+    return this;
 }]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
@@ -637,7 +670,7 @@ app.factory('createPrivateRoom', ['$location', function ($location) {
             throw new Error('Cannot private chat with yourself');
         var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
         $location.url('/messaging/private/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
-    }
+    };
 }]);
 
 app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootScope) {
@@ -672,10 +705,10 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 app.factory('parseBBCode', function () {
     return function (message) {
         if (message.indexOf('[') !== -1) {
-            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>')
-            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>')
-            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>')
-            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>')
+            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>');
+            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>');
+            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>');
+            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>');
             message = message.replace(new RegExp('\\[url]([\\s\\S]+?)\\[/url]', 'ig'), '<a href="$1">$1</a>');
             message = message.replace(new RegExp('\\[url=(.+)]([\\s\\S]+?)\\[/url]'), '<a href="$1">$2</a>');
         }
