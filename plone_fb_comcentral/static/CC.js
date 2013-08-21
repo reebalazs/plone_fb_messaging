@@ -78,7 +78,7 @@ app.service('AuthService', function($rootScope, angularFire, $q) {
         var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
         $rootScope.ploneUserid = 'TestUser' + rand;
         $rootScope.fullName = 'Test User ' + rand;
-        $rootScope.staticRoot = '../static/'
+        $rootScope.staticRoot = '../static/';
         $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
     } else if (! $rootScope.fullName) {
         // if empty full name, substitute with username
@@ -286,7 +286,7 @@ app.controller('ActivityStreamController',
 
         $scope.toggleShow = function () {
             $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
-        }
+        };
         
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
@@ -477,10 +477,11 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
                 var message = ngModel.$modelValue;
                 message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
-                if(message.content === '')
+                if(message.content === '') {
                     $scope.messages.remove(message);
-                else 
+                } else { 
                     $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
+                }
             });
 
         }
@@ -669,7 +670,7 @@ app.factory('createPrivateRoom', ['$location', function ($location) {
             throw new Error('Cannot private chat with yourself');
         var newRoomName = username < privateChatUser ? username + '!~!' + privateChatUser : privateChatUser + '!~!' + username;
         $location.url('/messaging/private/' + newRoomName); //This has the intended side effect of reopening created rooms (including hidden ones)
-    }
+    };
 }]);
 
 app.factory('hideRoom', ['$location', '$rootScope', function ($location, $rootScope) {
@@ -704,10 +705,10 @@ app.factory('processMessage', ['handleCommand', function(handleCommand) {
 app.factory('parseBBCode', function () {
     return function (message) {
         if (message.indexOf('[') !== -1) {
-            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>')
-            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>')
-            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>')
-            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>')
+            message = message.replace(new RegExp('\\[b]([\\s\\S]+?)\\[/b]', 'ig'), '<b>$1</b>');
+            message = message.replace(new RegExp('\\[i]([\\s\\S]+?)\\[/i]', 'ig'), '<i>$1</i>');
+            message = message.replace(new RegExp('\\[u]([\\s\\S]+?)\\[/u]', 'ig'), '<u>$1</u>');
+            message = message.replace(new RegExp('\\[s]([\\s\\S]+?)\\[/s]', 'ig'), '<s>$1</s>');
             message = message.replace(new RegExp('\\[url]([\\s\\S]+?)\\[/url]', 'ig'), '<a href="$1">$1</a>');
             message = message.replace(new RegExp('\\[url=(.+)]([\\s\\S]+?)\\[/url]'), '<a href="$1">$2</a>');
         }
