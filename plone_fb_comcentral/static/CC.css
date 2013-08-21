@@ -215,8 +215,12 @@ div.overlay textarea.fb-message-input {
     font-weight: bold;
 }
 
-.user .in-room {
-    font-weight: bold;
+.more-messages {
+    text-align: center;
+}
+
+.user-controls {
+    padding-top: 5px;
 }
 
 /* CSS for Activity Stream */
