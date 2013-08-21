@@ -13,13 +13,13 @@
   <ul class="navbar" ng-controller="MenuController">
     <li>
       <a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#*/activity">
-        Activity Stream
+        Activity
         <span ng-cloak ng-show="streamCounts.numActivites">({{streamCounts.numActivites}})</span>
       </a>
     </li>
     <li>
       <a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#*/broadcast">
-        Broadcast Stream
+        Broadcast
         <span ng-cloak ng-show="streamCounts.numBroadcasts">({{streamCounts.numBroadcasts}})</span>
       </a>
     </li>
