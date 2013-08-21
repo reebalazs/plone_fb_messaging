@@ -282,6 +282,9 @@ div.overlay textarea.fb-message-input {
 
 .change-details {
     margin-left: 25px;
+}
+
+.change-details:not(.open) {
     display: none;
 }
 

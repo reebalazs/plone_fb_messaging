@@ -26,12 +26,12 @@
       </div>
       <div class="changes" id="changesDiv">
         <div ng-cloak ng-repeat="change in activity.changes">
-            <div class="change" ng-class="{open: activity.numChanges == 1}"> <!-- Style differently if 'open' -->
+            <div class="change">
               <div title="Click to expand" onclick="$(this).next().slideToggle();">
                 <div class="arrow-down"></div>
                 <strong>Change Message:</strong> {{change.message}}
               </div>
-              <div class="change-details">
+              <div class="change-details" ng-class="{open: activity.numChanges == 1}">
                 <div><strong>Object UID:</strong> {{change.uid}}</div>
                 <div><strong>Event Type:</strong> {{change.eventType}}</div>
                 <div class="description" ng-show="change.description"><strong>Change Description:</strong> {{change.description}}</div>
