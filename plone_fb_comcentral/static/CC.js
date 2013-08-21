@@ -154,14 +154,42 @@ app.service('AuthService', function ($rootScope, angularFire, $q) {
     ]);
 });
 
+app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
+    $rootScope.streamCounts = {};
+    $rootScope.filteredActivities = [];
+    $rootScope.filteredBroadcasts = [];
+
+    AuthService.promise.then(function () {
+        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
+        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newBroadcast = dataSnapshot.val();
+            var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
+            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
+            var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
+            if (! expired && ! seen)
+                $rootScope.filteredBroadcasts.push(newBroadcast);
+            $rootScope.streamCounts.numBroadcasts = $rootScope.filteredBroadcasts.length;
+        });
+
+        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
+        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+            var newActivity = dataSnapshot.val();
+            var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
+            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
+                $rootScope.filteredActivities.push(newActivity);
+            $rootScope.streamCounts.numActivites = $rootScope.filteredActivities.length;
+        });
+    });
+}]);
+
 app.controller('CommandCentralController',
     ['$scope', '$rootScope',
     function ($scope, $rootScope) {
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route', '$rootScope', 'AuthService', 'StreamInfo',
-    function ($scope, $route, $rootScope, AuthService, StreamInfo) {
+    ['$scope', '$route', '$rootScope', 'AuthService', 'StreamService',
+    function ($scope, $route, $rootScope, AuthService, StreamService) {
         $scope.$route = $route;
         $scope.streamCounts = {numActivites: 0, numBroadcasts: 0};
 
@@ -199,8 +227,8 @@ app.controller('CreateBroadcastController',
 }]);
 
 app.controller('ViewBroadcastsController',
-    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'StreamInfo',
-    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, StreamInfo) {
+    ['$scope', '$rootScope', '$q', '$filter', 'AuthService', 'angularFire', 'angularFireCollection', 'StreamService',
+    function ($scope, $rootScope, $q, $filter, AuthService, angularFire, angularFireCollection, StreamService) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -271,8 +299,8 @@ app.controller('SimulateActivityController',
 }]);
 
 app.controller('ActivityStreamController',
-    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'StreamInfo',
-    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, StreamInfo) {
+    ['$scope', 'angularFire', 'angularFireCollection', 'AuthService', 'createPrivateRoom', '$rootScope', 'StreamService',
+    function ($scope, angularFire, angularFireCollection, AuthService, createPrivateRoom, $rootScope, StreamService) {
 
         // pop up the overlay
         if (window.showFbOverlay) {
@@ -505,34 +533,6 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
             });
         }
     };
-}]);
-
-app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
-    $rootScope.streamCounts = {};
-    $rootScope.filteredActivities = [];
-    $rootScope.filteredBroadcasts = [];
-
-    AuthService.promise.then(function () {
-        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newBroadcast = dataSnapshot.val();
-            var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
-            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
-            var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
-            if (! expired && ! seen)
-                $rootScope.filteredBroadcasts.push(newBroadcast);
-            $rootScope.streamCounts.numBroadcasts = $rootScope.filteredBroadcasts.length;
-        });
-
-        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
-            var newActivity = dataSnapshot.val();
-            var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
-            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
-                $rootScope.filteredActivities.push(newActivity);
-            $rootScope.streamCounts.numActivites = $rootScope.filteredActivities.length;
-        });
-    });
 }]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
