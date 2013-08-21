@@ -4,8 +4,11 @@
 <div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
   <div class="activity" ng-cloak ng-repeat="activity in visibleActivities">
     <div>
-      <strong>Message:</strong> {{activity.message}}
-      <div>
+      <div onclick="$(this).parent().next().slideToggle();">
+        <div class="arrow-down"></div>
+        <strong>Message:</strong> {{activity.message}}
+      </div>
+      <div class="activity-summary">
         <div>
           <strong>User ID:</strong> 
           <a href="" ng-click="createPrivateRoom(username, activity.userID)">
@@ -17,17 +20,18 @@
       </div>
     </div>
 
-    <div class="details">
+    <div class="activity-details">
       <div class="description" ng-show="activity.description">
         <strong>Description:</strong> {{activity.description}}
       </div>
       <div class="changes" id="changesDiv">
         <div ng-cloak ng-repeat="change in activity.changes">
             <div class="change" ng-class="{open: activity.numChanges == 1}"> <!-- Style differently if 'open' -->
-              <div>
+              <div onclick="$(this).next().slideToggle();">
+                <div class="arrow-down"></div>
                 <strong>Change Message:</strong> {{change.message}}
               </div>
-              <div class="details">
+              <div class="change-details">
                 <div><strong>Object UID:</strong> {{change.uid}}</div>
                 <div><strong>Event Type:</strong> {{change.eventType}}</div>
                 <div class="description" ng-show="change.description"><strong>Change Description:</strong> {{change.description}}</div>
@@ -36,7 +40,7 @@
         </div>
       </div>
     </div>
-  </details>
+  </div>
 </div>
   
 Show All: <input type="checkbox" ng-model="showAll" ng-click="toggleShow()" ng-true-value="true" ng-false-value="false"><br/>
