@@ -4,7 +4,7 @@
 <div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
   <div class="activity" ng-cloak ng-repeat="activity in visibleActivities">
     <div>
-      <div onclick="$(this).parent().next().slideToggle();">
+      <div title="Click to expand" onclick="$(this).parent().next().slideToggle();">
         <div class="arrow-down"></div>
         <strong>Message:</strong> {{activity.message}}
       </div>
@@ -27,7 +27,7 @@
       <div class="changes" id="changesDiv">
         <div ng-cloak ng-repeat="change in activity.changes">
             <div class="change" ng-class="{open: activity.numChanges == 1}"> <!-- Style differently if 'open' -->
-              <div onclick="$(this).next().slideToggle();">
+              <div title="Click to expand" onclick="$(this).next().slideToggle();">
                 <div class="arrow-down"></div>
                 <strong>Change Message:</strong> {{change.message}}
               </div>
