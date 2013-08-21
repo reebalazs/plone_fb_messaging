@@ -3,7 +3,7 @@
 
 <div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
   <details class="activity" ng-cloak ng-repeat="activity in visibleActivities">
-    <summary>
+    <div>
       <strong>Message:</strong> {{activity.message}}
       <div>
         <div>
@@ -15,7 +15,7 @@
         </div>
         <div><strong>Change Time:</strong> {{activity.time | date:'medium'}}</div>
       </div>
-    </summary>
+    </div>
 
     <div class="details">
       <div class="description" ng-show="activity.description">
