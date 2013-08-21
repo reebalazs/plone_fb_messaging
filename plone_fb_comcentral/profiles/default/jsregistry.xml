@@ -4,10 +4,6 @@
         compression="none"
         expression="context/@@fb_comcentral_allowed_userid"
         />
-    <!--javascript id="++resource++fb_comcentral/dist/angular.unstable.min.js"
-        compression="none"
-        expression="context/@@fb_comcentral_allowed_userid"
-        /-->
     <javascript id="++resource++fb_comcentral/dist/angular-cookies.min.js"
         compression="none"
         expression="context/@@fb_comcentral_allowed_userid"
