@@ -74,17 +74,19 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
      if (!$rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
+        $rootScope.testingMode = true;
         $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
         $rootScope.authToken = '';
 
         var useridfromCookie = $cookieStore.get('username');
         if (useridfromCookie !== undefined && useridfromCookie.search(new RegExp('[a-zA-Z0-9.-_]+$')) === 0) {
             $rootScope.ploneUserid = useridfromCookie;
-            $rootScope.fullName = 'Test User';
+            $rootScope.fullName = $cookieStore.get('fullName');
         }
         else {
             var rand = Math.floor(Math.random() * 101); // Vary userid to make testing easier
             $cookieStore.put('username', 'TestUser' + rand);
+            $cookieStore.put('fullName', 'Test User ' + rand);
             $rootScope.ploneUserid = 'TestUser' + rand;
             $rootScope.fullName = 'Test User ' + rand;
         }
@@ -166,8 +168,17 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
 }]);
 
 app.controller('CommandCentralController',
-    ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
+    ['$scope', '$rootScope', '$cookieStore',
+    function ($scope, $rootScope, $cookieStore) {
+        $scope.testingMode = $rootScope.testingMode;
+        $scope.userid = $rootScope.ploneUserid;
+        $scope.name = $rootScope.fullName;
+
+        $scope.changeUser = function () {
+            $cookieStore.put('username', $scope.userid);
+            $cookieStore.put('fullName', $scope.name);
+            location.reload();
+        };
 }]);
 
 app.controller('MenuController',
