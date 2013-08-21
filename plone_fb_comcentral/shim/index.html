@@ -12,8 +12,18 @@
 </head>
 <body>
   <ul class="navbar" ng-controller="MenuController">
-    <li><a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#*/activity">Activity Stream</a></li>
-    <li><a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#*/broadcast">Broadcast Stream</a></li>
+    <li>
+      <a class="nav" ng-class="{active: $route.current.activetab == 'activityStream'}" href="#*/activity">
+        Activity Stream
+        <span ng-cloak ng-show="streamCounts.numActivites">({{streamCounts.numActivites}})</span>
+      </a>
+    </li>
+    <li>
+      <a class="nav" ng-class="{active: $route.current.activetab == 'broadcasts'}" href="#*/broadcast">
+        Broadcast Stream
+        <span ng-cloak ng-show="streamCounts.numBroadcasts">({{streamCounts.numBroadcasts}})</span>
+      </a>
+    </li>
     <li><a class="nav" ng-class="{active: $route.current.activetab == 'messaging'}" href="#*/messaging/public/main">Messaging</a></li>
     <li><a class="rnav" ng-class="{active: $route.current.activetab == 'createBroadcast'}" href="#*/create_broadcast">Send Broadcast</a></li>
   </ul>
