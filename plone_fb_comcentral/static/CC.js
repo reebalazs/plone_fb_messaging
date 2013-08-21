@@ -67,7 +67,7 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', function ($rootScope, angularFire, $q) {
+app.service('AuthService', function ($rootScope, angularFire, $q, $cookieStore) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
      if (!$rootScope.firebaseUrl) {
@@ -75,9 +75,19 @@ app.service('AuthService', function ($rootScope, angularFire, $q) {
         // constants for testing.
         $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
         $rootScope.authToken = '';
-        var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
-        $rootScope.ploneUserid = 'TestUser' + rand;
-        $rootScope.fullName = 'Test User ' + rand;
+
+        var useridfromCookie = $cookieStore.get('username');
+        if (useridfromCookie !== undefined && useridfromCookie.search(new RegExp('[a-zA-Z0-9.-_]+$')) === 0) {
+            $rootScope.ploneUserid = useridfromCookie;
+            $rootScope.fullName = 'Test User';
+        }
+        else {
+            var rand = Math.floor(Math.random() * 101); // Vary userid to make testing easier
+            $cookieStore.put('username', 'TestUser' + rand);
+            $rootScope.ploneUserid = 'TestUser' + rand;
+            $rootScope.fullName = 'Test User ' + rand;
+        }
+        
         $rootScope.staticRoot = '../static/';
         $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
     }
