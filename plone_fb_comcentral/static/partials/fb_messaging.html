@@ -1,8 +1,10 @@
 <div class="roomList">
   <h1>Rooms</h1>
+  
   <h2>Public</h2>
     <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:ploneUserid">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name]"
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
+        room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
     </div>
@@ -10,9 +12,11 @@
       <input class="fb-newroom-input" type="text" ng-model="newRoomName">
       <input class="fb-newroom-submit" type="submit" ng-click="createPublicRoom(newRoomName)" value="Create">
     </p>
+
   <h2>Private</h2>
     <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name]"
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
+        room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/private/{{room.name}}">{{room.name | prettifyRoomName}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
     </div>
@@ -87,7 +91,7 @@
     <textarea id="fb-message-input" msd-elastic rows="1"
      class="fb-message-input" ng-model="message" ng-enter="processMessage()"
           placeholder="Enter your message..."></textarea>
-    <button >Send</button>
+    <button>Send</button>
     <div class="helpMessage" ng-class="helpMessage.helpClass" ng-bind="helpMessage.help"></div>
   </form>
   <div ng-bind-html-unsafe="info"></div>
