@@ -177,7 +177,7 @@ app.controller('CommandCentralController',
         $scope.changeUser = function () {
             $cookieStore.put('username', $scope.userid);
             $cookieStore.put('fullName', $scope.name);
-            location.reload();
+            location.reload(); //Simple in order to not bother with refreshing all data and changing the connection details
         };
 }]);
 
@@ -862,43 +862,3 @@ app.directive('ngEnter', function () {
         });
     };
 });
-
-//function setUsername($scope, $cookieStore) {
-    // XXX XXX XXX
-    //var username = 'TestUserX';
-    //$scope.username = username;
-    //return;
-    // XXX XXX
-    //var username = $cookieStore.get('username');
-    //    if (username === undefined || username.search(usernameRegexp) !== 0) {
-    //        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
-    //        $scope.username = anonUser; //Very bad things happen if two people have the same username
-    //        $cookieStore.put('username', anonUser);
-    //    }
-    //    else if (username.search(usernameRegexp) === 0)
-    //        $scope.username = username;
-//}
-
-//function updateUsername($scope, $cookieStore, angularFireCollection) {
-    //return;
-
-    // XXX XXX XXX
-
-    //    var username = $scope.username;
-    //    if (username.search(usernameRegexp) === 0) {
-    //        var oldUserRef = onlineRef.child($cookieStore.get('username'));
-    //        var connRef = oldUserRef.child('online').remove();
-    //        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
-    //        oldUserRef.child('online').remove();
-    //        $cookieStore.put('username', $('#username').val());
-    //
-    //        userRef = onlineRef.child($scope.username);
-    //        connRef = userRef.child('online').push(1);
-    //        if (angularFireCollection) {
-    //            $scope.rooms = angularFireCollection(firebaseUrl + 
-    //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
-    //        }
-    //    }
-    //    else
-    //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
-//}
