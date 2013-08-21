@@ -376,10 +376,8 @@ app.controller('MessagingController',
         var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {});
         var usersPromise = angularFire(onlineRef, $scope, 'users', {});
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
-
-        $scope.$watch('[users, members]', function () {
-            $scope.onlineUsers = userFilter($scope.users, $scope.members);
-        }, true);
+        $scope.usersType = 'online';
+        $scope.userCounts = {};
 
         $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit(50));
 
