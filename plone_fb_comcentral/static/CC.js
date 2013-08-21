@@ -160,19 +160,17 @@ app.controller('CommandCentralController',
 }]);
 
 app.controller('MenuController',
-    ['$scope', '$route', 'AuthService', 'StreamInfo',
-    function ($scope, $route, AuthService, StreamInfo) {
+    ['$scope', '$route', '$rootScope', 'AuthService', 'StreamInfo',
+    function ($scope, $route, $rootScope, AuthService, StreamInfo) {
         $scope.$route = $route;
         $scope.streamCounts = {numActivites: 0, numBroadcasts: 0};
 
         AuthService.promise.then(function () {
-            $scope.StreamInfo = StreamInfo;
-
             $scope.$watch(function () {
-                return StreamInfo.streamCounts;
+                return $rootScope.streamCounts;
             }, function () {
-                $scope.streamCounts = StreamInfo.streamCounts;
-                setTimeout(function () { 
+                $scope.streamCounts = $rootScope.streamCounts;
+                setTimeout(function () {
                     // there should be a better way to do this but I'll leave it for the moment because it works
                     $scope.$apply();
                 }, 1000);
@@ -210,7 +208,7 @@ app.controller('ViewBroadcastsController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredBroadcasts = StreamInfo.filteredBroadcasts;
+        $scope.filteredBroadcasts = $rootScope.filteredBroadcasts;
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
 
@@ -220,8 +218,8 @@ app.controller('ViewBroadcastsController',
 
         $scope.markSeen = function () {
             $rootScope.userProfile.broadcastsSeenTS = new Date().valueOf() + $rootScope.serverTimeOffset;
-            StreamInfo.filteredBroadcasts.length = 0; //Clear but maintain references
-            StreamInfo.streamCounts.numBroadcasts = 0;
+            $rootScope.filteredBroadcasts.length = 0; //Clear but maintain references
+            $rootScope.streamCounts.numBroadcasts = 0;
             $scope.toggleShow();
         };
 
@@ -282,7 +280,7 @@ app.controller('ActivityStreamController',
         }
 
         $scope.showAll = 'false';
-        $scope.filteredActivities = StreamInfo.filteredActivities;
+        $scope.filteredActivities = $rootScope.filteredActivities;
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
 
@@ -292,8 +290,8 @@ app.controller('ActivityStreamController',
 
         $scope.markSeen = function () {
             $rootScope.userProfile.activitiesSeenTS = new Date().valueOf() + $rootScope.serverTimeOffset;
-            StreamInfo.filteredActivities.length = 0; //Clear but maintain references
-            StreamInfo.streamCounts.numActivites = 0;
+            $rootScope.filteredActivities.length = 0; //Clear but maintain references
+            $rootScope.streamCounts.numActivites = 0;
             $scope.toggleShow();
         };
 
@@ -510,12 +508,9 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
 }]);
 
 app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
-    this.streamCounts = {};
-    this.filteredActivities = [];
-    this.filteredBroadcasts = [];
-    var streamCounts = this.streamCounts;
-    var filteredActivities = this.filteredActivities;
-    var filteredBroadcasts = this.filteredBroadcasts;
+    $rootScope.streamCounts = {};
+    $rootScope.filteredActivities = [];
+    $rootScope.filteredBroadcasts = [];
 
     AuthService.promise.then(function () {
         var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
@@ -525,8 +520,8 @@ app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, Aut
             var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
             if (! expired && ! seen)
-                filteredBroadcasts.push(newBroadcast);
-            streamCounts.numBroadcasts = filteredBroadcasts.length;
+                $rootScope.filteredBroadcasts.push(newBroadcast);
+            $rootScope.streamCounts.numBroadcasts = $rootScope.filteredBroadcasts.length;
         });
 
         var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
@@ -534,12 +529,10 @@ app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, Aut
             var newActivity = dataSnapshot.val();
             var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
             if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
-                filteredActivities.push(newActivity);
-            streamCounts.numActivites = filteredActivities.length;
+                $rootScope.filteredActivities.push(newActivity);
+            $rootScope.streamCounts.numActivites = $rootScope.filteredActivities.length;
         });
     });
-
-    return this;
 }]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
