@@ -2,7 +2,7 @@
 <p></p>
 
 <div class="activities" id="activitiesDiv" auto-scroll="visibleActivities">
-  <details class="activity" ng-cloak ng-repeat="activity in visibleActivities">
+  <div class="activity" ng-cloak ng-repeat="activity in visibleActivities">
     <div>
       <strong>Message:</strong> {{activity.message}}
       <div>
@@ -23,16 +23,16 @@
       </div>
       <div class="changes" id="changesDiv">
         <div ng-cloak ng-repeat="change in activity.changes">
-            <details class="change" ng-class="{open: activity.numChanges == 1}"> <!-- Style differently if 'open' -->
-              <summary>
+            <div class="change" ng-class="{open: activity.numChanges == 1}"> <!-- Style differently if 'open' -->
+              <div>
                 <strong>Change Message:</strong> {{change.message}}
-              </summary>
+              </div>
               <div class="details">
                 <div><strong>Object UID:</strong> {{change.uid}}</div>
                 <div><strong>Event Type:</strong> {{change.eventType}}</div>
                 <div class="description" ng-show="change.description"><strong>Change Description:</strong> {{change.description}}</div>
               </div>
-            </details>
+            </div>
         </div>
       </div>
     </div>
