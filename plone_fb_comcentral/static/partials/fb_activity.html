@@ -18,7 +18,9 @@
     </summary>
 
     <div class="details">
-      <div class="description" ng-show="activity.description"><strong>Description:</strong> {{activity.description}}</div>
+      <div class="description" ng-show="activity.description">
+        <strong>Description:</strong> {{activity.description}}
+      </div>
       <div class="changes" id="changesDiv">
         <div ng-cloak ng-repeat="change in activity.changes">
             <details class="change" {{activity.numChanges == 1 && 'open' || ''}}>
@@ -37,5 +39,5 @@
   </details>
 </div>
   
-  Show All: <input type="checkbox" ng-model="showAll" ng-click="toggleShow()" ng-true-value="true" ng-false-value="false"><br/>
-  <button ng-click="markSeen()">Mark All as Read</button>
+Show All: <input type="checkbox" ng-model="showAll" ng-click="toggleShow()" ng-true-value="true" ng-false-value="false"><br/>
+<button ng-click="markSeen()">Mark All as Read</button>

@@ -213,26 +213,15 @@ app.controller('ViewBroadcastsController',
         $scope.filteredBroadcasts = StreamInfo.filteredBroadcasts;
         $scope.unfilteredBroadcasts = angularFireCollection($rootScope.firebaseUrl + 'broadcasts');
         $scope.visibleBroadcasts = $scope.filteredBroadcasts;
-        $scope.lastSeen = $rootScope.userProfile.broadcastsSeenTS;
-
-        var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
-            var newBroadcast = dataSnapshot.val();
-            var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
-            var seen = $scope.lastSeen !== null && newBroadcast.time < $scope.lastSeen;
-            if (!expired && !seen) {
-                $scope.filteredBroadcasts.push(newBroadcast);
-            }
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleBroadcasts = $scope.showAll === 'true' ? $scope.unfilteredBroadcasts : $scope.filteredBroadcasts;
         };
 
         $scope.markSeen = function () {
-            $rootScope.userProfile.broadcastsSeenTS = Firebase.ServerValue.TIMESTAMP;
-            $scope.filteredBroadcasts = [];
-            $scope.visibleBroadcasts = $scope.filteredBroadcasts;
+            $rootScope.userProfile.broadcastsSeenTS = new Date().valueOf() + $rootScope.serverTimeOffset;
+            StreamInfo.filteredBroadcasts.length = 0; //Clear but maintain references
+            StreamInfo.streamCounts.numBroadcasts = 0;
             $scope.toggleShow();
         };
 
@@ -296,24 +285,15 @@ app.controller('ActivityStreamController',
         $scope.filteredActivities = StreamInfo.filteredActivities;
         $scope.unfilteredActivities = angularFireCollection($rootScope.firebaseUrl + 'activities');
         $scope.visibleActivities = $scope.filteredActivities;
-        $scope.lastSeen = $rootScope.userProfile.activitiesSeenTS;
-
-        var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
-            var newActivity = dataSnapshot.val();
-            if ($scope.lastSeen === undefined || newActivity.time > $scope.lastSeen) {
-                $scope.filteredActivities.push(newActivity);
-            }
-        });
 
         $scope.toggleShow = function () {
             $scope.visibleActivities = $scope.showAll === 'true' ? $scope.unfilteredActivities : $scope.filteredActivities;
         };
 
         $scope.markSeen = function () {
-            $rootScope.userProfile.activitiesSeenTS = Firebase.ServerValue.TIMESTAMP;
-            $scope.filteredActivities = [];
-            $scope.visibleActivities = $scope.filteredActivities;
+            $rootScope.userProfile.activitiesSeenTS = new Date().valueOf() + $rootScope.serverTimeOffset;
+            StreamInfo.filteredActivities.length = 0; //Clear but maintain references
+            StreamInfo.streamCounts.numActivites = 0;
             $scope.toggleShow();
         };
 
@@ -539,9 +519,9 @@ app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, Aut
 
     AuthService.promise.then(function () {
         var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
         broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
             var newBroadcast = dataSnapshot.val();
+            var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
             var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
             if (! expired && ! seen)
@@ -550,9 +530,9 @@ app.factory('StreamInfo', ['$rootScope', 'AuthService', function($rootScope, Aut
         });
 
         var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
         activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
             var newActivity = dataSnapshot.val();
+            var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
             if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
                 filteredActivities.push(newActivity);
             streamCounts.numActivites = filteredActivities.length;
