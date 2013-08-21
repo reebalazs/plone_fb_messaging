@@ -67,7 +67,8 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', function ($rootScope, angularFire, $q, $cookieStore) {
+app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
+    function ($rootScope, angularFire, $q, $cookieStore) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
      if (!$rootScope.firebaseUrl) {
@@ -162,7 +163,7 @@ app.service('AuthService', function ($rootScope, angularFire, $q, $cookieStore) 
         serverTimeOffsetQ.promise,
         userProfilePromise
     ]);
-});
+}]);
 
 app.controller('CommandCentralController',
     ['$scope', '$rootScope',
