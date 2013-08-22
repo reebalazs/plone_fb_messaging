@@ -196,8 +196,9 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
             var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
             var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
             var seen = broadcastsLastSeen !== null && newBroadcast.time < broadcastsLastSeen;
-            if (! expired && ! seen)
+            if (!expired && !seen) {
                 $rootScope.filteredBroadcasts.push(newBroadcast);
+            }
             $rootScope.streamCounts.numBroadcasts = $rootScope.filteredBroadcasts.length;
         });
 
@@ -205,8 +206,9 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
         activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
             var newActivity = dataSnapshot.val();
             var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
-            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen)
+            if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen) {
                 $rootScope.filteredActivities.push(newActivity);
+            }
             $rootScope.streamCounts.numActivites = $rootScope.filteredActivities.length;
         });
     });
@@ -469,12 +471,14 @@ app.controller('MessagingController',
 
         $scope.portraits = {};
         $scope.getPortraitURL = function (userid) {
-            if(! $scope.portraits.hasOwnProperty(userid)) {
+            if (!$scope.portraits.hasOwnProperty(userid)) {
                 $.ajax($rootScope.portraitRoot + userid).always(function (data) {
-                    if(data.status === 200)
+                    if (data.status === 200) {
                         $scope.portraits[userid] = $rootScope.portraitRoot + userid;
-                    else
+                    }
+                    else {
                         $scope.portraits[userid] = $rootScope.defaultPortrait;
+                    }
                     $scope.$apply();
                 });
             }
@@ -562,9 +566,10 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
                 var message = ngModel.$modelValue;
                 message.content = parseBBCode($('<div/>').text($.trim(element.text())).html()); // escape html inities to prevent script injection, etc.
                 ngModel.$setViewValue(message.content);
-                if(message.content === '') {
+                if (message.content === '') {
                     $scope.messages.remove(message);
-                } else {
+                }
+                else {
                     $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
                 }
             });
@@ -576,7 +581,6 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
     return function (msg, messages, ploneUserid, users, helpMessage) {
         var delim = msg.indexOf(' ');
         var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
-        var username = ploneUserid;
         var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
         var usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
 
@@ -653,13 +657,13 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                     helpMessage.help = 'Bad syntax - /whois {target username}: ' + msg;
                 }
                 else {
-                    target = msg.substr(delim + 1);
+                    var target = msg.substr(delim + 1);
                     if (users[target] && users[target].lastActive) {
                         if (users[target].online) {
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
-                                     is online and was last active ' + new Date(users[target].lastActive).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span>' +
+                                    'is online and was last active ' + new Date(users[target].lastActive).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -668,8 +672,8 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         else {
                             messages.add({
                                 sender: ploneUserid,
-                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span> \
-                                     is offline and was last seen ' + new Date(users[target].lastActive).toString(),
+                                content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span>' +
+                                    'is offline and was last seen ' + new Date(users[target].lastActive).toString(),
                                 private: true,
                                 type: 'server',
                                 time: Firebase.ServerValue.TIMESTAMP
@@ -786,8 +790,9 @@ app.filter('userFilter', function () {
 app.filter('roomMemberFilter', function () {
     return function (users, userCounts) {
         var counter = 0;
-        for (var username in users)
+        for (var username in users) {
             counter++;
+        }
         userCounts.roomMembers = counter; // This is a simple and efficient method to avoid Object.keys()
         return users;
     };
