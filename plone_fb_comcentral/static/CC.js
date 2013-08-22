@@ -67,11 +67,12 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
-    function ($rootScope, angularFire, $q, $cookieStore) {
+app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', 'setupUser',
+    function ($rootScope, angularFire, $q, $cookieStore, setupUser) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
-    var firebaseQ = $q.defer(); // this can become optionsQ when more options are added
+    var credsQ = $q.defer();
+    var optionsQ = $q.defer();
     var serverTimeOffsetQ = $q.defer();
     var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
     var userProfileQ = $q.defer();
@@ -80,9 +81,19 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
     this.promise = $q.all([
         authQ.promise, // XXX not sure if needed, and if not then whether it causes trouble
         serverTimeOffsetQ.promise,
-        firebaseQ.promise,
+        credsQ.promise,
+        optionsQ.promise,
         userProfileQ.promise // not using userProfilePromise for simplicity
     ]);
+
+    optionsQ.promise.then(function () {
+        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
+        $rootScope.fireBase = new Firebase($rootScope.firebaseUrl);
+    });
+
+    var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
+    $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
+    //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
 
     if (!$rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
@@ -94,58 +105,61 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
 
         $.getJSON($rootScope.staticRoot + 'options.json', function (data) {
             $rootScope.firebaseUrl = data.firebaseUrl;
-            firebaseQ.resolve();
+            optionsQ.resolve();
         }).error(function () {
-            throw new Error("Failed to fetch options.json");
+            throw new Error('Failed to fetch options.json');
         });
 
-        var useridfromCookie = $cookieStore.get('username');
-        if (useridfromCookie !== undefined && useridfromCookie.search(new RegExp('[a-zA-Z0-9.-_]+$')) === 0) {
-            $rootScope.ploneUserid = useridfromCookie;
-            $rootScope.fullName = $cookieStore.get('fullName');
+        var userCredsCookie = $cookieStore.get('userCredentials');
+        var userCreds;
+        if (userCredsCookie) {
+            userCreds = JSON.parse(userCredsCookie);
+        }
+
+        if (userCreds && userCreds.serverId && userCreds.ploneUserid && userCreds.fullName) {
+            setupUser(userCreds.serverId, userCreds.ploneUserid, userCreds.fullName, false);
         }
         else {
-            var rand = Math.floor(Math.random() * 101); // Vary userid to make testing easier
-            $cookieStore.put('username', 'TestUser' + rand);
-            $cookieStore.put('fullName', 'Test User ' + rand);
-            $rootScope.ploneUserid = 'TestUser' + rand;
-            $rootScope.fullName = 'Test User ' + rand;
+            var randUser = Math.floor(Math.random() * 101); // Vary userid to make testing easier
+            var randServer = Math.floor(Math.random() * 101); // Vary userid to make testing easier
+            setupUser('TestingServer' + randServer, 'TestUser' + randUser, 'Test User ' + randUser, true);
         }
+        credsQ.resolve();
     }
     else {
-        firebaseQ.resolve();
+        optionsQ.resolve();
+        credsQ.resolve();
         if (!$rootScope.fullName) {
-            // if empty full name, substitute with username
-            $rootScope.fullName = $rootScope.ploneUserid;
+            // if empty full name, substitute with username --- Why?? current code will just not show it
+            $rootScope.fullName = $rootScope.ploneUserid; 
         }
     }
 
-    var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
-    $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
-    //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
+    var readyToAuth = $q.all([
+        credsQ.promise,
+        optionsQ.promise
+    ]);
 
-    firebaseQ.promise.then(function () {
-        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
-        var firebase = new Firebase($rootScope.firebaseUrl);
-        $rootScope.fireBase = firebase;
+    readyToAuth.then(function () {
+        var firebase = $rootScope.fireBase;
+        var userCredsString =  $rootScope.serverId + ':' + $rootScope.ploneUserid + 
+            ($rootScope.fullName ? ' (' + $rootScope.fullName + ')' : '');
 
         // Authenticate me.
         if ($rootScope.authToken) {
             firebase.auth($rootScope.authToken, function (error, result) {
                 if (error) {
-                    throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
+                    throw new Error('Authentication as "' + userCredsString + '" failed! \n' + error);
                 }
                 else {
                     authQ.resolve();
-                    console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
-                        $rootScope.fullName + ') accepted by the server.');
+                    console.log('Authentication as "' + userCredsString + '" accepted by the server.');
                 }
             });
         }
         else {
             authQ.resolve();
-            console.log('No authentication token. Continuing in static mode, acting as user "' +
-                $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
+            console.log('No authentication token. Continuing in static mode, acting as "' + userCredsString + '"');
         }
 
         // presence handling
@@ -465,7 +479,7 @@ app.controller('MessagingController',
         });
 
         $scope.showMoreMessages = function () {
-            $scope.moreMessagesShown = $("#messagesDiv")[0].scrollHeight;
+            $scope.moreMessagesShown = $('#messagesDiv')[0].scrollHeight;
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
         };
 
@@ -573,6 +587,28 @@ app.directive('contenteditable', ['parseBBCode', function (parseBBCode) {
                     $scope.messages.update(message); //buggy on multiple consecutive edits without time for the other to complete
                 }
             });
+        }
+    };
+}]);
+
+app.factory('setupUser', ['$cookieStore', '$rootScope', function ($cookieStore, $rootScope) {
+    return function (serverId, userId, fullName, setCookie) {
+        var regExp = new RegExp('[a-zA-Z0-9.-_]+$');
+        if (serverId.search(regExp) === 0 && userId.search(regExp) === 0) {
+            $rootScope.serverId = serverId;
+            $rootScope.ploneUserid = userId;
+            $rootScope.fullName = fullName;
+
+            if (setCookie) {
+                $cookieStore.put('userCredentials', JSON.stringify({
+                    serverId: serverId,
+                    ploneUserid: userId,
+                    fullName: fullName
+                }));
+            }
+        }
+        else {
+            throw new Error('Invalid User Credentials');
         }
     };
 }]);
