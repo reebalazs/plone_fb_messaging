@@ -194,9 +194,7 @@ app.controller('MenuController',
         $scope.streamCounts = {numActivites: 0, numBroadcasts: 0};
 
         AuthService.promise.then(function () {
-            $scope.$watch(function () {
-                return $rootScope.streamCounts;
-            }, function () {
+            $rootScope.$watch('streamCounts', function () {
                 $scope.streamCounts = $rootScope.streamCounts;
                 setTimeout(function () {
                     // there should be a better way to do this but I'll leave it for the moment because it works
