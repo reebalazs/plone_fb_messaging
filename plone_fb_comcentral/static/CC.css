@@ -1,3 +1,18 @@
+/* 
+  Allow angular.js to be loaded in body, hiding cloaked elements until 
+  templates compile.  The !important is important given that there may be 
+  other selectors that are more specific or come later and might alter display.
+
+  "For the best result, angular.js script must be loaded in the head 
+  section of the html file; alternatively, the css rule (above) must be 
+  included in the external stylesheet of the application." ~ ng-cloak docs
+  Unfortunately, ng-cloak is not working correctly even with angular.js in the head,
+  however this hack seems to work correctly.
+ */
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
+}
+
 /*CSS for Command Central */
 
 .navbar {
