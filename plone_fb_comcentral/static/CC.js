@@ -67,92 +67,122 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', function ($rootScope, angularFire, $q) {
+app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore',
+    function ($rootScope, angularFire, $q, $cookieStore) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
-     if (!$rootScope.firebaseUrl) {
+    var firebaseQ = $q.defer(); // this can become optionsQ when more options are added
+    var serverTimeOffsetQ = $q.defer();
+    var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
+    var userProfileQ = $q.defer();
+
+    // promise will satisfy when both serverTimeOffset and userProfile are read and firebase ref is established
+    this.promise = $q.all([
+        authQ.promise, // XXX not sure if needed, and if not then whether it causes trouble
+        serverTimeOffsetQ.promise,
+        firebaseQ.promise,
+        userProfileQ.promise // not using userProfilePromise for simplicity
+    ]);
+
+    if (!$rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
-        $rootScope.firebaseUrl = 'https://green-cc.firebaseio-demo.com/';
+        $rootScope.testingMode = true;
         $rootScope.authToken = '';
-        var rand = Math.floor(Math.random()*101); // Vary userid to make testing easier
-        $rootScope.ploneUserid = 'TestUser' + rand;
-        $rootScope.fullName = 'Test User ' + rand;
         $rootScope.staticRoot = '../static/';
         $rootScope.portraitRoot = './PORTRAITS_FIXME/';   // TODO XXX set this to the static portrait root
+
+        $.getJSON($rootScope.staticRoot + 'options.json', function (data) {
+            $rootScope.firebaseUrl = data.firebaseUrl;
+            firebaseQ.resolve();
+        }).error(function () {
+            throw new Error("Failed to fetch options.json");
+        });
+
+        var useridfromCookie = $cookieStore.get('username');
+        if (useridfromCookie !== undefined && useridfromCookie.search(new RegExp('[a-zA-Z0-9.-_]+$')) === 0) {
+            $rootScope.ploneUserid = useridfromCookie;
+            $rootScope.fullName = $cookieStore.get('fullName');
+        }
+        else {
+            var rand = Math.floor(Math.random() * 101); // Vary userid to make testing easier
+            $cookieStore.put('username', 'TestUser' + rand);
+            $cookieStore.put('fullName', 'Test User ' + rand);
+            $rootScope.ploneUserid = 'TestUser' + rand;
+            $rootScope.fullName = 'Test User ' + rand;
+        }
     }
-    else if (!$rootScope.fullName) {
-        // if empty full name, substitute with username
-        $rootScope.fullName = $rootScope.ploneUserid;
+    else {
+        firebaseQ.resolve();
+        if (!$rootScope.fullName) {
+            // if empty full name, substitute with username
+            $rootScope.fullName = $rootScope.ploneUserid;
+        }
     }
 
     var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
     $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
     //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
 
-    console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
-    var firebase = new Firebase($rootScope.firebaseUrl);
-    $rootScope.fireBase = firebase;
+    firebaseQ.promise.then(function () {
+        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
+        var firebase = new Firebase($rootScope.firebaseUrl);
+        $rootScope.fireBase = firebase;
 
-    // Authenticate me.
-    var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
-    if ($rootScope.authToken) {
-        firebase.auth($rootScope.authToken, function (error, result) {
-            if (error) {
-                throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
-            }
-            else {
-                authQ.resolve();
-                console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
-                    $rootScope.fullName + ') accepted by the server.');
+        // Authenticate me.
+        if ($rootScope.authToken) {
+            firebase.auth($rootScope.authToken, function (error, result) {
+                if (error) {
+                    throw new Error('Authentication as "' + $rootScope.ploneUserid + '" failed! \n' + error);
+                }
+                else {
+                    authQ.resolve();
+                    console.log('Authentication as "' + $rootScope.ploneUserid + '" (' +
+                        $rootScope.fullName + ') accepted by the server.');
+                }
+            });
+        }
+        else {
+            authQ.resolve();
+            console.log('No authentication token. Continuing in static mode, acting as user "' +
+                $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
+        }
+
+        // presence handling
+        var username = $rootScope.ploneUserid;
+        var onlineRef = firebase.child('presence');
+        var infoRef = firebase.root().child('.info');
+        infoRef.child('connected').on('value', function (snap) {
+            if (snap.val() === true) {
+                // We're connected or reconnected.
+                // Set up our presence state and
+                // tell the server to set a timestamp when we leave.
+                var userRef = onlineRef.child(username);
+                userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
+                userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
+                var connRef = userRef.child('online').push(1);
+                connRef.onDisconnect().remove();
             }
         });
-    }
-    else {
-        authQ.resolve();
-        console.log('No authentication token. Continuing in static mode, acting as user "' +
-            $rootScope.ploneUserid + '" (' + $rootScope.fullName + ')');
-    }
 
-    // presence handling
-    var username = $rootScope.ploneUserid;
-    var onlineRef = firebase.child('presence');
-    var infoRef = firebase.root().child('.info');
-    infoRef.child('connected').on('value', function (snap) {
-        if (snap.val() === true) {
-            // We're connected or reconnected.
-            // Set up our presence state and
-            // tell the server to set a timestamp when we leave.
-            var userRef = onlineRef.child(username);
-            userRef.child('lastActive').set(Firebase.ServerValue.TIMESTAMP);
-            userRef.child('lastActive').onDisconnect().set(Firebase.ServerValue.TIMESTAMP);
-            var connRef = userRef.child('online').push(1);
-            connRef.onDisconnect().remove();
-        }
+        infoRef.child('serverTimeOffset').on('value', function (snap) {
+            $rootScope.serverTimeOffset = snap.val();
+            serverTimeOffsetQ.resolve();
+        });
+
+        // profile handling
+        var profileRef = firebase.child('profile').child(username);
+        // store the fullname into the profile
+        // this makes sure that every user's fullname is
+        // stored or updated on login
+        profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
+                // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
+        var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
+        userProfilePromise.then(function () {
+            userProfileQ.resolve();
+        });
     });
-
-    var serverTimeOffsetQ = $q.defer();
-    infoRef.child('serverTimeOffset').on('value', function (snap) {
-        $rootScope.serverTimeOffset = snap.val();
-        serverTimeOffsetQ.resolve();
-    });
-
-    // profile handling
-    var profileRef = new Firebase($rootScope.firebaseUrl).child('profile').child(username);
-    // store the fullname into the profile
-    // this makes sure that every user's fullname is
-    // stored or updated on login
-    profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
-            // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
-    var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
-
-    // promise will satisfy when both serverTimeOffset and userProfile are read.
-    this.promise = $q.all([
-        authQ.promise,              // XXX not sure if needed, and if not then whether it causes trouble
-        serverTimeOffsetQ.promise,
-        userProfilePromise
-    ]);
-});
+}]);
 
 app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
     $rootScope.streamCounts = {};
@@ -183,8 +213,17 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
 }]);
 
 app.controller('CommandCentralController',
-    ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
+    ['$scope', '$rootScope', '$cookieStore',
+    function ($scope, $rootScope, $cookieStore) {
+        $scope.testingMode = $rootScope.testingMode;
+        $scope.userid = $rootScope.ploneUserid;
+        $scope.name = $rootScope.fullName;
+
+        $scope.changeUser = function () {
+            $cookieStore.put('username', $scope.userid);
+            $cookieStore.put('fullName', $scope.name);
+            location.reload(); //Simple in order to not bother with refreshing all data and changing the connection details
+        };
 }]);
 
 app.controller('MenuController',
@@ -831,43 +870,3 @@ app.directive('ngEnter', function () {
         });
     };
 });
-
-//function setUsername($scope, $cookieStore) {
-    // XXX XXX XXX
-    //var username = 'TestUserX';
-    //$scope.username = username;
-    //return;
-    // XXX XXX
-    //var username = $cookieStore.get('username');
-    //    if (username === undefined || username.search(usernameRegexp) !== 0) {
-    //        var anonUser = 'Anonymous' + Math.floor(Math.random() * 111);
-    //        $scope.username = anonUser; //Very bad things happen if two people have the same username
-    //        $cookieStore.put('username', anonUser);
-    //    }
-    //    else if (username.search(usernameRegexp) === 0)
-    //        $scope.username = username;
-//}
-
-//function updateUsername($scope, $cookieStore, angularFireCollection) {
-    //return;
-
-    // XXX XXX XXX
-
-    //    var username = $scope.username;
-    //    if (username.search(usernameRegexp) === 0) {
-    //        var oldUserRef = onlineRef.child($cookieStore.get('username'));
-    //        var connRef = oldUserRef.child('online').remove();
-    //        oldUserRef.child('logout').set(Firebase.ServerValue.TIMESTAMP);
-    //        oldUserRef.child('online').remove();
-    //        $cookieStore.put('username', $('#username').val());
-    //
-    //        userRef = onlineRef.child($scope.username);
-    //        connRef = userRef.child('online').push(1);
-    //        if (angularFireCollection) {
-    //            $scope.rooms = angularFireCollection(firebaseUrl + 
-    //                'presence/' + $scope.username + '/' + 'rooms'); //Resetting this seems to be necessary
-    //        }
-    //    }
-    //    else
-    //        $scope.username = $cookieStore.get('username'); //Revert to valid username if the one user provides is invalid
-//}
