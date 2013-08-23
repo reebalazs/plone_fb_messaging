@@ -36,24 +36,24 @@
     <div class="users" ng-switch on="usersType">
       <div ng-switch-when="room">
         <strong>Room Members <span ng-cloak>({{userCounts.roomMembers}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(username, user) in roomMembers | roomMemberFilter:userCounts">
-          <a href="" class="user" ng-click="createPrivateRoom(username, username)" ng-show="username != username" title="{{username.split(':')[0]}}">
-            {{username.split(':')[1]}} <span ng-show="userProfiles[username].fullName">({{username | getFullName:userProfiles}})</span>
+        <div class="user" ng-cloak ng-repeat="(user, user) in roomMembers | roomMemberFilter:userCounts">
+          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
-          <span ng-show="username == username" title="{{username.split(':')[0]}}">
-            {{username.split(':')[1]}} <span ng-show="userProfiles[username].fullName">({{username | getFullName:userProfiles}})</span>
+          <span ng-show="user == username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </span>
         </div>
       </div>
 
       <div ng-switch-when="online">
         <strong>Online Users <span ng-cloak>({{userCounts.onlineUsers}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(username, user) in users | userFilter:userCounts" title="{{username.split(':')[0]}}">
-          <a href="" class="user" ng-click="createPrivateRoom(username, username)" ng-show="username != username">
-            {{username.split(':')[1]}} <span ng-show="userProfiles[username].fullName">({{username | getFullName:userProfiles}})</span>
+        <div class="user" ng-cloak ng-repeat="(user, user) in users | userFilter:userCounts" title="{{user.split(':')[0]}}">
+          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
-          <span ng-show="username == username" title="{{username.split(':')[0]}}">
-            {{username.split(':')[1]}} <span ng-show="userProfiles[username].fullName">({{username | getFullName:userProfiles}})</span>
+          <span ng-show="user == username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </span>
         </div>
       </div>
