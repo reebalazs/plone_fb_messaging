@@ -71,11 +71,11 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
     function ($rootScope, angularFire, $q, $cookieStore, setupUser) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
-    var credsQ = $q.defer();
-    var optionsQ = $q.defer();
-    var serverTimeOffsetQ = $q.defer();
-    var authQ = $q.defer();    // XX Not sure if we need to Q for auth.
-    var userProfileQ = $q.defer();
+    var credsQ = $q.defer(),
+        optionsQ = $q.defer(),
+        serverTimeOffsetQ = $q.defer(),
+        authQ = $q.defer(),    // XX Not sure if we need to Q for auth.
+        userProfileQ = $q.defer();
 
     // promise will satisfy when both serverTimeOffset and userProfile are read and firebase ref is established
     this.promise = $q.all([
@@ -86,11 +86,6 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
         userProfileQ.promise // not using userProfilePromise for simplicity
     ]);
 
-    optionsQ.promise.then(function () {
-        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
-        $rootScope.fireBase = new Firebase($rootScope.firebaseUrl);
-    });
-
     var staticRoot = $('meta[name="fb-comcentral-static"]').attr('content') || '../static/';
     $rootScope.defaultPortrait = staticRoot + 'defaultPortrait.png';
     //console.log('Portraits:', $rootScope.portraitRoot, $rootScope.defaultPortrait);
@@ -98,6 +93,7 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
     if (!$rootScope.firebaseUrl) {
         // We are in the static html. Let's provide
         // constants for testing.
+
         $rootScope.testingMode = true;
         $rootScope.authToken = '';
         $rootScope.staticRoot = '../static/';
@@ -110,8 +106,7 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
             throw new Error('Failed to fetch options.json');
         });
 
-        var userCredsCookie = $cookieStore.get('userCredentials');
-        var userCreds;
+        var userCredsCookie = $cookieStore.get('userCredentials'), userCreds;
         if (userCredsCookie) {
             userCreds = JSON.parse(userCredsCookie);
         }
@@ -120,8 +115,8 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
             setupUser(userCreds.serverId, userCreds.ploneUserid, userCreds.fullName, false);
         }
         else {
-            var randUser = Math.floor(Math.random() * 101); // Vary userid to make testing easier
-            var randServer = Math.floor(Math.random() * 101); // Vary userid to make testing easier
+            var randUser = Math.floor(Math.random() * 101), // Vary userid to make testing easier
+                randServer = Math.floor(Math.random() * 101);
             setupUser('TestingServer' + randServer, 'TestUser' + randUser, 'Test User ' + randUser, true);
         }
         credsQ.resolve();
@@ -135,6 +130,16 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
         }
     }
 
+    optionsQ.promise.then(function () {
+        console.log('Using Firebase URL: "' + $rootScope.firebaseUrl + '".');
+        $rootScope.fireBase = new Firebase($rootScope.firebaseUrl);
+
+        $rootScope.fireBase.root().child('.info').child('serverTimeOffset').on('value', function (snap) {
+            $rootScope.serverTimeOffset = snap.val();
+            serverTimeOffsetQ.resolve();
+        });
+    });
+
     var readyToAuth = $q.all([
         credsQ.promise,
         optionsQ.promise
@@ -147,7 +152,7 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
 
         // Authenticate me.
         if ($rootScope.authToken) {
-            firebase.auth($rootScope.authToken, function (error, result) {
+            $rootScope.fireBase.auth($rootScope.authToken, function (error, result) {
                 if (error) {
                     throw new Error('Authentication as "' + userCredsString + '" failed! \n' + error);
                 }
@@ -161,11 +166,15 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
             authQ.resolve();
             console.log('No authentication token. Continuing in static mode, acting as "' + userCredsString + '"');
         }
+    });
 
+    authQ.promise.then(function () {
         // presence handling
-        var username = $rootScope.ploneUserid;
-        var onlineRef = firebase.child('presence');
-        var infoRef = firebase.root().child('.info');
+        var username = $rootScope.ploneUserid,
+            firebase = $rootScope.fireBase,
+            onlineRef = firebase.child('presence'),
+            infoRef = firebase.root().child('.info');
+
         infoRef.child('connected').on('value', function (snap) {
             if (snap.val() === true) {
                 // We're connected or reconnected.
@@ -177,11 +186,6 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
                 var connRef = userRef.child('online').push(1);
                 connRef.onDisconnect().remove();
             }
-        });
-
-        infoRef.child('serverTimeOffset').on('value', function (snap) {
-            $rootScope.serverTimeOffset = snap.val();
-            serverTimeOffsetQ.resolve();
         });
 
         // profile handling
@@ -231,11 +235,14 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
 app.controller('CommandCentralController',
     ['$scope', '$rootScope', '$cookieStore', 'setupUser',
     function ($scope, $rootScope, $cookieStore, setupUser) {
-        $scope.testingMode = $rootScope.testingMode;
-        $scope.userid = $rootScope.ploneUserid;
-        $scope.serverid = $rootScope.serverId;
-        $scope.name = $rootScope.fullName;
 
+        with ($rootScope) {
+            $scope.testingMode = testingMode;
+            $scope.userid = ploneUserid;
+            $scope.serverid = serverId;
+            $scope.name = fullName;
+        }
+        
         $scope.changeUser = function () {
             setupUser($scope.serverid, $scope.userid, $scope.name, true);
             location.reload(); //Simple in order to not bother with refreshing all data and changing the connection details
@@ -379,10 +386,6 @@ app.controller('ActivityStreamController',
         $scope.username = $rootScope.ploneUserid;
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
         $scope.createPrivateRoom = createPrivateRoom;
-
-        //$scope.updateUsername = function () {
-        //    updateUsername($scope, $cookieStore);
-        //};
     }
 ]);
 
@@ -400,8 +403,6 @@ app.controller('MessagingController',
         // focus to messages input
         $('#fb-message-input')[0].focus();
 
-        //setUsername($scope, $cookieStore);
-
         var username = $rootScope.ploneUserid;
         $scope.username = username;
 
@@ -417,10 +418,6 @@ app.controller('MessagingController',
             $scope.message = ''; //clear message input
         };
 
-        //$scope.updateUsername = function () {
-        //    updateUsername($scope, $cookieStore, angularFireCollection);
-        //};
-
         $scope.rooms = angularFireCollection($rootScope.firebaseUrl + 'rooms');
         $scope.publicRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/publicRooms');
         $scope.privateRooms = angularFireCollection($rootScope.firebaseUrl + 'rooms/privateRooms');
@@ -432,9 +429,9 @@ app.controller('MessagingController',
         currentRoomRef.child('type').set(roomType);
         currentRoomRef.child('hidden').child(username).remove(); //If we are in the room, we do not want it hidden - this will allow reentering a hidden room
 
-        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {});
-        var usersPromise = angularFire(onlineRef, $scope, 'users', {});
-        var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
+        var membersPromise = angularFire(currentRoomRef.child('members'), $scope, 'roomMembers', {}),
+            usersPromise = angularFire(onlineRef, $scope, 'users', {}),
+            profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
         $scope.usersType = 'online';
         $scope.userCounts = {};
 
@@ -493,7 +490,6 @@ app.controller('MessagingController',
                     else {
                         $scope.portraits[userid] = $rootScope.defaultPortrait;
                     }
-                    $scope.$apply();
                 });
             }
         };
@@ -616,9 +612,9 @@ app.factory('setupUser', ['$cookieStore', '$rootScope', function ($cookieStore, 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
     return function (msg, messages, ploneUserid, users, helpMessage) {
         var delim = msg.indexOf(' ');
-        var command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1);
-        var usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$');
-        var usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
+            command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1),
+            usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$'),
+            usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
 
         switch (command) {
             /* case 'msg':
