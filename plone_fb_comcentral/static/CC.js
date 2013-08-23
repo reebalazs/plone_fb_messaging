@@ -170,7 +170,7 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
 
     authQ.promise.then(function () {
         // presence handling
-        var username = $rootScope.userId,
+        var username = $rootScope.serverId + ':' + $rootScope.userId,
             firebase = $rootScope.fireBase,
             onlineRef = firebase.child('presence'),
             infoRef = firebase.root().child('.info');
@@ -202,14 +202,14 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
     });
 }]);
 
-app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, AuthService) {
+app.service('StreamService', ['$rootScope', 'AuthService', function ($rootScope, AuthService) {
     $rootScope.streamCounts = {};
     $rootScope.filteredActivities = [];
     $rootScope.filteredBroadcasts = [];
 
     AuthService.promise.then(function () {
         var broadcastsRef = new Firebase($rootScope.firebaseUrl + 'broadcasts');
-        broadcastsRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+        broadcastsRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
             var newBroadcast = dataSnapshot.val();
             var broadcastsLastSeen = $rootScope.userProfile.broadcastsSeenTS;
             var expired = new Date().valueOf() + $rootScope.serverTimeOffset > newBroadcast.expiration;
@@ -221,7 +221,7 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
         });
 
         var activitiesRef = new Firebase($rootScope.firebaseUrl + 'activities');
-        activitiesRef.on('child_added', function(dataSnapshot) { //this will trigger for each existing child as well
+        activitiesRef.on('child_added', function (dataSnapshot) { //this will trigger for each existing child as well
             var newActivity = dataSnapshot.val();
             var activitiesLastSeen = $rootScope.userProfile.activitiesSeenTS;
             if (activitiesLastSeen === undefined || newActivity.time > activitiesLastSeen) {
@@ -280,7 +280,7 @@ app.controller('CreateBroadcastController',
             $scope.broadcasts.add({
                 message: $scope.broadcast.message,
                 time: Firebase.ServerValue.TIMESTAMP,
-                user: $rootScope.userId,
+                user: $rootScope.serverId + ':' + $rootScope.userId,
                 expiration: new Date().valueOf() + $rootScope.serverTimeOffset + $scope.broadcast.expiration * 60000
             });
         };
@@ -383,7 +383,7 @@ app.controller('ActivityStreamController',
             $scope.toggleShow();
         };
 
-        $scope.username = $rootScope.userId;
+        $scope.username = $rootScope.serverId + ':' + $rootScope.userId;
         var profilePromise = angularFire($rootScope.firebaseUrl + 'profile', $scope, 'userProfiles', {});
         $scope.createPrivateRoom = createPrivateRoom;
     }
@@ -403,7 +403,7 @@ app.controller('MessagingController',
         // focus to messages input
         $('#fb-message-input')[0].focus();
 
-        var username = $rootScope.userId;
+        var username = $rootScope.serverId + ':' + $rootScope.userId;
         $scope.username = username;
 
         var onlineRef = new Firebase($rootScope.firebaseUrl + 'presence');
@@ -481,14 +481,14 @@ app.controller('MessagingController',
         };
 
         $scope.portraits = {};
-        $scope.getPortraitURL = function (userId) {
-            if (!$scope.portraits.hasOwnProperty(userId)) {
-                $.ajax($rootScope.portraitRoot + userId).always(function (data) {
+        $scope.getPortraitURL = function (username) {
+            if (!$scope.portraits.hasOwnProperty(username)) {
+                $.ajax($rootScope.portraitRoot + username).always(function (data) {
                     if (data.status === 200) {
-                        $scope.portraits[userId] = $rootScope.portraitRoot + userId;
+                        $scope.portraits[username] = $rootScope.portraitRoot + username;
                     }
                     else {
-                        $scope.portraits[userId] = $rootScope.defaultPortrait;
+                        $scope.portraits[username] = $rootScope.defaultPortrait;
                     }
                 });
             }
@@ -610,10 +610,10 @@ app.factory('setupUser', ['$cookieStore', '$rootScope', function ($cookieStore, 
 }]);
 
 app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (createPrivateRoom, $rootScope) {
-    return function (msg, messages, userId, users, helpMessage) {
+    return function (msg, messages, username, users, helpMessage) {
         var delim = msg.indexOf(' ');
             command = delim !== -1 ? msg.substring(1, delim) : msg.substr(1),
-            usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+$'),
+            usernameRegexp = new RegExp('[a-zA-Z0-9.-_]+:[a-zA-Z0-9.-_]+$'),
             usernameRegexpSource = usernameRegexp.source.slice(0, -1); //remove last $ character to allow command to continue
 
         switch (command) {
@@ -655,10 +655,10 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 }
                 else {
                     target = msg.substr(delim + 1);
-                    if (target !== userId) {
+                    if (target !== username) {
                         helpMessage.helpClass = 'info';
                         helpMessage.help = 'Opened private chat room with ' + target;
-                        createPrivateRoom(userId, target);
+                        createPrivateRoom(username, target);
                     }
                     else {
                         helpMessage.helpClass = 'error';
@@ -674,7 +674,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 }
                 else {
                     messages.add({
-                        sender: userId,
+                        sender: username,
                         content: action,
                         private: false,
                         type: 'action',
@@ -693,7 +693,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                     if (users[target] && users[target].lastActive) {
                         if (users[target].online) {
                             messages.add({
-                                sender: userId,
+                                sender: username,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span>' +
                                     'is online and was last active ' + new Date(users[target].lastActive).toString(),
                                 private: true,
@@ -703,7 +703,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                         }
                         else {
                             messages.add({
-                                sender: userId,
+                                sender: username,
                                 content: '<span class="server-message-type">whois</span>: <span class="user-reference">' + target + '</span>' +
                                     'is offline and was last seen ' + new Date(users[target].lastActive).toString(),
                                 private: true,
@@ -727,7 +727,7 @@ app.factory('handleCommand', ['createPrivateRoom', '$rootScope', function (creat
                 }
                 else {
                     messages.add({
-                        sender: userId,
+                        sender: username,
                         content: '<span class="server-message-type">current time</span>: ' +
                             new Date((new Date().valueOf() + $rootScope.serverTimeOffset)).toString(),
                         private: true,
@@ -831,11 +831,11 @@ app.filter('roomMemberFilter', function () {
 });
 
 app.filter('publicRoomFilter', function () {
-    return function (rooms, userId) {
+    return function (rooms, username) {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
             var room = rooms[i];
-            var roomHidden = room.hidden && room.hidden.hasOwnProperty(userId) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[userId]);
+            var roomHidden = room.hidden && room.hidden.hasOwnProperty(username) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[username]);
             if (!roomHidden) {
                 result.push(room);
             }
@@ -845,13 +845,13 @@ app.filter('publicRoomFilter', function () {
 });
 
 app.filter('privateRoomFilter', function () {
-    return function (rooms, userId) {
+    return function (rooms, username) {
         var result = [];
         for (var i = 0; i < rooms.length; i++) {
             var room = rooms[i];
             var members = room.name.split('!~!');
-            var inPrivateRoom = members[0] === userId || members[1] === userId; //if this user is a member of the conversation
-            var roomHidden = room.hidden && room.hidden.hasOwnProperty(userId) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[userId]);
+            var inPrivateRoom = members[0] === username || members[1] === username; //if this user is a member of the conversation
+            var roomHidden = room.hidden && room.hidden.hasOwnProperty(username) && (room.lastMessaged === undefined || room.lastMessaged < room.hidden[username]);
             if (inPrivateRoom && !roomHidden) {
                 result.push(room);
             }

@@ -2,8 +2,8 @@
   <h1>Rooms</h1>
   
   <h2>Public</h2>
-    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:userId">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[userId] <
+    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:username">
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[username] <
         room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
@@ -14,8 +14,8 @@
     </p>
 
   <h2>Private</h2>
-    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:userId">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[userId] <
+    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:username">
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[username] <
         room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/private/{{room.name}}">{{room.name | prettifyRoomName}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
