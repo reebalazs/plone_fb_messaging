@@ -229,15 +229,15 @@ app.service('StreamService', ['$rootScope', 'AuthService', function($rootScope, 
 }]);
 
 app.controller('CommandCentralController',
-    ['$scope', '$rootScope', '$cookieStore',
-    function ($scope, $rootScope, $cookieStore) {
+    ['$scope', '$rootScope', '$cookieStore', 'setupUser',
+    function ($scope, $rootScope, $cookieStore, setupUser) {
         $scope.testingMode = $rootScope.testingMode;
         $scope.userid = $rootScope.ploneUserid;
+        $scope.serverid = $rootScope.serverId;
         $scope.name = $rootScope.fullName;
 
         $scope.changeUser = function () {
-            $cookieStore.put('username', $scope.userid);
-            $cookieStore.put('fullName', $scope.name);
+            setupUser($scope.serverid, $scope.userid, $scope.name, true);
             location.reload(); //Simple in order to not bother with refreshing all data and changing the connection details
         };
 }]);
