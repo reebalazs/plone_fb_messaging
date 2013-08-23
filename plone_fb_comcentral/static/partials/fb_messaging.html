@@ -71,7 +71,7 @@
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:username">
       <div ng-switch-when="public" class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <img class="user-portrait" ng-init="portraits[message.sender] || getPortraitURL(message.sender)" ng-src="{{portraits[message.sender]}}">
-        <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
+        <div class="chat-sender" title="{{message.sender}}">{{message.sender | getFullName:userProfiles}}</div>
         <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
           contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
@@ -80,7 +80,7 @@
       </div>
       <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
         <img class="user-portrait" ng-init="portraits[message.sender] || getPortraitURL(message.sender)" ng-src="{{portraits[message.sender]}}">
-        <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
+        <div class="chat-sender" title="{{message.sender}}">{{message.sender | getFullName:userProfiles}}</div>
         <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
           contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
