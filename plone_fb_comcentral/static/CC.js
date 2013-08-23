@@ -494,6 +494,12 @@ app.controller('MessagingController',
 
 app.directive('autoScroll', function ($timeout) {
     return function ($scope, $el, attrs) {
+        $scope.$on('$routeChangeSuccess', function () {
+            $timeout(function () {
+                $el[0].scrollTop = $el[0].scrollHeight;
+            });
+        });
+        
         var timer = false;
         // remember the minimal length during a batch of continous changes
         // because we want to wait until the changes are over, and only
