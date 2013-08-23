@@ -490,6 +490,9 @@ app.controller('MessagingController',
                     else {
                         $scope.portraits[username] = $rootScope.defaultPortrait;
                     }
+                    if (!$scope.$$phase) {
+                        $scope.$apply();
+                    }
                 });
             }
         };
