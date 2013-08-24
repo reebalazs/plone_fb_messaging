@@ -115,9 +115,8 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
             setupUser(userCreds.serverId, userCreds.userId, userCreds.fullName, false);
         }
         else {
-            var randUser = Math.floor(Math.random() * 101), // Vary userId to make testing easier
-                randServer = Math.floor(Math.random() * 101);
-            setupUser('TestingServer' + randServer, 'TestUser' + randUser, 'Test User ' + randUser, true);
+            var randUser = Math.floor(Math.random() * 101); // Vary userId to make testing easier
+            setupUser('TestingServer', 'TestUser' + randUser, 'Test User ' + randUser, true);
         }
         credsQ.resolve();
     }
