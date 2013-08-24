@@ -106,6 +106,7 @@ h1.fb-cc-title {
     float: right;
     width: 130px;
     margin-left: 0.5em;
+    word-wrap: break-word;
 }
 
 input.fb-message-input {
