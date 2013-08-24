@@ -2,8 +2,8 @@
   <h1>Rooms</h1>
   
   <h2>Public</h2>
-    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:ploneUserid">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
+    <div ng-cloak ng-repeat="room in publicRooms | publicRoomFilter:username">
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[username] <
         room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/public/{{room.name}}">{{room.name}}</a>
       <input type="submit" ng-hide="room.name == 'main'" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
@@ -14,8 +14,8 @@
     </p>
 
   <h2>Private</h2>
-    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:ploneUserid">
-      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[ploneUserid] <
+    <div ng-cloak ng-repeat="room in privateRooms | privateRoomFilter:username">
+      <a class="room" ng-class="{true:'active', false:''}[currentRoomName == room.name] + {true:' unseen', false:''}[room.seen[username] <
         room.lastMessaged && currentRoomName != room.name]"
         href="#*/messaging/private/{{room.name}}">{{room.name | prettifyRoomName}}</a>
       <input type="submit" ng-click="hideRoom(room.type, room.name, username, currentRoomName)" value="Hide">
@@ -36,24 +36,24 @@
     <div class="users" ng-switch on="usersType">
       <div ng-switch-when="room">
         <strong>Room Members <span ng-cloak>({{userCounts.roomMembers}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(userid, user) in roomMembers | roomMemberFilter:userCounts">
-          <a href="" class="user" ng-click="createPrivateRoom(username, userid)" ng-show="userid != username">
-            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+        <div class="user" ng-cloak ng-repeat="(user, user) in roomMembers | roomMemberFilter:userCounts">
+          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
-          <span ng-show="userid == username">
-            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+          <span ng-show="user == username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </span>
         </div>
       </div>
 
       <div ng-switch-when="online">
         <strong>Online Users <span ng-cloak>({{userCounts.onlineUsers}})</span>:</strong>
-        <div class="user" ng-cloak ng-repeat="(userid, user) in users | userFilter:userCounts">
-          <a href="" class="user" ng-click="createPrivateRoom(username, userid)" ng-show="userid != username">
-            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+        <div class="user" ng-cloak ng-repeat="(user, user) in users | userFilter:userCounts" title="{{user.split(':')[0]}}">
+          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
-          <span ng-show="userid == username">
-            {{userid}} <span ng-show="userProfiles[userid].fullName">({{userid | getFullName:userProfiles}})</span>
+          <span ng-show="user == username" title="{{user.split(':')[0]}}">
+            {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </span>
         </div>
       </div>
@@ -71,7 +71,7 @@
     <div class="message" ng-cloak ng-switch on="message.type" ng-repeat="message in messages | messageFilter:username">
       <div ng-switch-when="public" class="public chat-line-{{{true: 'own', false: 'foreign'}[message.sender == username]}}">
         <img class="user-portrait" ng-init="portraits[message.sender] || getPortraitURL(message.sender)" ng-src="{{portraits[message.sender]}}">
-        <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
+        <div class="chat-sender" title="{{message.sender}}">{{message.sender | getFullName:userProfiles}}</div>
         <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
           contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
@@ -80,7 +80,7 @@
       </div>
       <div ng-switch-when="action" class="action chat-line-own"> <!-- Styling for this needed -->
         <img class="user-portrait" ng-init="portraits[message.sender] || getPortraitURL(message.sender)" ng-src="{{portraits[message.sender]}}">
-        <div class="chat-sender">{{message.sender | getFullName:userProfiles}}</div>
+        <div class="chat-sender" title="{{message.sender}}">{{message.sender | getFullName:userProfiles}}</div>
         <div class="chat-content" title="{{message.time | date:'medium'}}" ng-model="message" 
           contenteditable="{{message.sender == username}}" ng-bind-html="message.content"></div>
       </div>
