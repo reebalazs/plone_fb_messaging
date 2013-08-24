@@ -126,3 +126,22 @@ If you prefer to use the example buildout, you can do the same by the following 
     $ bin/grunt
 
 The buildout is simply a commodity to make sure that the steps are correctly automated. If you are familiar with `npm`, `bower` and `grunt`, you may want to just use them directly without the buildout, since it will lead to the same results.
+
+### Root Scope ###
+
+Numerous state variables are stored in Angular's `$rootScope` Object during initialization of the application. Injecting `$rootScope` into a controller, factory, or service provides easy access to these useful variables.
+
+- `defaultPortrait`: URL for default portrait to be displayed in messaging view
+- `authToken`: Firebase authentication token used when not in static mode
+- `staticRoot`: Directory for static file storage (JS, CSS, HTML partials, etc.)
+- `portraitRoot`: Directory for portrait file storage
+- `firebaseUrl`: Firebase URL in usage
+- `fireBase`: Firebase reference in usage (i.e. `new Firebase($rootScope.firebaseUrl)`)
+- `serverTimeOffset`: Time offset between client and Firebase (server) - useful when setting custom times in Firebase since Firebase natively only supports current time with `Firebase.ServerValue.TIMESTAMP`
+- `serverId`: Current user's server ID
+- `userId`: Current user's user ID
+- `fullName`: Current user's full name - may be empty
+- `userProfile`: AngularFire Object containing current user's profile possibly with properties `activitiesSeenTS`, `broadcastsSeenTS`, `fullName`, `portraitURL`
+- `streamCounts`: Object containing unread filtered number of items in Activity Stream (`streamCounts.numActivities`) and Broadcast Stream (`streamCounts.numBroadcasts`)
+- `filteredActivities`: Array containing filtered (i.e. unread) activities
+- `filteredBroadcasts`: Array containing filtered (i.e. unread and unexpired as of pageload) broadcasts
