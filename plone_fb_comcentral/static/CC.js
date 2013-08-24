@@ -67,8 +67,8 @@ app.config(['$routeProvider', '$locationProvider', '$provide',
         .otherwise({redirectTo: '/'});
 }]);
 
-app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', 'setupUser',
-    function ($rootScope, angularFire, $q, $cookieStore, setupUser) {
+app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '$http', 'setupUser',
+    function ($rootScope, angularFire, $q, $cookieStore, $http, setupUser) {
     // Configure parameters. In Plone these are provided from the template by ng-init.
 
     var credsQ = $q.defer(),
@@ -194,6 +194,9 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
         // stored or updated on login
         profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
                 // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
+        if ($rootScope.portraitUrl) {
+            profileRef.child('portraitUrl').set($rootScope.portraitUrl);
+        }
         var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
         userProfilePromise.then(function () {
             userProfileQ.resolve();
@@ -479,20 +482,12 @@ app.controller('MessagingController',
             $scope.messages = angularFireCollection(currentRoomRef.child('messages').limit($scope.messages.length + 25));
         };
 
-        $scope.portraits = {};
         $scope.getPortraitURL = function (username) {
-            if (!$scope.portraits.hasOwnProperty(username)) {
-                $.ajax($rootScope.portraitRoot + username).always(function (data) {
-                    if (data.status === 200) {
-                        $scope.portraits[username] = $rootScope.portraitRoot + username;
-                    }
-                    else {
-                        $scope.portraits[username] = $rootScope.defaultPortrait;
-                    }
-                    if (!$scope.$$phase) {
-                        $scope.$apply();
-                    }
-                });
+            if($scope.userProfiles && $scope.userProfiles[username] && $scope.userProfiles[username].portraitURL) {
+                return $scope.userProfiles[username].portraitURL;
+            }
+            else {
+                return $rootScope.defaultPortrait;
             }
         };
 
