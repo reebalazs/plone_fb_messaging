@@ -37,7 +37,7 @@
       <div ng-switch-when="room">
         <strong>Room Members <span ng-cloak>({{userCounts.roomMembers}})</span>:</strong>
         <div class="user" ng-cloak ng-repeat="(user, user) in roomMembers | roomMemberFilter:userCounts">
-          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username" title="{{user.split(':')[0]}}">
+          <a href="" class="user" ng-click="createPrivateRoom(username, user)" ng-show="user != username" title="{{user.split(':')[0]}}">
             {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
           <span ng-show="user == username" title="{{user.split(':')[0]}}">
@@ -49,7 +49,7 @@
       <div ng-switch-when="online">
         <strong>Online Users <span ng-cloak>({{userCounts.onlineUsers}})</span>:</strong>
         <div class="user" ng-cloak ng-repeat="(user, user) in users | userFilter:userCounts" title="{{user.split(':')[0]}}">
-          <a href="" class="user" ng-click="createPrivateRoom(user, user)" ng-show="user != username">
+          <a href="" class="user" ng-click="createPrivateRoom(username, user)" ng-show="user != username">
             {{user.split(':')[1]}} <span ng-show="userProfiles[user].fullName">({{user | getFullName:userProfiles}})</span>
           </a>
           <span ng-show="user == username" title="{{user.split(':')[0]}}">
