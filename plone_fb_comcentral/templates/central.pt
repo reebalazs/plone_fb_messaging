@@ -6,7 +6,7 @@
                   fullName='${view/auth_data/ploneFullName}';;
                   staticRoot='${view/static/staticRoot}';;
                   portraitRoot='${view/static/portraitRoot}';;
-                  "> /* Can we call setupUser here instead? */
+                  ">
   <div class="close fb-close"></div>
   <div class="fb-overlay-content">
     <h1 class="fb-cc-title"><a href="#*/">Communicator</a></h1>
