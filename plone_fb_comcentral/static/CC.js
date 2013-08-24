@@ -195,16 +195,12 @@ app.service('AuthService', ['$rootScope', 'angularFire', '$q', '$cookieStore', '
         // stored or updated on login
         profileRef.child('fullName').set($rootScope.fullName); // XXX XXX force profile/{{username}} to exist
                 // XXX I think we should not need to do this for profile to exist, may be a bug in angularFire?
+        if ($rootScope.portraitUrl) {
+            profileRef.child('portraitUrl').set($rootScope.portraitUrl);
+        }
         var userProfilePromise = angularFire(profileRef, $rootScope, 'userProfile', {});
         userProfilePromise.then(function () {
-            $http.get($rootScope.portraitRoot + username)
-                .success(function () {
-                    $rootScope.userProfile.portraitUrl =  $rootScope.portraitRoot + username;
-                    userProfileQ.resolve();
-                })
-                .error(function () {
-                    userProfileQ.resolve();
-                });
+            userProfileQ.resolve();
         });
     });
 }]);
